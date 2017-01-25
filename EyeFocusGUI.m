@@ -91,7 +91,7 @@ if get(hObject,'Value') && count == 0
 % load the BioRadio API using a MATLAB's .NET interface
 % current_dir = cd;
 
-[ deviceManager , flag ] = load_API(['D:\Lipus Files\Graduate School\Semester 2\EOG_EEG\Saswat EOG_EEG\360-0039BioRadioSDK\MATLAB\BioRadioSDK.dll']);
+[ deviceManager , flag ] = load_API(['C:\Users\mahmoodms\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\BioRadioSDK.dll']);
 % input = full path to api dll file
 % outputs = deviceManager object, success flag
 %
