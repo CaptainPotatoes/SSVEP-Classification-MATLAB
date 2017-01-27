@@ -1,5 +1,5 @@
 clear all;clc;
-arduin = serial('COM5','Baudrate',38400);
+arduin = serial('COM13','Baudrate',115200);
 fopen(arduin);
 %s=10000;
 thetanull=zeros(100,6);
@@ -8,7 +8,9 @@ delay=0.01;
 jin=1;
 yfit = zeros(5,1);
 while(jin)
-    thetanull(end,:)=fscanf(arduin,'%d %d %d %d %d %d');
+%     thetanull(end,:)=fscanf(arduin,'%d %d %d %d %d %d');
+    theta = fscanf(arduin, '%d %d')
+    %{
     thetanull(1:end-1)=thetanull(2:end);
     [yfit] = TestMasterNew(thetanull);   
     theta2null(:,1:3) = thetanull(:,1:3)./16384;
@@ -32,5 +34,6 @@ while(jin)
     %xlim([9900 10000]);
     yfit
     %alpha;
+    %}
 end
 fclose(arduin);
