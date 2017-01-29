@@ -134,7 +134,7 @@ numEnabledBPChannels = double(myDevice.BioPotentialSignals.Count);
 
 if numEnabledBPChannels == 0
     myDevice.Disconnect;
-    BioRadioData = [];
+    RawBioRadioData = [];
     errordlg('No BioPotential Channels Programmed. Return to BioCapture to Configure.')
     return
 end
@@ -143,116 +143,101 @@ sampleRate_BP = double(myDevice.BioPotentialSignals.SamplesPerSecond);
 %Preallocating and setting up which area in the GUI the plot will go into
     % First two are raw data
     % Next two are data analysis features. 
-numAxes = 4; 
+numAxes = 6; 
 axis_handles = zeros(1,numAxes);
 for ch = 1:numAxes
     axis_handles(ch) = handles.(['axes',num2str(ch)]);
+    %{
     if ch==1
         title([char(BioRadio_Name)]) 
     end
+    %}
 end
 
 %Preallocating BPSignals
 
 BioPotentialSignals = cell(1,numEnabledBPChannels);
 Idx = cell(1,numEnabledBPChannels);
-ButterFilt = cell(1,numEnabledBPChannels);
-BufferFilt = cell (1,numEnabledBPChannels);
-PSD = cell(1,numEnabledBPChannels);
-%Filter
-High=350*2/sampleRate_BP;
-Low=450*2/sampleRate_BP; 
-[b,a] = butter(3,[5*2/sampleRate_BP],'high');
-%Notch Filter
-NotchHigh = 126*2/sampleRate_BP;
-NotchLow = 124*2/sampleRate_BP;
-% [b1,a1] = butter(3,[NotchLow, NotchHigh],'stop');
 if get(hObject,'Value') == 1
 myDevice.StartAcquisition;
 end
-zold = 0;
 plotWindow = 5;
 plotGain_BP = 1;
-
+fft_len = plotWindow*sampleRate_BP;
+dBmax = 100;
 while get(hObject,'Value') == 1
     pause(0.08)
     for ch = 1:numEnabledBPChannels
-
             BioPotentialSignals{ch} = [BioPotentialSignals{ch};myDevice.BioPotentialSignals.Item(ch-1).GetScaledValueArray.double'];
-            Idx{ch} = 1:length(BioPotentialSignals{ch});
-            %{
-%             ButterFilt{ch}  = filtfilt(b,a,BioPotentialSignals{ch});
-%             if length(BioPotentialSignals{1}) > 5000
-%                 BufferFilt{1}  = buffer(BioPotentialSignals{ch},5000);
-% 
-%                 
-% %                 for z = size(BufferFilt{1},2)
-% %                    
-% %                     if zold < z
-% %                         if size(BufferFilt{1}(:,z),1) == 5000
-% %                             zold = z;
-% % 
-% %     %                     Lo=size(BufferFilt{1},1);
-% %     %                     NFFT = 2^nextpow2(Lo);
-% %     %                     Yo = fft(BufferFilt{1}(:,z),NFFT)/Lo;
-% %     %                     fo = sampleRate_BP/2*linspace(0,1,NFFT/2+1);
-% % %                             [PSD{ch},f]=pwelch(BufferFilt{1}(:,z),[],[],[],sampleRate_BP);
-% % % 
-% % %                             plot(axis_handles(ch+2),f,pow2db(PSD{ch}))
-% % %                             set(handles.(['axes',num2str(ch+2)]),'XLim',[0 f(end)])
-% %                         end
-% %                     end
-% %                 end
-%             end
-            %}
-            
+            Idx{ch} = 1:length(BioPotentialSignals{ch});            
             %Plot the Axes in the GUI
             if length(BioPotentialSignals{ch}) <= plotWindow*sampleRate_BP
                 t = (0:(length(BioPotentialSignals{ch})-1))*(1/sampleRate_BP);
                 plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch})
-
-    %             t2 = (0:(length(ButterFilt{ch})-1))*(1/sampleRate_BP);
-    %             plot(axis_handles(ch+1),t2,plotGain_BP*ButterFilt{ch})
-
                 set(handles.(['axes',num2str(ch)]),'XLim',[0 plotWindow]);
                 set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
                 set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
-                set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'EEG Bioradio')
-            else
+                if ch==1
+                    set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Fp1')
+                    
+                elseif ch==2
+                    set(get(handles.(['axes',num2str(ch)]),'Title'),'String','Fp2')
+                end
+            else %once plot window is exceeded:
                 if ch==1
                      t = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
-    %                  t2 = ((length(ButterFilt{ch})-(plotWindow*sampleRate_BP-1)):length(ButterFilt{ch}))*(1/sampleRate_BP);
                 end
-%             plot(axis_handles(ch+1),t2,plotGain_BP*ButterFilt{ch}(end-plotWindow*sampleRate_BP+1:end))
                 plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end))
                 set(handles.(['axes',num2str(ch)]),'XLim',[t(end)-plotWindow t(end)]);
                 set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
                 set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
-                set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'EEG Bioradio')
+                if ch==1
+%                     set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Fp1')
+                    % FFT:
+                    fp1_fft = fft(BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end));
+                    P2 = abs(fp1_fft/fft_len);
+                    P1 = P2(1:fft_len/2+1);
+                    P1(2:end-1) = 2*P1(2:end-1);
+                    f = sampleRate_BP*(0:(fft_len/2))/fft_len;
+                    plot(axis_handles(3),f,P1);
+                    set(handles.(['axes',num2str(3)]),'XLim',[1 100]);
+                    set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
+                    set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
+                    set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
+                    % Spect:
+                    
+                elseif ch==2
+                    fp1_fft = fft(BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end));
+                    P2 = abs(fp1_fft/fft_len);
+                    P1 = P2(1:fft_len/2+1);
+                    P1(2:end-1) = 2*P1(2:end-1);
+                    f = sampleRate_BP*(0:(fft_len/2))/fft_len;
+                    plot(axis_handles(4),f,P1);
+                    set(handles.(['axes',num2str(4)]),'XLim',[1 100]);
+                    set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
+                    set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P1(f)|')
+                    set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
+                end
             end
+            %% Analysis:
+                
             %% Todo: FFT and plot on axes #3
 %             if length(BioPotentialSignals{ch}) > 500
 %             plot(axis_handles(ch+1),lags{ch}(size(BufferFilt{1},2)-1,:)/sampleRate_BP,BPAutocorrelation{ch}(size(BufferFilt{1},2)-1,:))
 %             end
             
-   end
-  
-end
+    end     %/for ch = 1:numEnabledBPChannels
+end     %/while connected==1
 
 if get(hObject,'Value') == 0
     myDevice.StopAcquisition;
-    BioRadioData = cell(1,4);
-  
-            BioRadioData{1,1} = BioPotentialSignals{1};
-            BioRadioData{1,2} = BioPotentialSignals{2};
-                %Analysis Stuff
-            %BioRadioData{1,3} = ;
-            %B
+    RawBioRadioData = cell(1,2);
+            RawBioRadioData{1,1} = BioPotentialSignals{1};
+            RawBioRadioData{1,2} = BioPotentialSignals{2};
+    assignin('base','Trial',RawBioRadioData)
+    %Analysis Stuff
     
-    assignin('base','Trial',BioRadioData)
-%     countFar =1;
-%     countMiddle =1;
-%     countClose=1;
+%     assignin('base','Analysis',
    
     
 end
