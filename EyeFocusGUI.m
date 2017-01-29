@@ -19,11 +19,8 @@ function varargout = EyeFocusGUI(varargin)
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
-
 % Edit the above text to modify the response to help EyeFocusGUI
-
-% Last Modified by GUIDE v2.5 27-Dec-2016 10:27:40
-
+% Last Modified by GUIDE v2.5 29-Jan-2017 12:44:30
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -42,7 +39,6 @@ else
     gui_mainfcn(gui_State, varargin{:});
 end
 % End initialization code - DO NOT EDIT
-
 
 % --- Executes just before EyeFocusGUI is made visible.
 function EyeFocusGUI_OpeningFcn(hObject, eventdata, handles, varargin)
@@ -65,14 +61,12 @@ guidata(hObject, handles);
 % UIWAIT makes EyeFocusGUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
-
 % --- Outputs from this function are returned to the command line.
 function varargout = EyeFocusGUI_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
@@ -89,12 +83,10 @@ count = 0;
 if get(hObject,'Value') && count == 0
 
 % load the BioRadio API using a MATLAB's .NET interface
-% current_dir = cd;
-
 [ deviceManager , flag ] = load_API(['C:\Users\mahmoodms\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\BioRadioSDK.dll']);
 % input = full path to api dll file
 % outputs = deviceManager object, success flag
-%
+
 if ~flag % if API not successfully loaded, do not continue
     return
 end
@@ -137,7 +129,7 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global myDevice Idx FarIdx MiddleIdx CloseIdx countFar countMiddle countClose
-BioRadio_Name = 'Dong Sup';
+BioRadio_Name = 'EEG-SSVEP';
 numEnabledBPChannels = double(myDevice.BioPotentialSignals.Count);
 
 if numEnabledBPChannels == 0
@@ -149,17 +141,17 @@ end
 
 sampleRate_BP = double(myDevice.BioPotentialSignals.SamplesPerSecond);
 %Preallocating and setting up which area in the GUI the plot will go into
-axis_handles = zeros(1,numEnabledBPChannels);
-for ch = 1:numEnabledBPChannels
-
+    % First two are raw data
+    % Next two are data analysis features. 
+numAxes = 4; 
+axis_handles = zeros(1,numAxes);
+for ch = 1:numAxes
     axis_handles(ch) = handles.(['axes',num2str(ch)]);
-%     axis_handles(ch+1) = handles.(['axes',num2str(ch+1)]);
-%     axis_handles(ch+2) = handles.(['axes',num2str(ch+1)]);
     if ch==1
-        title([char(BioRadio_Name)])
-        
+        title([char(BioRadio_Name)]) 
     end
 end
+
 %Preallocating BPSignals
 
 BioPotentialSignals = cell(1,numEnabledBPChannels);
@@ -188,9 +180,8 @@ while get(hObject,'Value') == 1
 
             BioPotentialSignals{ch} = [BioPotentialSignals{ch};myDevice.BioPotentialSignals.Item(ch-1).GetScaledValueArray.double'];
             Idx{ch} = 1:length(BioPotentialSignals{ch});
+            %{
 %             ButterFilt{ch}  = filtfilt(b,a,BioPotentialSignals{ch});
-            
-            
 %             if length(BioPotentialSignals{1}) > 5000
 %                 BufferFilt{1}  = buffer(BioPotentialSignals{ch},5000);
 % 
@@ -213,37 +204,33 @@ while get(hObject,'Value') == 1
 % %                     end
 % %                 end
 %             end
-
+            %}
             
-         
             %Plot the Axes in the GUI
             if length(BioPotentialSignals{ch}) <= plotWindow*sampleRate_BP
-            t = (0:(length(BioPotentialSignals{ch})-1))*(1/sampleRate_BP);
-            plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch})
-            
-%             t2 = (0:(length(ButterFilt{ch})-1))*(1/sampleRate_BP);
-%             plot(axis_handles(ch+1),t2,plotGain_BP*ButterFilt{ch})
-            
-            set(handles.(['axes',num2str(ch)]),'XLim',[0 plotWindow]);
-            set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
-            set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
-            set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Sas Bioradio')
-            else
-            if ch==1
-                 t = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
-%                  t2 = ((length(ButterFilt{ch})-(plotWindow*sampleRate_BP-1)):length(ButterFilt{ch}))*(1/sampleRate_BP);
-            end
-%             plot(axis_handles(ch+1),t2,plotGain_BP*ButterFilt{ch}(end-plotWindow*sampleRate_BP+1:end))
-            plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end))
-            set(handles.(['axes',num2str(ch)]),'XLim',[t(end)-plotWindow t(end)]);
-            set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
-            set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
-            set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Sas Bioradio')
-            end
-            
+                t = (0:(length(BioPotentialSignals{ch})-1))*(1/sampleRate_BP);
+                plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch})
 
-            
-           
+    %             t2 = (0:(length(ButterFilt{ch})-1))*(1/sampleRate_BP);
+    %             plot(axis_handles(ch+1),t2,plotGain_BP*ButterFilt{ch})
+
+                set(handles.(['axes',num2str(ch)]),'XLim',[0 plotWindow]);
+                set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
+                set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
+                set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'EEG Bioradio')
+            else
+                if ch==1
+                     t = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
+    %                  t2 = ((length(ButterFilt{ch})-(plotWindow*sampleRate_BP-1)):length(ButterFilt{ch}))*(1/sampleRate_BP);
+                end
+%             plot(axis_handles(ch+1),t2,plotGain_BP*ButterFilt{ch}(end-plotWindow*sampleRate_BP+1:end))
+                plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end))
+                set(handles.(['axes',num2str(ch)]),'XLim',[t(end)-plotWindow t(end)]);
+                set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
+                set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
+                set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'EEG Bioradio')
+            end
+            %% Todo: FFT and plot on axes #3
 %             if length(BioPotentialSignals{ch}) > 500
 %             plot(axis_handles(ch+1),lags{ch}(size(BufferFilt{1},2)-1,:)/sampleRate_BP,BPAutocorrelation{ch}(size(BufferFilt{1},2)-1,:))
 %             end
@@ -256,68 +243,19 @@ if get(hObject,'Value') == 0
     myDevice.StopAcquisition;
     BioRadioData = cell(1,4);
   
-            BioRadioData{1,1} = BioPotentialSignals;
-            BioRadioData{1,2} = FarIdx;
-            BioRadioData{1,3} = MiddleIdx;
-            BioRadioData{1,4} = CloseIdx;      
-            
+            BioRadioData{1,1} = BioPotentialSignals{1};
+            BioRadioData{1,2} = BioPotentialSignals{2};
+                %Analysis Stuff
+            %BioRadioData{1,3} = ;
+            %B
     
     assignin('base','Trial',BioRadioData)
-    countFar =1;
-    countMiddle =1;
-    countClose=1;
+%     countFar =1;
+%     countMiddle =1;
+%     countClose=1;
    
     
 end
 
-
- 
-
 % assignin('base','FilteredSignal',ButterFilt)
 % assignin('base','FFTData',PSD)
-
-
-% --- Executes on button press in Far.
-function Far_Callback(hObject, eventdata, handles)
-% hObject    handle to Far (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global Idx FarIdx countFar
-if countFar == 1
-    FarIdx = zeros(1,1);
-    FarIdx(countFar,1) = size(Idx{1,1},2)
-    countFar = countFar +1;
-else
-    FarIdx(countFar,1) = size(Idx{1,1},2)
-    countFar = countFar +1;
-end
-
-% --- Executes on button press in Middle.
-function Middle_Callback(hObject, eventdata, handles)
-% hObject    handle to Middle (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global Idx MiddleIdx countMiddle
-if countMiddle == 1
-    MiddleIdx = zeros(1,1);
-    MiddleIdx(countMiddle,1) = size(Idx{1,1},2)
-    countMiddle = countMiddle +1;
-else
-    MiddleIdx(countMiddle,1) = size(Idx{1,1},2)
-    countMiddle = countMiddle +1;
-end
-
-% --- Executes on button press in Close.
-function Close_Callback(hObject, eventdata, handles)
-% hObject    handle to Close (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global Idx CloseIdx countClose
-if countClose == 1
-    CloseIdx = zeros(1,1);
-    CloseIdx(countClose,1) = size(Idx{1,1},2)
-    countClose = countClose +1;
-else
-    CloseIdx(countClose,1) = size(Idx{1,1},2)
-    countClose = countClose +1;
-end
