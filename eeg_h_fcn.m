@@ -8,8 +8,8 @@ ecg = ecg(:); %vectorize
 
 f2s = fs;
 %% bandpass filter for Noise cancelation of other sampling frequencies(Filtering)
-f1=13; %cuttoff low frequency to get rid of baseline wander
-f2=90; %cuttoff frequency to discard high frequency noise
+f1=10; %cuttoff low frequency to get rid of baseline wander
+f2=95; %cuttoff frequency to discard high frequency noise
 Wn=[f1 f2]*2/f2s; % cut off based on fs
 N = 3; % order of 3 less processing
 [a,b] = butter(N,Wn); %bandpass filtering
@@ -19,11 +19,7 @@ ecg_h_a = ecg_h_a/max(abs(ecg_h_a));
 cc = [59 61];
 c0 = cc/(f2s/2);
 [b1, a1] = butter(3,c0, 'stop');
-ecg_h_60 = filtfilt(b1,a1,ecg_h_a);
-cc2 = [49 51];
-c02 = cc2/(f2s/2);
-[b2, a2] = butter(3,c02, 'stop');
-ecg_h = filtfilt(b2,a2,ecg_h_60);
+ecg_h = filtfilt(b1,a1,ecg_h_a);
 % d = designfilt('bandstopiir','FilterOrder', 2, ...
 %                'HalfPowerFrequency1',59,'HalfPowerFrequency2',61, ...
 %                'DesignMethod','butter','SampleRate',fs);

@@ -5,7 +5,7 @@ channelNames = {'Fp1' 'Fp2'};
 [filename,pathname,~]  = uigetfile('*.csv','Select Data to Upload');
 recording1 = csvread([pathname filename]);
 
-Fs = 500;
+Fs = 250;
 % fp1_recording1 = recording1(:,1);
 %%TEMP 
 fp1_recording1 = recording1(:,1);
@@ -44,7 +44,7 @@ end
     % Fp1:
 %     tic
     %Filter Fp1:
-    fp1_r_filtered = eeg_bandpass(fp1_recording1,Fs);
+    fp1_r_filtered = eeg_h_fcn(fp1_recording1(1:1250),Fs);
 %     fp1_r_filtered = eeg_bandpass(fp1_recording1,Fs);
 %     fp2_r_filtered = eeg_h_fcn(fp2_recording1,Fs);
     n=1;
@@ -53,7 +53,7 @@ end
     startFromHz = 0;
     upToHz = 240;
 %     [S{n},Fspect{n},T{n},P{n}] = spectrogram(fp1_r_filtered(:,n),5*Fs,4*Fs,10*Fs,Fs);
-    [S{n},Fspect{n},T{n},P{n}] = spectrogram(fp1_recording1,5*Fs,4*Fs,10*Fs,Fs);
+    [S{n},Fspect{n},T{n},P{n}] = spectrogram(fp1_r_filtered, Fs,0.5*Fs,10*Fs,Fs);
     figure
     imagesc( T{n}, ...
              Fspect{n}(Fspect{n}<upToHz & Fspect{n}>startFromHz), ...
