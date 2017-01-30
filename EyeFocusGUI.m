@@ -143,7 +143,7 @@ sampleRate_BP = double(myDevice.BioPotentialSignals.SamplesPerSecond);
 %Preallocating and setting up which area in the GUI the plot will go into
     % First two are raw data
     % Next two are data analysis features. 
-numAxes = 6; 
+numAxes = 8; 
 axis_handles = zeros(1,numAxes);
 for ch = 1:numAxes
     axis_handles(ch) = handles.(['axes',num2str(ch)]);
@@ -163,8 +163,8 @@ myDevice.StartAcquisition;
 end
 plotWindow = 5;
 plotGain_BP = 1;
-fft_len = plotWindow*sampleRate_BP;
-% fft_len = 2^(nextpow2(plotWindow*sampleRate_BP));
+% fft_len = plotWindow*sampleRate_BP;
+fft_len = 2^(nextpow2(plotWindow*sampleRate_BP));
 % dBmax = 100;
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
@@ -245,6 +245,13 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Time (s)')
                     set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Spectrogram (Fp1)')
+                    %Pwelch
+                    [Pxx, F] = pwelch(fp1_data_filtered, [],[],250);
+                    plot(axis_handles(7), Pxx); 
+                    set(handles.(['axes',num2str(7)]),'XLim',[0 100]);
+                    set(get(handles.(['axes',num2str(7)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                    set(get(handles.(['axes',num2str(7)]), 'YLabel'), 'String', 'Power (dB)')
+                    set(get(handles.(['axes',num2str(7)]), 'Title'), 'String', 'Pwelch (Fp1)')
                 elseif ch==2
                     fp2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     fp2_data_filtered = eeg_h_fcn(fp2_data_unfilt, sampleRate_BP);
@@ -268,6 +275,13 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Time (s)')
                     set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Spectrogram (Fp2)')
+                    %Pwelch
+                    [Pxx, F] = pwelch(fp2_data_filtered, [],[],250);
+                    plot(axis_handles(8), Pxx); 
+                    set(handles.(['axes',num2str(8)]),'XLim',[0 100]);
+                    set(get(handles.(['axes',num2str(8)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                    set(get(handles.(['axes',num2str(8)]), 'YLabel'), 'String', 'Power (dB)')
+                    set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', 'Pwelch (Fp1)')
                 end
             end
             %% Analysis:
