@@ -48,12 +48,9 @@ function EyeFocusGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to EyeFocusGUI (see VARARGIN)
 
-global countFar countMiddle countClose
+% global countFar countMiddle countClose
 % Choose default command line output for EyeFocusGUI
 handles.output = hObject;
-countFar = 1;
-countMiddle = 1;
-countClose = 1;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -128,7 +125,7 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to togglebutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global myDevice Idx FarIdx MiddleIdx CloseIdx countFar countMiddle countClose
+global myDevice Idx
 BioRadio_Name = 'EEG-SSVEP';
 numEnabledBPChannels = double(myDevice.BioPotentialSignals.Count);
 
@@ -168,6 +165,7 @@ fft_len = 2^(nextpow2(plotWindow*sampleRate_BP));
 % dBmax = 100;
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
+max_freq = 50;
 while get(hObject,'Value') == 1
     pause(0.08)
     for ch = 1:numEnabledBPChannels
@@ -184,7 +182,8 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Fp1')
                     if length(BioPotentialSignals{ch})>sampleRate_BP
                         fft_len_short = 2^(nextpow2(length(BioPotentialSignals{ch})));
-                        fp1_fft = fft(BioPotentialSignals{ch});
+                        %FILTER:
+                        fp1_fft = fft(eeg_h_fcn3_50(BioPotentialSignals{ch},sampleRate_BP));
                         P2 = abs(fp1_fft/fft_len_short);
                         P1 = P2(1:fft_len_short/2+1);
                         P1(2:end-1) = 2*P1(2:end-1);
@@ -199,8 +198,9 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(ch)]),'Title'),'String','Fp2')
                     if length(BioPotentialSignals{ch})>sampleRate_BP
                         fft_len_short = 2^(nextpow2(length(BioPotentialSignals{ch})));
-                        fp1_fft = fft(BioPotentialSignals{ch});
-                        P2 = abs(fp1_fft/fft_len_short);
+                        %FILTER:
+                        fp2_fft = fft(eeg_h_fcn3_50(BioPotentialSignals{ch},sampleRate_BP));
+                        P2 = abs(fp2_fft/fft_len_short);
                         P1 = P2(1:fft_len_short/2+1);
                         P1(2:end-1) = 2*P1(2:end-1);
                         f = sampleRate_BP*(0:(fft_len_short/2))/fft_len_short;
@@ -223,7 +223,7 @@ while get(hObject,'Value') == 1
 %                     set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Fp1')
                     % FFT:
                     fp1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    fp1_data_filtered = eeg_h_fcn(fp1_data_unfilt, sampleRate_BP);
+                    fp1_data_filtered = eeg_h_fcn3_50(fp1_data_unfilt, sampleRate_BP);
                     fp1_fft = fft(fp1_data_filtered);
                     P2 = abs(fp1_fft/fft_len);
                     P1 = P2(1:fft_len/2+1);
@@ -236,7 +236,6 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
                     % Spect:
                     [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-%                     [S, Fspect, T, P] = spectrogram(fp1_data_unfilt, 2*sampleRate_BP,1*sampleRate_BP,6*sampleRate_BP,sampleRate_BP);
                     h1 = imagesc(spect_1, T, Fspect(Fspect<100 & Fspect>0), 10*log10(P(Fspect<100 & Fspect>0,:)));
                     set(spect_1,'YDir','normal')
                     cb = colorbar(spect_1);
@@ -246,7 +245,7 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Spectrogram (Fp1)')
                     %Pwelch
-                    [Pxx, F] = pwelch(fp1_data_filtered, [],[],250);
+                    [Pxx, F] = pwelch(fp1_data_filtered,[],[],250);
                     plot(axis_handles(7), Pxx); 
                     set(handles.(['axes',num2str(7)]),'XLim',[0 100]);
                     set(get(handles.(['axes',num2str(7)]), 'XLabel'), 'String', 'Frequency (Hz)')
@@ -254,7 +253,7 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(7)]), 'Title'), 'String', 'Pwelch (Fp1)')
                 elseif ch==2
                     fp2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    fp2_data_filtered = eeg_h_fcn(fp2_data_unfilt, sampleRate_BP);
+                    fp2_data_filtered = eeg_h_fcn3_50(fp2_data_unfilt, sampleRate_BP);
                     fp2_fft = fft(fp2_data_filtered);
                     P2 = abs(fp2_fft/fft_len);
                     P1 = P2(1:fft_len/2+1);
@@ -276,7 +275,7 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Spectrogram (Fp2)')
                     %Pwelch
-                    [Pxx, F] = pwelch(fp2_data_filtered, [],[],250);
+                    [Pxx, F] = pwelch(fp2_data_filtered,[],[],250);
                     plot(axis_handles(8), Pxx); 
                     set(handles.(['axes',num2str(8)]),'XLim',[0 100]);
                     set(get(handles.(['axes',num2str(8)]), 'XLabel'), 'String', 'Frequency (Hz)')
@@ -284,8 +283,7 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', 'Pwelch (Fp1)')
                 end
             end
-            %% Analysis:
-                
+
             %% Todo: FFT and plot on axes #3
 %             if length(BioPotentialSignals{ch}) > 500
 %             plot(axis_handles(ch+1),lags{ch}(size(BufferFilt{1},2)-1,:)/sampleRate_BP,BPAutocorrelation{ch}(size(BufferFilt{1},2)-1,:))
@@ -300,11 +298,20 @@ if get(hObject,'Value') == 0
             RawBioRadioData{1,1} = BioPotentialSignals{1};
             RawBioRadioData{1,2} = BioPotentialSignals{2};
     assignin('base','Trial',RawBioRadioData)
-    %Analysis Stuff
-    
-%     assignin('base','Analysis',
-   
-    
+    %% Todo: Change into button function.
+    c=clock;
+    filename = ['RawBioRadioData_',num2str(c(2)),'-',num2str(c(3)),'-',num2str(c(1)),'_',num2str(c(4)),'.',num2str(c(5)),',',num2str(c(6)),'.xlsx'];
+    l1 = length(BioPotentialSignals{1})
+    l2 = length(BioPotentialSignals{2})
+    if l2~=l1 %if not the same size
+        if l2>l1
+            xlswrite(filename, [BioPotentialSignals{1},BioPotentialSignals{2}(1:l1)]);
+        else %l1>l2
+            xlswrite(filename, [BioPotentialSignals{1}(1:l2),BioPotentialSignals{2}]);
+        end
+    else
+        xlswrite(filename, [BioPotentialSignals{1},BioPotentialSignals{2}]);
+    end
 end
 
 % assignin('base','FilteredSignal',ButterFilt)
