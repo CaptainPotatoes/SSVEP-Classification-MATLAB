@@ -13,7 +13,7 @@ Wn=[f1 f2]*2/f2s; % cut off based on fs
 N = 3; % order of 3 less processing
 [a,b] = butter(N,Wn); %bandpass filtering
 ecg_h_a = filtfilt(a,b,ecg);
-ecg_h_a = ecg_h_a/max(abs(ecg_h_a));
+% ecg_h_a = ecg_h_a/max(abs(ecg_h_a));
 %% Notch at 60Hz
 % cc = [59 61];
 % c0 = cc/(f2s/2);

@@ -1,32 +1,32 @@
-function varargout = EyeFocusGUI(varargin)
-% EYEFOCUSGUI MATLAB code for EyeFocusGUI.fig
-%      EYEFOCUSGUI, by itself, creates a new EYEFOCUSGUI or raises the existing
+function varargout = SSVEPGUI(varargin)
+% SSVEPGUI MATLAB code for SSVEPGUI.fig
+%      SSVEPGUI, by itself, creates a new SSVEPGUI or raises the existing
 %      singleton*.
 %
-%      H = EYEFOCUSGUI returns the handle to a new EYEFOCUSGUI or the handle to
+%      H = SSVEPGUI returns the handle to a new SSVEPGUI or the handle to
 %      the existing singleton*.
 %
-%      EYEFOCUSGUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in EYEFOCUSGUI.M with the given input arguments.
+%      SSVEPGUI('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in SSVEPGUI.M with the given input arguments.
 %
-%      EYEFOCUSGUI('Property','Value',...) creates a new EYEFOCUSGUI or raises the
+%      SSVEPGUI('Property','Value',...) creates a new SSVEPGUI or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before EyeFocusGUI_OpeningFcn gets called.  An
+%      applied to the SSVEPGUI before SSVEPGUI_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to EyeFocusGUI_OpeningFcn via varargin.
+%      stop.  All inputs are passed to SSVEPGUI_OpeningFcn via varargin.
 %
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      *See SSVEPGUI Options on GUIDE's Tools menu.  Choose "SSVEPGUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
-% Edit the above text to modify the response to help EyeFocusGUI
-% Last Modified by GUIDE v2.5 29-Jan-2017 12:44:30
+% Edit the above text to modify the response to help SSVEPGUI
+% Last Modified by GUIDE v2.5 31-Jan-2017 17:30:38
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @EyeFocusGUI_OpeningFcn, ...
-                   'gui_OutputFcn',  @EyeFocusGUI_OutputFcn, ...
+                   'gui_OpeningFcn', @SSVEPGUI_OpeningFcn, ...
+                   'gui_OutputFcn',  @SSVEPGUI_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -40,26 +40,26 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-% --- Executes just before EyeFocusGUI is made visible.
-function EyeFocusGUI_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before SSVEPGUI is made visible.
+function SSVEPGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to EyeFocusGUI (see VARARGIN)
+% varargin   command line arguments to SSVEPGUI (see VARARGIN)
 
 % global countFar countMiddle countClose
-% Choose default command line output for EyeFocusGUI
+% Choose default command line output for SSVEPGUI
 handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes EyeFocusGUI wait for user response (see UIRESUME)
+% UIWAIT makes SSVEPGUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = EyeFocusGUI_OutputFcn(hObject, eventdata, handles) 
+function varargout = SSVEPGUI_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -137,7 +137,7 @@ if numEnabledBPChannels == 0
 end
 
 sampleRate_BP = double(myDevice.BioPotentialSignals.SamplesPerSecond);
-%Preallocating and setting up which area in the GUI the plot will go into
+%Preallocating and setting up which area in the SSVEPGUI the plot will go into
     % First two are raw data
     % Next two are data analysis features. 
 numAxes = 10; 
@@ -171,7 +171,7 @@ while get(hObject,'Value') == 1
     for ch = 1:numEnabledBPChannels
             BioPotentialSignals{ch} = [BioPotentialSignals{ch};myDevice.BioPotentialSignals.Item(ch-1).GetScaledValueArray.double'];
             Idx{ch} = 1:length(BioPotentialSignals{ch});            
-            %Plot the Axes in the GUI
+            %Plot the Axes in the SSVEPGUI
             if length(BioPotentialSignals{ch}) <= plotWindow*sampleRate_BP
                 t = (0:(length(BioPotentialSignals{ch})-1))*(1/sampleRate_BP);
                 plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch})
@@ -236,7 +236,7 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
                     % Spect:
                     [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-%                     imagesc(spect_1, T, Fspect(Fspect<100 & Fspect>0), 10*log10(P(Fspect<100 & Fspect>0,:)));
+                    imagesc(spect_1, T, Fspect(Fspect<100 & Fspect>0), 10*log10(P(Fspect<100 & Fspect>0,:)));
                     set(spect_1,'YDir','normal')
                     cb = colorbar(spect_1);
                     ylabel(cb, 'Power (db)')
@@ -269,11 +269,11 @@ while get(hObject,'Value') == 1
                     plot(axis_handles(4),f,P1);
                     set(handles.(['axes',num2str(4)]),'XLim',[1 100]);
                     set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
-                    set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P1(f)|')
+                    set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P2(f)|')
                     set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
                     % Spect:
                     [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-%                     imagesc(spect_2, T, Fspect(Fspect<100 & Fspect>0), 10*log10(P(Fspect<100 & Fspect>0,:)));
+                    imagesc(spect_2, T, Fspect(Fspect<100 & Fspect>0), 10*log10(P(Fspect<100 & Fspect>0,:)));
                     set(spect_2,'YDir','normal') %gca
                     cb2 = colorbar(spect_2);
                     ylabel(cb2, 'Power (db)')
@@ -287,14 +287,14 @@ while get(hObject,'Value') == 1
                     set(handles.(['axes',num2str(8)]),'XLim',[0 100]);
                     set(get(handles.(['axes',num2str(8)]), 'XLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(8)]), 'YLabel'), 'String', 'Power (dB)')
-                    set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', 'Pwelch (Fp1)')
+                    set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', 'Pwelch (Fp2)')
                     %EOG
                     eog_data_fp2 = eog_h_fcn(fp2_data_unfilt, sampleRate_BP);
                     plot(axis_handles(10),t,eog_data_fp2);
                     set(handles.(['axes',num2str(10)]),'XLim',[t(end)-plotWindow t(end)]);
                     set(get(handles.(['axes',num2str(10)]), 'XLabel'), 'String', 'Time (s)')
                     set(get(handles.(['axes',num2str(10)]), 'YLabel'), 'String',  'mV')
-                    set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', 'EOG Filter Fp2')
+                    set(get(handles.(['axes',num2str(10)]), 'Title'), 'String', 'EOG Filter Fp2')
                 end
             end
 
@@ -319,15 +319,12 @@ if get(hObject,'Value') == 0
     l2 = length(BioPotentialSignals{2})
     if l2~=l1 %if not the same size
         if l2>l1
-            temp = [BioPotentialSignals{1},BioPotentialSignals{2}(1:l1)];
-            xlswrite(filename, temp);
+            xlswrite(filename, [BioPotentialSignals{1},BioPotentialSignals{2}(1:l1)]);
         else %l1>l2
-            temp = [BioPotentialSignals{1}(1:l2),BioPotentialSignals{2}];
-            xlswrite(filename, temp);
+            xlswrite(filename, [BioPotentialSignals{1}(1:l2),BioPotentialSignals{2}]);
         end
     else
-        temp = [BioPotentialSignals{1},BioPotentialSignals{2}];
-        xlswrite(filename, temp);
+        xlswrite(filename, [BioPotentialSignals{1},BioPotentialSignals{2}]);
     end
 end
 
