@@ -209,7 +209,97 @@ if abs(peak_frequency-71.43)<4%Hz
 else
     fprintf('Fail \n');
 end
+%%
+clear all;clc;close all;
+load('Trial2Data.mat')
+fp1d = Trial{1}(1:end-250,1); %ignore last second
+fp2d = Trial{2}(1:end-250,1);
+h=1/250;
+t=0:h:length(fp1d)/250-h;
+markers = tD{1};
+% figure
+% hold on;
+%     plot(fp1d);
+%     plot(fp2d);
+%     for i=1:length(markers)
+%         text(markers(i,1), fp1d(markers(i,1)), num2str(markers(i,2)));
+%     end
+% hold off;
+% Filter Entirety
+fp1dfilt = eog_h_fcn(fp1d,250);
+fp2dfilt = eog_h_fcn(fp2d,250);
+figure
+plot(t,fp1dfilt,'color','g');
+for i=1:length(markers)
+    text(t(markers(i,1)), fp1dfilt(markers(i,1)), num2str(markers(i,2)));
+end
 
+figure
+plot(t,fp2dfilt,'color','r');
+for i=1:length(markers)
+    text(t(markers(i,1)), fp2dfilt(markers(i,1)), num2str(markers(i,2)));
+end
+%% Gandhi Method
+winLen = 500;
+Window = cell(floor(length(fp1d)/winLen),1);
+% numFeatures = 5;
+% Features = zeros(floor(length(fp1d)/winLen),numFeatures+1);
+% Features = zeros(120,9);
+% Features = cell(floor(length(fp1d)/winLen),1);
 
+for i = 1:floor(length(fp1d)/winLen)
+    start = (i-1)*winLen+1;
+    Window{i} = eog_h_fcn(fp1d(start:start+winLen-1),250);
+%     xalloc = ((i-1)*winLen+1):(i*winLen);
+%     yalloc = 1:numFeatures;
+%     Features(xalloc,yalloc) = featureExtraction(Window{i});
+    [numFeatures Features(i,:)] = featureExtraction(Window{i}');
+%     CLASS:
+%     Class = zeros (xalloc, 1);
+%     for j=((i-1)*winLen+1):(i*winLen)
+%         if sum(j>tD{1}(:,1)-250 & j<tD{1}(:,1)+250)
+%             logMat = j>tD{1}(:,1)-250 & j<tD{1}(:,1)+250;
+%             findV = find(logMat,1,'first');
+%             Class(j,1) = tD{1}(findV,2);
+%         else
+%             Class(j,1) = 0;
+%         end
+%     end
+    for j=1:length(tD{1})
+        %if window contains number, assign class, else zero
+        if sum((start:start+winLen-1)==tD{1}(j,1))
+%             Features{i,1} = tD{1}(j,2);
+            Class(i,1) = tD{1}(j,2);
+            break;
+        else
+%             Features{i,1} = 0;
+            Class(i,1) = 0;
+        end
+    end
+end
+Features(:,numFeatures+1) = [Class];
 
-
+%% Sas Method
+%separate into wndows then filter & extract features
+winLen = 250;
+Window = cell(floor(length(fp1d)/winLen),1);
+% Features = cell(floor(length(fp1d)/winLen),1);
+for i = 1:floor(length(fp1d)/winLen)
+    start = (i-1)*winLen+1;
+%     Window{i} = fp1d(start:start+winLen-1);
+    Window{i} = eog_h_fcn(fp1d(start:start+winLen-1),250);
+%     Features{i,2} = Feature(Window{i});
+    Features(i,:) = [Feature(Window{i}),-1];
+%     CLASS:
+    for j=1:length(tD{1})
+        %if window contains number, assign class, else zero
+        if sum((start:start+winLen-1)==tD{1}(j,1))
+%             Features{i,1} = tD{1}(j,2);
+            Features(i,11) = tD{1}(j,2);
+            break;
+        else
+%             Features{i,1} = 0;
+            Features(i,11) = 0;
+        end
+    end
+end
