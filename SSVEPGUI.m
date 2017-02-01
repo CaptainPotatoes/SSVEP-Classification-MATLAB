@@ -20,7 +20,7 @@ function varargout = SSVEPGUI(varargin)
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 % Edit the above text to modify the response to help SSVEPGUI
-% Last Modified by GUIDE v2.5 31-Jan-2017 17:30:38
+% Last Modified by GUIDE v2.5 31-Jan-2017 17:43:47
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -51,7 +51,9 @@ function SSVEPGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % global countFar countMiddle countClose
 % Choose default command line output for SSVEPGUI
 handles.output = hObject;
-
+global trainingData
+trainingData = cell(1);
+trainingData{1} = [0,0];
 % Update handles structure
 guidata(hObject, handles);
 
@@ -125,7 +127,11 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to togglebutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global myDevice Idx
+global myDevice Idx 
+global trainingData totalCount
+
+totalCount = cell(1);
+totalCount{1} = 0;
 BioRadio_Name = 'EEG-SSVEP';
 numEnabledBPChannels = double(myDevice.BioPotentialSignals.Count);
 
@@ -154,6 +160,7 @@ end
 %Preallocating BPSignals
 
 BioPotentialSignals = cell(1,numEnabledBPChannels);
+EOG_Classes = cell(1);
 Idx = cell(1,numEnabledBPChannels);
 if get(hObject,'Value') == 1
 myDevice.StartAcquisition;
@@ -169,7 +176,7 @@ max_freq = 50;
 while get(hObject,'Value') == 1
     pause(0.08)
     for ch = 1:numEnabledBPChannels
-            BioPotentialSignals{ch} = [BioPotentialSignals{ch};myDevice.BioPotentialSignals.Item(ch-1).GetScaledValueArray.double'];
+            BioPotentialSignals{ch} = [BioPotentialSignals{ch}; myDevice.BioPotentialSignals.Item(ch-1).GetScaledValueArray.double'];
             Idx{ch} = 1:length(BioPotentialSignals{ch});            
             %Plot the Axes in the SSVEPGUI
             if length(BioPotentialSignals{ch}) <= plotWindow*sampleRate_BP
@@ -315,18 +322,95 @@ if get(hObject,'Value') == 0
     %% Todo: Change into button function.
     c=clock;
     filename = ['RawBioRadioData_',num2str(c(2)),'-',num2str(c(3)),'-',num2str(c(1)),'_',num2str(c(4)),'.',num2str(c(5)),',',num2str(c(6)),'.xlsx'];
-    l1 = length(BioPotentialSignals{1})
-    l2 = length(BioPotentialSignals{2})
+    filename2 = ['TrainingData_',num2str(c(2)),'-',num2str(c(3)),'-',num2str(c(1)),'_',num2str(c(4)),'.',num2str(c(5)),',',num2str(c(6)),'.xlsx'];
+%     disp(trainingData{1});
+    l1 = length(BioPotentialSignals{1});
+    l2 = length(BioPotentialSignals{2});
     if l2~=l1 %if not the same size
         if l2>l1
-            xlswrite(filename, [BioPotentialSignals{1},BioPotentialSignals{2}(1:l1)]);
+            temp = [BioPotentialSignals{1},BioPotentialSignals{2}(1:l1)];
+            xlswrite(filename, temp);
+            xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
         else %l1>l2
-            xlswrite(filename, [BioPotentialSignals{1}(1:l2),BioPotentialSignals{2}]);
+            temp = [BioPotentialSignals{1}(1:l2),BioPotentialSignals{2}];
+            xlswrite(filename, temp);
+            xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
         end
     else
-        xlswrite(filename, [BioPotentialSignals{1},BioPotentialSignals{2}]);
+        temp = [BioPotentialSignals{1},BioPotentialSignals{2}];
+        xlswrite(filename, temp);
+        xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
     end
 end
 
 % assignin('base','FilteredSignal',ButterFilt)
 % assignin('base','FFTData',PSD)
+
+
+% --- Executes on button press in pushbutton_eog_class_0.
+function pushbutton_eog_class_0_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_eog_class_0 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% --- Executes on button press in pushbutton_eog_class_1.
+function pushbutton_eog_class_1_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_eog_class_1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx doubleBlinkIdx doubleBlinkCount trainingData totalCount
+if doubleBlinkCount==1
+    doubleBlinkIdx = zeros(1,1);
+    
+    doubleBlinkIdx(1,1) = size(Idx{1,1},2)
+    
+    doubleBlinkCount = doubleBlinkCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = doubleBlinkIdx; %index
+    trainingData{1}(totalCount{1},2) = 1; %class
+    
+%     assignin('base','tC',totalCount);
+    assignin('base','tD',trainingData);
+else
+    doubleBlinkIdx(1,1) = size(Idx{1,1},2)
+    
+    doubleBlinkCount = doubleBlinkCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = doubleBlinkIdx; %index
+    trainingData{1}(totalCount{1},2) = 1; %class
+    
+%     assignin('base','tC',totalCount);
+    assignin('base','tD',trainingData);
+end
+% --- Executes on button press in pushbutton_eog_class_5.
+function pushbutton_eog_class_5_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_eog_class_5 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx eyeMoveIdx eyeMoveCount trainingData totalCount
+if eyeMoveCount==1
+    eyeMoveIdx = zeros(1,1);
+    
+    eyeMoveIdx(1,1) = size(Idx{1,1},2)
+    
+    eyeMoveCount = eyeMoveCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = eyeMoveIdx; %index
+    trainingData{1}(totalCount{1},2) = 5; %class
+%     assignin('base','tC',totalCount);
+    assignin('base','tD',trainingData);
+else
+    eyeMoveIdx(1,1) = size(Idx{1,1},2)
+    
+    eyeMoveCount = eyeMoveCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = eyeMoveIdx; %index
+    trainingData{1}(totalCount{1},2) = 5; %class
+    
+%     assignin('base','tC',totalCount);
+    assignin('base','tD',trainingData);
+end
