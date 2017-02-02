@@ -1,32 +1,32 @@
-function varargout = SSVEPGUI(varargin)
-% SSVEPGUI MATLAB code for SSVEPGUI.fig
-%      SSVEPGUI, by itself, creates a new SSVEPGUI or raises the existing
+function varargout = SSVEPGUIlaptop(varargin)
+% SSVEPGUIlaptop MATLAB code for SSVEPGUIlaptop.fig
+%      SSVEPGUIlaptop, by itself, creates a new SSVEPGUIlaptop or raises the existing
 %      singleton*.
 %
-%      H = SSVEPGUI returns the handle to a new SSVEPGUI or the handle to
+%      H = SSVEPGUIlaptop returns the handle to a new SSVEPGUIlaptop or the handle to
 %      the existing singleton*.
 %
-%      SSVEPGUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in SSVEPGUI.M with the given input arguments.
+%      SSVEPGUIlaptop('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in SSVEPGUIlaptop.M with the given input arguments.
 %
-%      SSVEPGUI('Property','Value',...) creates a new SSVEPGUI or raises the
+%      SSVEPGUIlaptop('Property','Value',...) creates a new SSVEPGUIlaptop or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the SSVEPGUI before SSVEPGUI_OpeningFcn gets called.  An
+%      applied to the SSVEPGUIlaptop before SSVEPGUIlaptop_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to SSVEPGUI_OpeningFcn via varargin.
+%      stop.  All inputs are passed to SSVEPGUIlaptop_OpeningFcn via varargin.
 %
-%      *See SSVEPGUI Options on GUIDE's Tools menu.  Choose "SSVEPGUI allows only one
+%      *See SSVEPGUIlaptop Options on GUIDE's Tools menu.  Choose "SSVEPGUIlaptop allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
-% Edit the above text to modify the response to help SSVEPGUI
-% Last Modified by GUIDE v2.5 02-Feb-2017 16:25:21
+% Edit the above text to modify the response to help SSVEPGUIlaptop
+% Last Modified by GUIDE v2.5 02-Feb-2017 16:25:27
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @SSVEPGUI_OpeningFcn, ...
-                   'gui_OutputFcn',  @SSVEPGUI_OutputFcn, ...
+                   'gui_OpeningFcn', @SSVEPGUIlaptop_OpeningFcn, ...
+                   'gui_OutputFcn',  @SSVEPGUIlaptop_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -40,16 +40,16 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-% --- Executes just before SSVEPGUI is made visible.
-function SSVEPGUI_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before SSVEPGUIlaptop is made visible.
+function SSVEPGUIlaptop_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to SSVEPGUI (see VARARGIN)
+% varargin   command line arguments to SSVEPGUIlaptop (see VARARGIN)
 
 % global countFar countMiddle countClose
-% Choose default command line output for SSVEPGUI
+% Choose default command line output for SSVEPGUIlaptop
 handles.output = hObject;
 global trainingData
 trainingData = cell(1);
@@ -57,11 +57,11 @@ trainingData{1} = [0,0];
 % Update handles structure
 guidata(hObject, handles);
 
-% UIWAIT makes SSVEPGUI wait for user response (see UIRESUME)
+% UIWAIT makes SSVEPGUIlaptop wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = SSVEPGUI_OutputFcn(hObject, eventdata, handles) 
+function varargout = SSVEPGUIlaptop_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -129,7 +129,7 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global myDevice Idx 
 global trainingData totalCount
-% trainingData = cell(1);
+
 totalCount = cell(1);
 totalCount{1} = 0;
 BioRadio_Name = 'EEG-SSVEP';
@@ -143,7 +143,7 @@ if numEnabledBPChannels == 0
 end
 
 sampleRate_BP = double(myDevice.BioPotentialSignals.SamplesPerSecond);
-%Preallocating and setting up which area in the SSVEPGUI the plot will go into
+%Preallocating and setting up which area in the SSVEPGUIlaptop the plot will go into
     % First two are raw data
     % Next two are data analysis features. 
 numAxes = 10; 
@@ -167,9 +167,8 @@ myDevice.StartAcquisition;
 end
 plotWindow = 5;
 plotGain_BP = 1;
-fft_len = plotWindow*sampleRate_BP;
-% fft_len = 2^(nextpow2(plotWindow*sampleRate_BP)); 
-% USE WITH fft(X,fft_len_pow2)
+% fft_len = plotWindow*sampleRate_BP;
+fft_len = 2^(nextpow2(plotWindow*sampleRate_BP));
 % dBmax = 100;
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
@@ -179,7 +178,7 @@ while get(hObject,'Value') == 1
     for ch = 1:numEnabledBPChannels
             BioPotentialSignals{ch} = [BioPotentialSignals{ch}; myDevice.BioPotentialSignals.Item(ch-1).GetScaledValueArray.double'];
             Idx{ch} = 1:length(BioPotentialSignals{ch});            
-            %Plot the Axes in the SSVEPGUI
+            %Plot the Axes in the SSVEPGUIlaptop
             if length(BioPotentialSignals{ch}) <= plotWindow*sampleRate_BP
                 t = (0:(length(BioPotentialSignals{ch})-1))*(1/sampleRate_BP);
                 plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch})
@@ -189,7 +188,7 @@ while get(hObject,'Value') == 1
                 if ch==1
                     set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Fp1')
                     if length(BioPotentialSignals{ch})>sampleRate_BP
-                        fft_len_short = (length(BioPotentialSignals{ch}));
+                        fft_len_short = 2^(nextpow2(length(BioPotentialSignals{ch})));
                         %FILTER:
                         fp1_fft = fft(eeg_h_fcn3_50(BioPotentialSignals{ch},sampleRate_BP));
                         P2 = abs(fp1_fft/fft_len_short);
@@ -205,7 +204,7 @@ while get(hObject,'Value') == 1
                 elseif ch==2
                     set(get(handles.(['axes',num2str(ch)]),'Title'),'String','Fp2')
                     if length(BioPotentialSignals{ch})>sampleRate_BP
-                        fft_len_short = (length(BioPotentialSignals{ch}));
+                        fft_len_short = 2^(nextpow2(length(BioPotentialSignals{ch})));
                         %FILTER:
                         fp2_fft = fft(eeg_h_fcn3_50(BioPotentialSignals{ch},sampleRate_BP));
                         P2 = abs(fp2_fft/fft_len_short);
@@ -232,8 +231,7 @@ while get(hObject,'Value') == 1
                     % FFT:
                     fp1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     fp1_data_filtered = eeg_h_fcn3_50(fp1_data_unfilt, sampleRate_BP);
-%                     fp1_fft = fft(fp1_data_filtered);
-                    fp1_fft = fft(fp1_data_unfilt);
+                    fp1_fft = fft(fp1_data_filtered);
                     P2 = abs(fp1_fft/fft_len);
                     P1 = P2(1:fft_len/2+1);
                     P1(2:end-1) = 2*P1(2:end-1);
@@ -270,8 +268,7 @@ while get(hObject,'Value') == 1
                 elseif ch==2
                     fp2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     fp2_data_filtered = eeg_h_fcn3_50(fp2_data_unfilt, sampleRate_BP);
-%                     fp2_fft = fft(fp2_data_filtered);
-                    fp2_fft = fft(fp2_data_unfilt);
+                    fp2_fft = fft(fp2_data_filtered);
                     P2 = abs(fp2_fft/fft_len);
                     P1 = P2(1:fft_len/2+1);
                     P1(2:end-1) = 2*P1(2:end-1);
@@ -329,27 +326,20 @@ if get(hObject,'Value') == 0
 %     disp(trainingData{1});
     l1 = length(BioPotentialSignals{1});
     l2 = length(BioPotentialSignals{2});
-    b1 = ~isempty(trainingData);
     if l2~=l1 %if not the same size
         if l2>l1
             temp = [BioPotentialSignals{1},BioPotentialSignals{2}(1:l1)];
             xlswrite(filename, temp);
-            if b1
-                xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
-            end
+            xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
         else %l1>l2
             temp = [BioPotentialSignals{1}(1:l2),BioPotentialSignals{2}];
             xlswrite(filename, temp);
-            if b1
-                xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
-            end
+            xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
         end
     else
         temp = [BioPotentialSignals{1},BioPotentialSignals{2}];
         xlswrite(filename, temp);
-        if b1
-            xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
-        end
+        xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
     end
 end
 

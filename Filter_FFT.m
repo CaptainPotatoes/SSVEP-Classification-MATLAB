@@ -211,7 +211,10 @@ else
 end
 %%
 clear all;clc;close all;
-load('Trial2Data.mat')
+% load('Trial2Data.mat')
+tD = cell(1);
+% load('BaseLineData1')
+load('BaseLineData2')
 fp1d = Trial{1}(1:end-250,1); %ignore last second
 fp2d = Trial{2}(1:end-250,1);
 h=1/250;
@@ -229,13 +232,13 @@ markers = tD{1};
 fp1dfilt = eog_h_fcn(fp1d,250);
 fp2dfilt = eog_h_fcn(fp2d,250);
 figure
-plot(t,fp1dfilt,'color','g');
+plot(t,fp1dfilt,'color','g'),ylim([-8e-4,8e-4]);
 for i=1:length(markers)
     text(t(markers(i,1)), fp1dfilt(markers(i,1)), num2str(markers(i,2)));
 end
 
 figure
-plot(t,fp2dfilt,'color','r');
+plot(t,fp2dfilt,'color','r'),ylim([-8e-4,8e-4]);
 for i=1:length(markers)
     text(t(markers(i,1)), fp2dfilt(markers(i,1)), num2str(markers(i,2)));
 end
