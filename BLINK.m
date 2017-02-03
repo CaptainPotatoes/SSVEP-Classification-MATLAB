@@ -9,14 +9,14 @@ clc
 
 %% ---------------------------
 % SETTINGS 
-freqs = [7.5,12]; % what frequecies, should be frequencies that the monitor can achieve
+freqs = [20,20]; % what frequecies, should be frequencies that the monitor can achieve
 iSi = 2; %inter stimulus interval in  seconds
 fullscreen = false; % do you want this to be full screen
-imageSizeW = 350; % ssvep stim size, must be an even number
-imageSizeH = 400; % ssvep stim size, must be an even number   
+imageSizeW = 1000; % ssvep stim size, must be an even number
+imageSizeH = 1000; % ssvep stim size, must be an even number   
 startTrial = 1; % NOT IMPLEMENTED - SHOULD ALWAYS BE 1...future - you can load a trial order, and start from the middle, in case the program crashes 
 numTrials = 1; % how many trials do you want?   
-trial_length = 30; % how long do you want each trial to be? recommend at least 5 seconds
+trial_length = 61; % how long do you want each trial to be? recommend at least 5 seconds
 triggerSize = [200 0; 0 0; 0 200]; % we trigger using a photodiode...you can just set this to all 0s 
 
 %% ---------------------------
@@ -35,7 +35,7 @@ screenNumber = max(Screen('Screens')); % Get the maximum screen number i.e. get 
 if fullscreen
     [wPtr rect] = Screen('OpenWindow',screenNumber,200,[],32,2);  %opens a window,  monitor, with black background, with dimensions
 else
-    [wPtr rect] = Screen('OpenWindow',screenNumber,200,[20 20 1000 800],32,2);  %opens a window,  monitor, with black background, with dimensions
+    [wPtr rect] = Screen('OpenWindow',screenNumber,200,[20 20 2560 1150],32,2);  %opens a window,  monitor, with black background, with dimensions
 end
 Priority(MaxPriority(wPtr));
 [center(1) center(2)] = WindowCenter(wPtr); %find the fixation

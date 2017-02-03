@@ -232,20 +232,25 @@ while get(hObject,'Value') == 1
                     % FFT:
                     fp1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     fp1_data_filtered = eeg_h_fcn3_50(fp1_data_unfilt, sampleRate_BP);
-%                     fp1_fft = fft(fp1_data_filtered);
-                    fp1_fft = fft(fp1_data_unfilt);
+                    fp1_fft = fft(fp1_data_filtered);
+%                     fp1_fft = fft(fp1_data_unfilt);
                     P2 = abs(fp1_fft/fft_len);
                     P1 = P2(1:fft_len/2+1);
                     P1(2:end-1) = 2*P1(2:end-1);
                     f = sampleRate_BP*(0:(fft_len/2))/fft_len;
                     plot(axis_handles(3),f,P1);
+%                     a = (f>1) & (f<100);
+%                     start_f = find(a,1,'first');
+%                     end_f = find(a,1,'last');
+%                     maxfft1 = find(max(P1(start_f:end_f)));
+%                     text(axes_handles(3),f(maxfft1+start_f-1), P1(maxfft1+start_f-1), num2str(f(max(maxfft1+start_f-1))));
                     set(handles.(['axes',num2str(3)]),'XLim',[1 100]);
                     set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
                     % Spect:
                     [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                    imagesc(spect_1, T, Fspect(Fspect<100 & Fspect>0), 10*log10(P(Fspect<100 & Fspect>0,:)));
+                    imagesc(spect_1, T, Fspect(Fspect<100 & Fspect>1), 10*log10(P(Fspect<100 & Fspect>1,:)));
                     set(spect_1,'YDir','normal')
                     cb = colorbar(spect_1);
                     ylabel(cb, 'Power (db)')
@@ -270,20 +275,22 @@ while get(hObject,'Value') == 1
                 elseif ch==2
                     fp2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     fp2_data_filtered = eeg_h_fcn3_50(fp2_data_unfilt, sampleRate_BP);
-%                     fp2_fft = fft(fp2_data_filtered);
-                    fp2_fft = fft(fp2_data_unfilt);
+                    fp2_fft = fft(fp2_data_filtered);
+%                     fp2_fft = fft(fp2_data_unfilt);
                     P2 = abs(fp2_fft/fft_len);
                     P1 = P2(1:fft_len/2+1);
                     P1(2:end-1) = 2*P1(2:end-1);
                     f = sampleRate_BP*(0:(fft_len/2))/fft_len;
+%                     maxfft2 = find(max(P1));
                     plot(axis_handles(4),f,P1);
+%                     text(f(maxfft2), P1(maxfft2), num2str(f(max(fft2))));
                     set(handles.(['axes',num2str(4)]),'XLim',[1 100]);
                     set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P2(f)|')
                     set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
                     % Spect:
                     [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                    imagesc(spect_2, T, Fspect(Fspect<100 & Fspect>0), 10*log10(P(Fspect<100 & Fspect>0,:)));
+                    imagesc(spect_2, T, Fspect(Fspect<100 & Fspect>1), 10*log10(P(Fspect<100 & Fspect>1,:)));
                     set(spect_2,'YDir','normal') %gca
                     cb2 = colorbar(spect_2);
                     ylabel(cb2, 'Power (db)')
@@ -323,10 +330,10 @@ if get(hObject,'Value') == 0
             RawBioRadioData{1,2} = BioPotentialSignals{2};
     assignin('base','Trial',RawBioRadioData)
     %% Todo: Change into button function.
+    %{
     c=clock;
     filename = ['RawBioRadioData_',num2str(c(2)),'-',num2str(c(3)),'-',num2str(c(1)),'_',num2str(c(4)),'.',num2str(c(5)),',',num2str(c(6)),'.xlsx'];
     filename2 = ['TrainingData_',num2str(c(2)),'-',num2str(c(3)),'-',num2str(c(1)),'_',num2str(c(4)),'.',num2str(c(5)),',',num2str(c(6)),'.xlsx'];
-%     disp(trainingData{1});
     l1 = length(BioPotentialSignals{1});
     l2 = length(BioPotentialSignals{2});
     b1 = ~isempty(trainingData);
@@ -351,6 +358,7 @@ if get(hObject,'Value') == 0
             xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
         end
     end
+    %}
 end
 
 % assignin('base','FilteredSignal',ButterFilt)
