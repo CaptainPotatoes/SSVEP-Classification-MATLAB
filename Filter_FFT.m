@@ -4,14 +4,38 @@ clear all;clc;close all;
 channelNames = {'Fp1' 'Fp2'};
 [filename,pathname,~]  = uigetfile('*.csv','Select Data to Upload');
 recording1 = csvread([pathname filename]);
+Trial = cell(2,1);
+Trial{1} = recording1(:,1);
+Trial{2} = recording1(:,2);
+SamplingRate = 500;
+%% Sas Method
+%{ 
+separate into wndows then filter & extract features
+winLen = 250;
+Window = cell(floor(length(fp1d)/winLen),1);
+% Features = cell(floor(length(fp1d)/winLen),1);
+for i = 1:floor(length(fp1d)/winLen)
+    start = (i-1)*winLen+1;
+%     Window{i} = fp1d(start:start+winLen-1);
+    Window{i} = eog_h_fcn(fp1d(start:start+winLen-1),250);
+%     Features{i,2} = Feature(Window{i});
+    Features(i,:) = [Feature(Window{i}),-1];
+%     CLASS:
+    for j=1:length(tD{1})
+        %if window contains number, assign class, else zero
+        if sum((start:start+winLen-1)==tD{1}(j,1))
+%             Features{i,1} = tD{1}(j,2);
+            Features(i,11) = tD{1}(j,2);
+            break;
+        else
+%             Features{i,1} = 0;
+            Features(i,11) = 0;
+        end
+    end
+end
+%}
 
-Fs = 250;
-% fp1_recording1 = recording1(:,1);
-%%TEMP 
-fp1_recording1 = recording1(:,1);
-% fp1_recording1 = BPSignal{1};
-fp2_recording1 = recording1(:,2);
-% fp2_recording1 = BPSignal{2};
+%%
 
 h=1/Fs;
 L = size(fp1_recording1,1);
@@ -212,33 +236,27 @@ end
 %%
 clear all;clc;close all;
 % load('Trial2Data.mat')
-tD = cell(1);
+% tD = cell(1);
 % load('BaseLineData1')
-load('BaseLineData2')
+% load('BaseLineData2')
+load('Trial_DB1');
 fp1d = Trial{1}(1:end-250,1); %ignore last second
 fp2d = Trial{2}(1:end-250,1);
 h=1/250;
 t=0:h:length(fp1d)/250-h;
 markers = tD{1};
-% figure
-% hold on;
-%     plot(fp1d);
-%     plot(fp2d);
-%     for i=1:length(markers)
-%         text(markers(i,1), fp1d(markers(i,1)), num2str(markers(i,2)));
-%     end
-% hold off;
+
 % Filter Entirety
 fp1dfilt = eog_h_fcn(fp1d,250);
 fp2dfilt = eog_h_fcn(fp2d,250);
 figure
-plot(t,fp1dfilt,'color','g'),ylim([-8e-4,8e-4]);
+plot(t,fp1dfilt,'color','g')%,ylim([-8e-4,8e-4]);
 for i=1:length(markers)
     text(t(markers(i,1)), fp1dfilt(markers(i,1)), num2str(markers(i,2)));
 end
 
 figure
-plot(t,fp2dfilt,'color','r'),ylim([-8e-4,8e-4]);
+plot(t,fp2dfilt,'color','r')%,ylim([-8e-4,8e-4]);
 for i=1:length(markers)
     text(t(markers(i,1)), fp2dfilt(markers(i,1)), num2str(markers(i,2)));
 end
@@ -249,7 +267,7 @@ Window = cell(floor(length(fp1d)/winLen),1);
 % Features = zeros(floor(length(fp1d)/winLen),numFeatures+1);
 % Features = zeros(120,9);
 % Features = cell(floor(length(fp1d)/winLen),1);
-
+hold all;
 for i = 1:floor(length(fp1d)/winLen)
     start = (i-1)*winLen+1;
     Window{i} = eog_h_fcn(fp1d(start:start+winLen-1),250);
@@ -280,29 +298,69 @@ for i = 1:floor(length(fp1d)/winLen)
         end
     end
 end
-Features(:,numFeatures+1) = [Class];
+Features(:,numFeatures+1) = Class;
+%% Shifting Window Method
+clear;clc;close all;
+% load('Trial_DB1');
+load('Trial_Kevin_2.mat')
+fp1 = Trial{1}(1:end-250,1); %ignore last second
+fp2 = Trial{2}(1:end-250,1);
+h=1/250;
+t=0:h:length(fp1)/250-h;
+% markers = tD{1};
+markers = trainingData{1};
+% Fs = samplingRate; 
+Fs = 250;
+fp1filt = eog_h_fcn(fp1,250);
+fp2filt = eog_h_fcn(fp2,250);
+figure(1)
+hold on;
+plot(t,fp1filt,'color','r')%,ylim([-8e-4,8e-4]);
 
-%% Sas Method
-%separate into wndows then filter & extract features
-winLen = 250;
-Window = cell(floor(length(fp1d)/winLen),1);
-% Features = cell(floor(length(fp1d)/winLen),1);
-for i = 1:floor(length(fp1d)/winLen)
-    start = (i-1)*winLen+1;
-%     Window{i} = fp1d(start:start+winLen-1);
-    Window{i} = eog_h_fcn(fp1d(start:start+winLen-1),250);
-%     Features{i,2} = Feature(Window{i});
-    Features(i,:) = [Feature(Window{i}),-1];
-%     CLASS:
-    for j=1:length(tD{1})
-        %if window contains number, assign class, else zero
-        if sum((start:start+winLen-1)==tD{1}(j,1))
-%             Features{i,1} = tD{1}(j,2);
-            Features(i,11) = tD{1}(j,2);
-            break;
-        else
-%             Features{i,1} = 0;
-            Features(i,11) = 0;
-        end
-    end
+plot(t,fp2filt,'color','y')%,ylim([-8e-4,8e-4]);
+for i=1:length(markers)
+    text(t(markers(i,1)), fp2filt(markers(i,1)), num2str(markers(i,2)));
 end
+hold off
+
+figure(2)
+hold on;
+plot(fp1filt,'color','r')%,ylim([-8e-4,8e-4]);
+
+plot(fp2filt,'color','y')%,ylim([-8e-4,8e-4]);
+for i=1:length(markers)
+    text(markers(i,1), fp2filt(markers(i,1)), num2str(markers(i,2)));
+end
+hold off
+%% Set classes:
+% close all;
+seconds = 2; %2 second window
+winLen = seconds*Fs; 
+winFraction = 2;%2.5; %1/5 of a second
+winShift = floor(Fs/winFraction); 
+dataLimit = floor((length(fp1)-winLen)/winLen);
+start = 1;
+Window = cell( seconds*winFraction*dataLimit - 1, 2);
+% Window = cell( 10*dataLimit - 1, 2);
+%Todo: preallocate F_fp1/2
+assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1);
+
+figure(1); 
+for i=1 : seconds*winFraction*dataLimit
+    start = 1 + winShift*(i-1);
+    fprintf('Current index = %d\r\n',start);
+    Window{i,1} = fp1( start : start + winLen-1 );              % set values:
+    Window{i,2} = fp2( start : start + winLen-1 );
+    fp1f = eog_h_fcn( Window{i,1}, Fs); 
+    fp2f = eog_h_fcn( Window{i,2}, Fs);
+    hold on;
+    plot(fp1f),ylim([-2.5E-4 2.5E-4]);    % Plot filtered Data. 
+	plot(fp2f),ylim([-2.5E-4 2.5E-4]);
+    hold off;
+    assignedClass(i,1) = input('Enter an integer value!\n');
+    F_fp1(i,:) = featureExtraction( fp1f' );
+    F_fp2(i,:) = featureExtraction( fp2f' );
+    clf(1);
+end
+%todo: horzcat [ Features ; assignedClass ] 
+% ALLFEATURES = [F_fp1 F_fp2 assignedClass];

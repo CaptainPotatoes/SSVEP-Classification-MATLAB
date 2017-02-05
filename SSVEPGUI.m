@@ -20,7 +20,7 @@ function varargout = SSVEPGUI(varargin)
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 % Edit the above text to modify the response to help SSVEPGUI
-% Last Modified by GUIDE v2.5 02-Feb-2017 16:25:21
+% Last Modified by GUIDE v2.5 04-Feb-2017 11:24:44
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -158,9 +158,10 @@ for ch = 1:numAxes
 end
 
 %Preallocating BPSignals
-
 BioPotentialSignals = cell(1,numEnabledBPChannels);
+
 EOG_Classes = cell(1);
+
 Idx = cell(1,numEnabledBPChannels);
 if get(hObject,'Value') == 1
 myDevice.StartAcquisition;
@@ -170,10 +171,10 @@ plotGain_BP = 1;
 fft_len = plotWindow*sampleRate_BP;
 % fft_len = 2^(nextpow2(plotWindow*sampleRate_BP)); 
 % USE WITH fft(X,fft_len_pow2)
-% dBmax = 100;
+
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
-max_freq = 50;
+
 while get(hObject,'Value') == 1
     pause(0.08)
     for ch = 1:numEnabledBPChannels
@@ -228,27 +229,21 @@ while get(hObject,'Value') == 1
                 set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
                 set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
                 if ch==1
-%                     set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Fp1')
-                    % FFT:
+                    % Window and Filter
                     fp1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     fp1_data_filtered = eeg_h_fcn3_50(fp1_data_unfilt, sampleRate_BP);
+                    % FFT:
                     fp1_fft = fft(fp1_data_filtered);
-%                     fp1_fft = fft(fp1_data_unfilt);
                     P2 = abs(fp1_fft/fft_len);
                     P1 = P2(1:fft_len/2+1);
                     P1(2:end-1) = 2*P1(2:end-1);
                     f = sampleRate_BP*(0:(fft_len/2))/fft_len;
                     plot(axis_handles(3),f,P1);
-%                     a = (f>1) & (f<100);
-%                     start_f = find(a,1,'first');
-%                     end_f = find(a,1,'last');
-%                     maxfft1 = find(max(P1(start_f:end_f)));
-%                     text(axes_handles(3),f(maxfft1+start_f-1), P1(maxfft1+start_f-1), num2str(f(max(maxfft1+start_f-1))));
                     set(handles.(['axes',num2str(3)]),'XLim',[1 100]);
                     set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
-                    % Spect:
+                    % Spectrogram (STFT):
                     [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
                     imagesc(spect_1, T, Fspect(Fspect<100 & Fspect>1), 10*log10(P(Fspect<100 & Fspect>1,:)));
                     set(spect_1,'YDir','normal')
@@ -275,15 +270,14 @@ while get(hObject,'Value') == 1
                 elseif ch==2
                     fp2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     fp2_data_filtered = eeg_h_fcn3_50(fp2_data_unfilt, sampleRate_BP);
+                    % FFT:
                     fp2_fft = fft(fp2_data_filtered);
-%                     fp2_fft = fft(fp2_data_unfilt);
                     P2 = abs(fp2_fft/fft_len);
                     P1 = P2(1:fft_len/2+1);
                     P1(2:end-1) = 2*P1(2:end-1);
                     f = sampleRate_BP*(0:(fft_len/2))/fft_len;
-%                     maxfft2 = find(max(P1));
                     plot(axis_handles(4),f,P1);
-%                     text(f(maxfft2), P1(maxfft2), num2str(f(max(fft2))));
+                    
                     set(handles.(['axes',num2str(4)]),'XLim',[1 100]);
                     set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P2(f)|')
@@ -325,45 +319,26 @@ end     %/while connected==1
 
 if get(hObject,'Value') == 0
     myDevice.StopAcquisition;
-    RawBioRadioData = cell(1,2);
-            RawBioRadioData{1,1} = BioPotentialSignals{1};
-            RawBioRadioData{1,2} = BioPotentialSignals{2};
-    assignin('base','Trial',RawBioRadioData)
-    %% Todo: Change into button function.
-    %{
-    c=clock;
-    filename = ['RawBioRadioData_',num2str(c(2)),'-',num2str(c(3)),'-',num2str(c(1)),'_',num2str(c(4)),'.',num2str(c(5)),',',num2str(c(6)),'.xlsx'];
-    filename2 = ['TrainingData_',num2str(c(2)),'-',num2str(c(3)),'-',num2str(c(1)),'_',num2str(c(4)),'.',num2str(c(5)),',',num2str(c(6)),'.xlsx'];
-    l1 = length(BioPotentialSignals{1});
-    l2 = length(BioPotentialSignals{2});
-    b1 = ~isempty(trainingData);
-    if l2~=l1 %if not the same size
-        if l2>l1
-            temp = [BioPotentialSignals{1},BioPotentialSignals{2}(1:l1)];
-            xlswrite(filename, temp);
-            if b1
-                xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
-            end
-        else %l1>l2
-            temp = [BioPotentialSignals{1}(1:l2),BioPotentialSignals{2}];
-            xlswrite(filename, temp);
-            if b1
-                xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
-            end
-        end
-    else
-        temp = [BioPotentialSignals{1},BioPotentialSignals{2}];
-        xlswrite(filename, temp);
-        if b1
-            xlswrite(filename2, [trainingData{1}(:,1),trainingData{1}(:,2)]);
-        end
+    Trial = cell(1,2);
+            Trial{1,1} = BioPotentialSignals{1};
+            Trial{1,2} = BioPotentialSignals{2};
+    assignin('base','Trial',Trial)
+    SamplingRate = sampleRate_BP;
+    assignin('base','SamplingRate',SamplingRate);
+    %% Change into button function.
+    RecordingNotes = get(handles.edit1,'String');
+    if isempty(RecordingNotes)
+       RecordingNotes = 'No Notes Recorded for This Session'; 
     end
-    %}
+    assignin('base','RecordingNotes',RecordingNotes);
+    %% Auto-save variables
+    filename = get(handles.edit2,'String');
+    if isempty(filename)
+        c=clock;
+        filename = ['RawBioRadioData_',num2str(c(2)),'-',num2str(c(3)),'-',num2str(c(1)),'_',num2str(c(4)),'.',num2str(c(5)),',',num2str(c(6)),'.mat'];
+    end
+    save(filename,'Trial','SamplingRate','RecordingNotes','trainingData');
 end
-
-% assignin('base','FilteredSignal',ButterFilt)
-% assignin('base','FFTData',PSD)
-
 
 % --- Executes on button press in pushbutton_eog_class_0.
 function pushbutton_eog_class_0_Callback(hObject, eventdata, handles)
@@ -431,4 +406,49 @@ else
     
 %     assignin('base','tC',totalCount);
     assignin('base','tD',trainingData);
+end
+
+
+
+function edit1_Callback(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit1 as text
+%        str2double(get(hObject,'String')) returns contents of edit1 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+function edit2_Callback(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit2 as text
+%        str2double(get(hObject,'String')) returns contents of edit2 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end
