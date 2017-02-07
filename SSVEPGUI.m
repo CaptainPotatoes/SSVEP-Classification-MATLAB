@@ -20,7 +20,7 @@ function varargout = SSVEPGUI(varargin)
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 % Edit the above text to modify the response to help SSVEPGUI
-% Last Modified by GUIDE v2.5 04-Feb-2017 11:24:44
+% Last Modified by GUIDE v2.5 06-Feb-2017 12:41:04
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -239,13 +239,13 @@ while get(hObject,'Value') == 1
                     P1(2:end-1) = 2*P1(2:end-1);
                     f = sampleRate_BP*(0:(fft_len/2))/fft_len;
                     plot(axis_handles(3),f,P1);
-                    set(handles.(['axes',num2str(3)]),'XLim',[1 100]);
+                    set(handles.(['axes',num2str(3)]),'XLim',[1 50]);
                     set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
                     % Spectrogram (STFT):
                     [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                    imagesc(spect_1, T, Fspect(Fspect<100 & Fspect>1), 10*log10(P(Fspect<100 & Fspect>1,:)));
+                    imagesc(spect_1, T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
                     set(spect_1,'YDir','normal')
                     cb = colorbar(spect_1);
                     ylabel(cb, 'Power (db)')
@@ -264,6 +264,7 @@ while get(hObject,'Value') == 1
                     eog_data_fp1 = eog_h_fcn(fp1_data_unfilt, sampleRate_BP);
                     plot(axis_handles(9),t,eog_data_fp1);
                     set(handles.(['axes',num2str(9)]),'XLim',[t(end)-plotWindow t(end)]);
+                    set(handles.(['axes',num2str(9)]),'YLim',[-4E-4 4E-4]);
                     set(get(handles.(['axes',num2str(9)]), 'XLabel'), 'String', 'Time (s)')
                     set(get(handles.(['axes',num2str(9)]), 'YLabel'), 'String',  'mV')
                     set(get(handles.(['axes',num2str(9)]), 'Title'), 'String', 'EOG Filter Fp1')
@@ -278,13 +279,13 @@ while get(hObject,'Value') == 1
                     f = sampleRate_BP*(0:(fft_len/2))/fft_len;
                     plot(axis_handles(4),f,P1);
                     
-                    set(handles.(['axes',num2str(4)]),'XLim',[1 100]);
+                    set(handles.(['axes',num2str(4)]),'XLim',[1 50]);
                     set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P2(f)|')
                     set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
                     % Spect:
                     [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                    imagesc(spect_2, T, Fspect(Fspect<100 & Fspect>1), 10*log10(P(Fspect<100 & Fspect>1,:)));
+                    imagesc(spect_2, T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
                     set(spect_2,'YDir','normal') %gca
                     cb2 = colorbar(spect_2);
                     ylabel(cb2, 'Power (db)')
@@ -303,6 +304,7 @@ while get(hObject,'Value') == 1
                     eog_data_fp2 = eog_h_fcn(fp2_data_unfilt, sampleRate_BP);
                     plot(axis_handles(10),t,eog_data_fp2);
                     set(handles.(['axes',num2str(10)]),'XLim',[t(end)-plotWindow t(end)]);
+                    set(handles.(['axes',num2str(10)]),'YLim',[-4E-4 4E-4]);
                     set(get(handles.(['axes',num2str(10)]), 'XLabel'), 'String', 'Time (s)')
                     set(get(handles.(['axes',num2str(10)]), 'YLabel'), 'String',  'mV')
                     set(get(handles.(['axes',num2str(10)]), 'Title'), 'String', 'EOG Filter Fp2')
@@ -363,7 +365,6 @@ if doubleBlinkCount==1
     trainingData{1}(totalCount{1},1) = doubleBlinkIdx; %index
     trainingData{1}(totalCount{1},2) = 1; %class
     
-%     assignin('base','tC',totalCount);
     assignin('base','tD',trainingData);
 else
     doubleBlinkIdx(1,1) = size(Idx{1,1},2)
@@ -374,7 +375,6 @@ else
     trainingData{1}(totalCount{1},1) = doubleBlinkIdx; %index
     trainingData{1}(totalCount{1},2) = 1; %class
     
-%     assignin('base','tC',totalCount);
     assignin('base','tD',trainingData);
 end
 % --- Executes on button press in pushbutton_eog_class_5.
@@ -393,7 +393,6 @@ if eyeMoveCount==1
     
     trainingData{1}(totalCount{1},1) = eyeMoveIdx; %index
     trainingData{1}(totalCount{1},2) = 5; %class
-%     assignin('base','tC',totalCount);
     assignin('base','tD',trainingData);
 else
     eyeMoveIdx(1,1) = size(Idx{1,1},2)
@@ -404,10 +403,38 @@ else
     trainingData{1}(totalCount{1},1) = eyeMoveIdx; %index
     trainingData{1}(totalCount{1},2) = 5; %class
     
-%     assignin('base','tC',totalCount);
     assignin('base','tD',trainingData);
 end
 
+% --- Executes on button press in pushbutton7.
+function pushbutton7_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton7 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx singleBlinkIdx singleBlinkCount trainingData totalCount
+if singleBlinkCount==1
+    singleBlinkIdx = zeros(1,1);
+    
+    singleBlinkIdx(1,1) = size(Idx{1,1},2)
+    
+    singleBlinkCount = singleBlinkCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = singleBlinkIdx; %index
+    trainingData{1}(totalCount{1},2) = -1; %class
+    
+    assignin('base','tD',trainingData);
+else
+    singleBlinkIdx(1,1) = size(Idx{1,1},2)
+    
+    singleBlinkCount = singleBlinkCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = singleBlinkIdx; %index
+    trainingData{1}(totalCount{1},2) = -1; %class
+   
+    assignin('base','tD',trainingData);
+end
 
 
 function edit1_Callback(hObject, eventdata, handles)
@@ -452,3 +479,5 @@ function edit2_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+

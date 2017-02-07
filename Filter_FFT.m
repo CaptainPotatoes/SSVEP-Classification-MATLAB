@@ -4,7 +4,8 @@ clear all;clc;close all;
 % tD = cell(1);
 % load('BaseLineData1')
 % load('BaseLineData2')
-load('Trial_DB1');
+% load('Trial_DB1');
+load('Trial_Marc_2.mat');
 fp1d = Trial{1}(1:end-250,1); %ignore last second
 fp2d = Trial{2}(1:end-250,1);
 h=1/250;
@@ -67,26 +68,26 @@ Features(:,numFeatures+1) = Class;
 %% Shifting Window Method
 clear;clc;close all;
 % load('Trial_DB1');
-load('Trial_Kevin_2.mat')
+load('Trial_Marc_3.mat')
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 h=1/250;
 t=0:h:length(fp1)/250-h;
 % markers = tD{1};
 markers = trainingData{1};
-% Fs = samplingRate; 
-Fs = 250;
+Fs = SamplingRate; 
+% Fs = 250;
 fp1filt = eog_h_fcn(fp1,250);
 fp2filt = eog_h_fcn(fp2,250);
-figure(1)
-hold on;
-plot(t,fp1filt,'color','r')%,ylim([-8e-4,8e-4]);
-
-plot(t,fp2filt,'color','y')%,ylim([-8e-4,8e-4]);
-for i=1:length(markers)
-    text(t(markers(i,1)), fp2filt(markers(i,1)), num2str(markers(i,2)));
-end
-hold off
+% figure(1)
+% hold on;
+% plot(t,fp1filt,'color','r')%,ylim([-8e-4,8e-4]);
+% 
+% plot(t,fp2filt,'color','y')%,ylim([-8e-4,8e-4]);
+% for i=1:length(markers)
+%     text(t(markers(i,1)), fp2filt(markers(i,1)), num2str(markers(i,2)));
+% end
+% hold off
 
 figure(2)
 hold on;
@@ -113,7 +114,8 @@ assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1);
 figure(1); 
 for i=1 : seconds*winFraction*dataLimit
     start = 1 + winShift*(i-1);
-    fprintf('Current index = %d\r\n',start);
+        winEnd = start + winLen-1;
+    fprintf('Current index = [%d to %d]\r\n',start, winEnd);
     Window{i,1} = fp1( start : start + winLen-1 );              % set values:
     Window{i,2} = fp2( start : start + winLen-1 );
     fp1f = eog_h_fcn( Window{i,1}, Fs); 
@@ -129,3 +131,4 @@ for i=1 : seconds*winFraction*dataLimit
 end
 %todo: horzcat [ Features ; assignedClass ] 
 % ALLFEATURES = [F_fp1 F_fp2 assignedClass];
+

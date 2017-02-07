@@ -5,6 +5,7 @@ clc;close all;
 % load('MusaTrial1.mat')
 % load('BaselineData1')
 load('FadiData_31.25Hz.mat')
+% load('Trial_Marc_SSVEP_15Hz.mat');
 fp1 = Trial{1}; 
 fp2 = Trial{2};
 % Fs = 250; %Override for data w/o sampling rate.
@@ -48,7 +49,7 @@ t = 0:h:L/Fs-h;
     f = Fs*(0:(L2/2))/L2;
     plot(f,P1),xlim([1 75]);
     
-fp1_f = eeg_h_fcn(fp1, Fs);
+fp1_f = eeg_h_fcn3_50(fp1, Fs);
 n=1;
 fromHz = 0;
 toHz = 86;
@@ -65,6 +66,13 @@ cb = colorbar;
 ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel Fp1', 'FontSize', 14)
+%Pwelch:
+figure(2)
+[Pxx, F] = pwelch(fp1_f,[],[],250);
+plot(10*log10(Pxx)),xlim([0 40])
+
+%%Extract Features and Apply Class #
+class = 
 %% Create moving window:
 winLen = 2*Fs; %2 seconds
 winShift = Fs/5; %1/5 of a second
