@@ -1,7 +1,11 @@
 %% Clear; Load and Quick & Dirty Feature Viewing
 clear all;
 clc;close all;
-load('Trial_Marc_SSVEP_7Hz.mat');
+dataRootFolder = 'C:\Users\mahmoodms\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\data';
+folder{1} = ['\EOG_snap\']; folder{2} = '\SSVEP_snap\'; 
+filename = 'Trial_Marc_SSVEP_31.25.mat';
+load([dataRootFolder folder{2} filename]);
+% load('Trial_Marc_SSVEP_31.25_2.mat');
 fp1 = Trial{1}; 
 fp2 = Trial{2};
 % Fs = 250; %Override for data w/o sampling rate.
@@ -65,16 +69,19 @@ colormap(jet)
 title('Channel Fp1', 'FontSize', 14)
 %Pwelch:
 figure(3)
-[Pxx, F] = pwelch(fp1,[],[],250);
+hold on;4
+[Pxx, F] = pwelch(eeg_h_fcn3_50(fp1,Fs),[],[],250);
+[Pxx2, F] = pwelch(eeg_h_fcn3_50(fp1,Fs),[],[],250);
 plot(10*log10(Pxx)),xlim([0 40])
-
+plot(10*log10(Pxx2)),xlim([0 40])
+hold off;
 %% Extract Features and Apply Class #
 % Features: first we will use eye movement to verify (in a preceding
 % window) that stimulus has changed. We can use techniques such as mean of
 % all the harmonics as one of the features. We will have to put windows
 % around each of our frequency hotspots. 
 classes = [0 1 2 3 4];
-classFreqs = [7 12 15 23 31];
+classFreqs = [7 10 12.5 24 31];
 %%% 0 = nothing/baseline noise
 %   1 = first frequency (~?Hz)
 %   2 = frequency (~?Hz)
@@ -150,9 +157,11 @@ for i=1:length(classFreqs)-1
     f = Fs*(0:(L/2))/L;
     plot(f,fp1_harmonic2_P1{i}),xlim([1 75]);
 end
-%%Todo:Apply Hamming Window.
-%% Create moving window:
-% Copy code from other script. 
+%% Feature Extraction:
+%%% Todo:Apply Hamming Window.
+%%% Create moving window:
+% % Copy code from other script. 
+ %
 %{
 winLen = 2*Fs; %2 seconds
 winShift = Fs/5; %1/5 of a second
@@ -166,24 +175,11 @@ for i=1:10*dataLimit - 1
     start = 1 + 50*i;
     Window{i,1} = fp1( start : start + winLen-1 );
     assignedClass{i} = input('Enter an integer value!\n');
+    %TODO: RUN WINDOWED FFTs, with hamming window. 
 end
 hold off;
-
-%% FFT % Implement a very specific set of windows to try and pin down signal.
-%figure(3);
-%fp1_fft_recording1 = fft(fp1_filtered,512);
-%P2 = abs(fp1_fft_recording1/L);
-%P1 = P2(1:L/2+1);
-%P1(2:end-1) = 2*P1(2:end-1);
-%f = Fs*(0:(L/2))/L;
-%plot(f, P1), xlim([0,120])
-figure(3);
-f = Fs*(0:(L+10))/(L+1);
-n=2^nextpow2(size(fp1_filtered,1));
-fft_eeg=fft(fp1_filtered,n);
-plot(f,fft_eeg)
 %}
-%% Feature Extraction:
+
 
 
 

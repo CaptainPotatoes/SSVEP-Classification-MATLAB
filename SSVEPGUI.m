@@ -174,7 +174,7 @@ fft_len = plotWindow*sampleRate_BP;
 
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
-
+t = cell(numEnabledBPChannels, 1);
 while get(hObject,'Value') == 1
     pause(0.08)
     for ch = 1:numEnabledBPChannels
@@ -182,8 +182,9 @@ while get(hObject,'Value') == 1
             Idx{ch} = 1:length(BioPotentialSignals{ch});            
             %Plot the Axes in the SSVEPGUI
             if length(BioPotentialSignals{ch}) <= plotWindow*sampleRate_BP
-                t = (0:(length(BioPotentialSignals{ch})-1))*(1/sampleRate_BP);
-                plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch})
+                t{ch} = (0:(length(BioPotentialSignals{ch})-1))*(1/sampleRate_BP);
+                
+                plot(axis_handles(ch),t{ch},plotGain_BP*BioPotentialSignals{ch})
                 set(handles.(['axes',num2str(ch)]),'XLim',[0 plotWindow]);
                 set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
                 set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')

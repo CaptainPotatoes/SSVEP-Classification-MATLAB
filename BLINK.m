@@ -9,8 +9,8 @@ clc
 
 %% ---------------------------
 % SETTINGS 
-freqsToUse = [5 10 15 20 30] %& harmonics;
-freqs = [7 10]; % what frequecies, should be frequencies that the monitor can achieve
+freqsToUse = [5 6 10 12 15 20 30] %& harmonics;
+freqs = [6 10]; % what frequecies, should be frequencies that the monitor can achieve
 iSi = 2; %inter stimulus interval in  seconds
 fullscreen = false; % do you want this to be full screen
 imageSizeW = 800; % ssvep stim size, must be an even number
