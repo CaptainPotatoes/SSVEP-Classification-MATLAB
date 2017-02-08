@@ -1,4 +1,4 @@
-function [trainedClassifier, validationAccuracy] = trainClassifier(trainingData)
+function [trainedClassifier, validationAccuracy] = trainClassifier_QDA(trainingData)
 % trainClassifier(trainingData)
 %  returns a trained classifier and its accuracy.
 %  This code recreates the classification model trained in

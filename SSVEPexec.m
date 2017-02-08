@@ -1,11 +1,7 @@
-%% Import
+%% Clear; Load and Quick & Dirty Feature Viewing
 clear all;
 clc;close all;
-%% All Recordings at 250Hz (for now)
-% load('MusaTrial1.mat')
-% load('BaselineData1')
-load('FadiData_31.25Hz.mat')
-% load('Trial_Marc_SSVEP_15Hz.mat');
+load('Trial_Marc_SSVEP_7Hz.mat');
 fp1 = Trial{1}; 
 fp2 = Trial{2};
 % Fs = 250; %Override for data w/o sampling rate.
@@ -17,7 +13,8 @@ t = 0:h:L/Fs-h;
     %unfilt: method 1
     figure(1)
     subplot(4,1,1);
-    fp1_fft = fft(fp1);
+%     fp1_fft = fft(fp1);
+    fp1_fft = fft(eog_h_fcn(fp1,Fs));
     P2 = abs(fp1_fft/L);
     P1 = P2(1:(L/2+1));
     P1(2:end-1) = 2*P1(2:end-1);
@@ -54,7 +51,7 @@ n=1;
 fromHz = 0;
 toHz = 86;
 [S{n},Fspect{n},T{n},P{n}] = spectrogram(fp1_f, 2*Fs,1*Fs,12*Fs,Fs);
-figure(3)
+figure(2)
 imagesc( T{n}, ...
              Fspect{n}(Fspect{n}<toHz & Fspect{n}>fromHz), ...
              10*log10(P{n}(Fspect{n}<toHz & Fspect{n}>fromHz,:)) )
@@ -67,13 +64,96 @@ ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel Fp1', 'FontSize', 14)
 %Pwelch:
-figure(2)
-[Pxx, F] = pwelch(fp1_f,[],[],250);
+figure(3)
+[Pxx, F] = pwelch(fp1,[],[],250);
 plot(10*log10(Pxx)),xlim([0 40])
 
-%%Extract Features and Apply Class #
-class = 
+%% Extract Features and Apply Class #
+% Features: first we will use eye movement to verify (in a preceding
+% window) that stimulus has changed. We can use techniques such as mean of
+% all the harmonics as one of the features. We will have to put windows
+% around each of our frequency hotspots. 
+classes = [0 1 2 3 4];
+classFreqs = [7 12 15 23 31];
+%%% 0 = nothing/baseline noise
+%   1 = first frequency (~?Hz)
+%   2 = frequency (~?Hz)
+%   3 = frequency (~?Hz)
+%%% 4 = frequency (~?Hz).
+filteredData = cell(  5,  2);
+                   %Fp1, Fp2
+% entire signal: @ 7Hz
+figure(4); hold on;
+Frange = 2;
+NOrder = 3;
+for i=1:length(classFreqs)
+    filteredData{i,1} = ssvepFilter(fp1,Fs,classFreqs(i),Frange,NOrder);
+    plot(filteredData{i,1});
+    filteredData{i,2} = ssvepFilter(fp2,Fs,classFreqs(i),Frange,NOrder);
+end
+hold off;
+classHarmonics{1} = classFreqs;
+classHarmonics{2} = classFreqs*2;
+classHarmonics{3} = classFreqs*3;
+figure(5); hold on;
+for i=1:length(classHarmonics{2})
+    filteredData{length(classFreqs)+i,1} = ssvepFilter(fp1,Fs,classHarmonics{2}(i),Frange,NOrder);
+    filteredData{2*length(classFreqs)+i,1} = ssvepFilter(fp1,Fs,classHarmonics{3}(i),Frange,NOrder);
+    plot(filteredData{length(classFreqs)+i,1});
+    filteredData{length(classFreqs)+i,2} = ssvepFilter(fp2,Fs,classHarmonics{2}(i),Frange,NOrder);
+    filteredData{2*length(classFreqs)+i,1} = ssvepFilter(fp2,Fs,classHarmonics{3}(i),Frange,NOrder);
+end
+hold off;
+
+%% Plot ffts:
+figure(6);
+fp1_P1 = cell(length(classFreqs),1);
+fp1_P2 = cell(length(classFreqs),1);
+fp1_fft_band = cell(3*length(classFreqs),1);
+for i=1:length(classFreqs)
+    subplot(length(classFreqs),1,i);
+    fp1_fft_band{i} = fft(filteredData{i,1});
+    L = size(filteredData{i,1},1);
+    fp1_P2{i} = abs(fp1_fft_band{i}/L);
+    fp1_P1{i} = fp1_P2{i}(1:(L/2+1));
+    fp1_P1{i}(2:end-1) = 2*fp1_P1{i}(2:end-1);
+    f = Fs*(0:(L/2))/L;
+    plot(f,fp1_P1{i}),xlim([1 75]);
+end
+
+figure(7);
+fp1_harmonic_P1 = cell(length(classFreqs),1);
+fp1_harmonic_P2 = cell(length(classFreqs),1);
+% fp1_fft_band = cell(length(classFreqs),1);
+for i=1:length(classFreqs)
+    subplot(length(classFreqs),1,i);
+    fp1_fft_band{i+length(classFreqs)} = fft(filteredData{i+length(classFreqs),1});
+    L = size(filteredData{i,1},1);
+    fp1_harmonic_P2{i} = abs(fp1_fft_band{i+length(classFreqs)}/L);
+    fp1_harmonic_P1{i} = fp1_harmonic_P2{i}(1:(L/2+1));
+    fp1_harmonic_P1{i}(2:end-1) = 2*fp1_harmonic_P1{i}(2:end-1);
+    f = Fs*(0:(L/2))/L;
+    plot(f,fp1_harmonic_P1{i}),xlim([1 75]);
+end
+
+figure(8);
+fp1_harmonic2_P1 = cell(length(classFreqs),1);
+fp1_harmonic2_P2 = cell(length(classFreqs),1);
+% fp1_fft_band = cell(length(classFreqs),1);
+for i=1:length(classFreqs)-1
+    subplot(length(classFreqs)-1,1,i);
+    fp1_fft_band{i+2*length(classFreqs)} = fft(filteredData{i+2*length(classFreqs),1});
+    L = size(filteredData{i,1},1);
+    fp1_harmonic2_P2{i} = abs(fp1_fft_band{i+2*length(classFreqs)}/L);
+    fp1_harmonic2_P1{i} = fp1_harmonic2_P2{i}(1:(L/2+1));
+    fp1_harmonic2_P1{i}(2:end-1) = 2*fp1_harmonic2_P1{i}(2:end-1);
+    f = Fs*(0:(L/2))/L;
+    plot(f,fp1_harmonic2_P1{i}),xlim([1 75]);
+end
+%%Todo:Apply Hamming Window.
 %% Create moving window:
+% Copy code from other script. 
+%{
 winLen = 2*Fs; %2 seconds
 winShift = Fs/5; %1/5 of a second
 dataLimit = floor(length(fp1)/winLen);
@@ -88,7 +168,6 @@ for i=1:10*dataLimit - 1
     assignedClass{i} = input('Enter an integer value!\n');
 end
 hold off;
-%% Filter:
 
 %% FFT % Implement a very specific set of windows to try and pin down signal.
 %figure(3);
@@ -103,39 +182,8 @@ f = Fs*(0:(L+10))/(L+1);
 n=2^nextpow2(size(fp1_filtered,1));
 fft_eeg=fft(fp1_filtered,n);
 plot(f,fft_eeg)
+%}
 %% Feature Extraction:
-
-
-
-%% Classification:
-
-% Need to make this more complex. Need to find multiple peak values
-    % Looking for 35.7Hz
-% [c1, c2] = find(ismember(P1, max(P1(:))))
-% For 2s:
-m = 2;
-[b1, b2] = find(ismember(P1, max(P1(seconds*8:12*seconds))))
-[c1, c2] = find(ismember(P1, max(P1(seconds*15:seconds*19))))
-[d1, d2] = find(ismember(P1, max(P1(seconds*22:seconds*26))))
-[e1, e2] = find(ismember(P1, max(P1(seconds*29:seconds*31))))
-% FOR 1s:
-% [c1, c2] = find(ismember(P1, max(P1(69:75))))
-% [d1, d2] = find(ismember(P1, max(P1(76:86)))).
-peak_frequency = f(1, b1)
-size = P1(b1)
-peak_frequency = f(1, c1)
-size = P1(c1)
-peak_frequency2 = f(1, d1)
-size2 = P1(d1)
-peak_frequency3 = f(1, e1)
-size3 = P1(e1)
-peakdiff = size3/size2
-if abs(peak_frequency-71.43)<4%Hz
-    fprintf('Success \n');
-else
-    fprintf('Fail \n');
-end
-
 
 
 

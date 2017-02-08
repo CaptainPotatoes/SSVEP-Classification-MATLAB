@@ -20,7 +20,7 @@ function varargout = SSVEPGUI(varargin)
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 % Edit the above text to modify the response to help SSVEPGUI
-% Last Modified by GUIDE v2.5 06-Feb-2017 12:41:04
+% Last Modified by GUIDE v2.5 07-Feb-2017 19:03:19
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -328,10 +328,20 @@ if get(hObject,'Value') == 0
     SamplingRate = sampleRate_BP;
     assignin('base','SamplingRate',SamplingRate);
     %% Change into button function.
-    RecordingNotes = get(handles.edit1,'String');
-    if isempty(RecordingNotes)
-       RecordingNotes = 'No Notes Recorded for This Session'; 
+    H_Notes = [handles.edit2 handles.edit_ChannelLocations, handles.editImpedanceValues, ...
+        handles.editElectrodeType, handles.editStimulusSource, handles.editMiscInfo];
+    RecordingNotes = cell(length(H_Notes)+1, 2);
+    RecordingNotes{1,1} = 'Filename (.mat)'; RecordingNotes{2,1} = 'Channel Locations';
+    RecordingNotes{3,1} = 'Electrode Impedance'; RecordingNotes{4,1} = 'Electrode Type';
+    RecordingNotes{5,1} = 'Source of Stimulus'; RecordingNotes{6,1} = 'Misc Notes';
+    for i=1:length(H_Notes)
+        RecordingNotes{i,2} = get(H_Notes(i),'String');
+        if isempty(RecordingNotes{i,2})
+            RecordingNotes{i,2} = 'No Notes Recorded for This Session'; 
+        end
     end
+    RecordingNotes{length(H_Notes)+1,1} = 'Sampling Rate';
+    RecordingNotes{length(H_Notes)+1,2} = num2str(SamplingRate);
     assignin('base','RecordingNotes',RecordingNotes);
     %% Auto-save variables
     filename = get(handles.edit2,'String');
@@ -437,18 +447,18 @@ else
 end
 
 
-function edit1_Callback(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
+function edit_ChannelLocations_Callback(hObject, eventdata, handles)
+% hObject    handle to edit_ChannelLocations (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit1 as text
-%        str2double(get(hObject,'String')) returns contents of edit1 as a double
+% Hints: get(hObject,'String') returns contents of edit_ChannelLocations as text
+%        str2double(get(hObject,'String')) returns contents of edit_ChannelLocations as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit1 (see GCBO)
+function edit_ChannelLocations_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_ChannelLocations (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -481,3 +491,95 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
+
+
+
+function editImpedanceValues_Callback(hObject, eventdata, handles)
+% hObject    handle to editImpedanceValues (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of editImpedanceValues as text
+%        str2double(get(hObject,'String')) returns contents of editImpedanceValues as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function editImpedanceValues_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to editImpedanceValues (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function editElectrodeType_Callback(hObject, eventdata, handles)
+% hObject    handle to editElectrodeType (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of editElectrodeType as text
+%        str2double(get(hObject,'String')) returns contents of editElectrodeType as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function editElectrodeType_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to editElectrodeType (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function editStimulusSource_Callback(hObject, eventdata, handles)
+% hObject    handle to editStimulusSource (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of editStimulusSource as text
+%        str2double(get(hObject,'String')) returns contents of editStimulusSource as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function editStimulusSource_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to editStimulusSource (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function editMiscInfo_Callback(hObject, eventdata, handles)
+% hObject    handle to editMiscInfo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of editMiscInfo as text
+%        str2double(get(hObject,'String')) returns contents of editMiscInfo as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function editMiscInfo_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to editMiscInfo (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

@@ -9,14 +9,15 @@ clc
 
 %% ---------------------------
 % SETTINGS 
-freqs = [31.25 31.25]; % what frequecies, should be frequencies that the monitor can achieve
+freqsToUse = [5 10 15 20 30] %& harmonics;
+freqs = [7 10]; % what frequecies, should be frequencies that the monitor can achieve
 iSi = 2; %inter stimulus interval in  seconds
 fullscreen = false; % do you want this to be full screen
 imageSizeW = 800; % ssvep stim size, must be an even number
 imageSizeH = 800; % ssvep stim size, must be an even number   
 startTrial = 1; % NOT IMPLEMENTED - SHOULD ALWAYS BE 1...future - you can load a trial order, and start from the middle, in case the program crashes 
 numTrials = 1; % how many trials do you want?   
-trial_length = 120; % how long do you want each trial to be? recommend at least 5 seconds
+trial_length = 10; % how long do you want each trial to be? recommend at least 5 seconds
 triggerSize = [200 0; 0 0; 0 200]; % we trigger using a photodiode...you can just set this to all 0s 
 
 %% ---------------------------
