@@ -112,9 +112,9 @@ Window = cell( seconds*winFraction*dataLimit - 1, 2);
 assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1);
 
 figure(1); 
-for i=1 : seconds*winFraction*dataLimit
+for i = 1 : seconds*winFraction*dataLimit
     start = 1 + winShift*(i-1);
-        winEnd = start + winLen-1;
+    winEnd = start + winLen-1;
     fprintf('Current index = [%d to %d]\r\n',start, winEnd);
     Window{i,1} = fp1( start : start + winLen-1 );              % set values:
     Window{i,2} = fp2( start : start + winLen-1 );

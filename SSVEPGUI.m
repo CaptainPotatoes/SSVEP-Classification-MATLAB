@@ -77,12 +77,17 @@ function togglebutton1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global myDevice;
 global deviceName;
+global which_pc;
 count = 0;
 
 if get(hObject,'Value') && count == 0
-
+which_pc = input('WHICH PC? : 1=home, 0=work \n');
 % load the BioRadio API using a MATLAB's .NET interface
-[ deviceManager , flag ] = load_API(['C:\Users\mahmoodms\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\BioRadioSDK.dll']);
+if which_pc ==0
+    [ deviceManager , flag ] = load_API(['C:\Users\mahmoodms\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\BioRadioSDK.dll']);
+elseif which_pc ==1
+    [ deviceManager , flag ] = load_API(['C:\Users\Musa Mahmood\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\BioRadioSDK.dll']);
+end
 % input = full path to api dll file
 % outputs = deviceManager object, success flag
 
@@ -128,7 +133,7 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global myDevice Idx 
-global trainingData totalCount
+global trainingData totalCount which_pc
 % trainingData = cell(1);
 totalCount = cell(1);
 totalCount{1} = 0;
@@ -222,11 +227,17 @@ while get(hObject,'Value') == 1
                     end
                 end
             else %once plot window is exceeded:
+
                 if ch==1
-                     t = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
+                     t{1} = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
+                     plot(axis_handles(ch),t{1},plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end))
                 end
-                plot(axis_handles(ch),t,plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end))
-                set(handles.(['axes',num2str(ch)]),'XLim',[t(end)-plotWindow t(end)]);
+                if ch==2
+                     t{2} = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
+                     plot(axis_handles(ch),t{2},plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end))
+                end
+                
+                set(handles.(['axes',num2str(ch)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
                 set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
                 set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
                 if ch==1
@@ -245,26 +256,28 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
                     % Spectrogram (STFT):
-                    [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                    imagesc(spect_1, T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
-                    set(spect_1,'YDir','normal')
-                    cb = colorbar(spect_1);
-                    ylabel(cb, 'Power (db)')
-                    colormap(spect_1,jet)
-                    set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Time (s)')
-                    set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Spectrogram (Fp1)')
+                    if which_pc == 0
+                        [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
+                        imagesc(spect_1, T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+                        set(spect_1,'YDir','normal')
+                        cb = colorbar(spect_1);
+                        ylabel(cb, 'Power (db)')
+                        colormap(spect_1,jet)
+                        set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Time (s)')
+                        set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Frequency (Hz)')
+                        set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Spectrogram (Fp1)')
+                        end
                     % Pwelch
                     [Pxx, F] = pwelch(fp1_data_filtered,[],[],250);
                     plot(axis_handles(7), Pxx); 
-                    set(handles.(['axes',num2str(7)]),'XLim',[0 100]);
+                    set(handles.(['axes',num2str(7)]),'XLim',[0 50]);
                     set(get(handles.(['axes',num2str(7)]), 'XLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(7)]), 'YLabel'), 'String', 'Power (dB)')
                     set(get(handles.(['axes',num2str(7)]), 'Title'), 'String', 'Pwelch (Fp1)')
                     % EOG Analysis
                     eog_data_fp1 = eog_h_fcn(fp1_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(9),t,eog_data_fp1);
-                    set(handles.(['axes',num2str(9)]),'XLim',[t(end)-plotWindow t(end)]);
+                    plot(axis_handles(9),t{1},eog_data_fp1);
+                    set(handles.(['axes',num2str(9)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
                     set(handles.(['axes',num2str(9)]),'YLim',[-4E-4 4E-4]);
                     set(get(handles.(['axes',num2str(9)]), 'XLabel'), 'String', 'Time (s)')
                     set(get(handles.(['axes',num2str(9)]), 'YLabel'), 'String',  'mV')
@@ -285,26 +298,28 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P2(f)|')
                     set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
                     % Spect:
-                    [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                    imagesc(spect_2, T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
-                    set(spect_2,'YDir','normal') %gca
-                    cb2 = colorbar(spect_2);
-                    ylabel(cb2, 'Power (db)')
-                    colormap(spect_2,jet)
-                    set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Time (s)')
-                    set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Spectrogram (Fp2)')
+                    if which_pc == 0
+                        [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
+                        imagesc(spect_2, T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+                        set(spect_2,'YDir','normal') %gca
+                        cb2 = colorbar(spect_2);
+                        ylabel(cb2, 'Power (db)')
+                        colormap(spect_2,jet)
+                        set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Time (s)')
+                        set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Frequency (Hz)')
+                        set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Spectrogram (Fp2)')
+                    end
                     % P welch
                     [Pxx, F] = pwelch(fp2_data_filtered,[],[],250);
                     plot(axis_handles(8), Pxx); 
-                    set(handles.(['axes',num2str(8)]),'XLim',[0 100]);
+                    set(handles.(['axes',num2str(8)]),'XLim',[0 50]);
                     set(get(handles.(['axes',num2str(8)]), 'XLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(8)]), 'YLabel'), 'String', 'Power (dB)')
                     set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', 'Pwelch (Fp2)')
                     %EOG
                     eog_data_fp2 = eog_h_fcn(fp2_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(10),t,eog_data_fp2);
-                    set(handles.(['axes',num2str(10)]),'XLim',[t(end)-plotWindow t(end)]);
+                    plot(axis_handles(10),t{2},eog_data_fp2);
+                    set(handles.(['axes',num2str(10)]),'XLim',[t{2}(end)-plotWindow t{2}(end)]);
                     set(handles.(['axes',num2str(10)]),'YLim',[-4E-4 4E-4]);
                     set(get(handles.(['axes',num2str(10)]), 'XLabel'), 'String', 'Time (s)')
                     set(get(handles.(['axes',num2str(10)]), 'YLabel'), 'String',  'mV')
