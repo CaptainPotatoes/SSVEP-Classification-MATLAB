@@ -1,4 +1,4 @@
-function [ecg_h] = eeg_h_fcn(ecg, fs)
+function [ecg_h] = eeg_h_fcn3_50(ecg, fs)
 %ECG_H_FCN Summary of this function goes here
 %   Detailed explanation goes here
 if ~isvector(ecg)
@@ -10,7 +10,7 @@ f2s = fs;
 f1=3; %cuttoff low frequency to get rid of baseline wander
 f2=50; %cuttoff frequency to discard high frequency noise
 Wn=[f1 f2]*2/f2s; % cut off based on fs
-N = 3; % order of 3 less processing
+N = 5; % order of 3 less processing
 [a,b] = butter(N,Wn); %bandpass filtering
 ecg_h_a = filtfilt(a,b,ecg);
 % ecg_h_a = ecg_h_a/max(abs(ecg_h_a));

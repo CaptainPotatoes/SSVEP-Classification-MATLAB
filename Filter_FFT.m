@@ -1,17 +1,12 @@
 %% Load, plot and annotate.
 clear all;clc;close all;
-% load('Trial2Data.mat')
-% tD = cell(1);
-% load('BaseLineData1')
-% load('BaseLineData2')
-% load('Trial_DB1');
-load('Trial_Marc_2.mat');
+
+load('Trial_Marc_V7_11Hz.mat');
 fp1d = Trial{1}(1:end-250,1); %ignore last second
 fp2d = Trial{2}(1:end-250,1);
 h=1/250;
 t=0:h:length(fp1d)/250-h;
 markers = tD{1};
-
 % Filter Entirety
 fp1dfilt = eog_h_fcn(fp1d,250);
 fp2dfilt = eog_h_fcn(fp2d,250);
@@ -68,7 +63,7 @@ Features(:,numFeatures+1) = Class;
 %% Shifting Window Method
 clear;clc;close all;
 % load('Trial_DB1');
-load('Trial_Marc_3.mat')
+load('Trial_Marc_V7_11Hz.mat')
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 h=1/250;

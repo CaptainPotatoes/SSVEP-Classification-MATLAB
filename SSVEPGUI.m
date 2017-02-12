@@ -266,7 +266,7 @@ while get(hObject,'Value') == 1
                         set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Time (s)')
                         set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Frequency (Hz)')
                         set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Spectrogram (Fp1)')
-                        end
+                    end
                     % Pwelch
                     [Pxx, F] = pwelch(fp1_data_filtered,[],[],250);
                     plot(axis_handles(7), Pxx); 
