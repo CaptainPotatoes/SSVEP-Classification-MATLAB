@@ -11,7 +11,7 @@ end
 folder{1} = '\EOG_snap\'; 
 folder{2} = '\SSVEP_snap\'; 
 folder{3} = '\SSVEP_alt_setups\';
-filename = 'Dad_X1_10Hz.mat';
+filename = 'Dad_X1_12Hz.mat';
     disp(filename);
 load([dataRootFolder folder{3} filename]);
 % load('Marc_SSVEP_12_5Hz.mat');
@@ -35,7 +35,7 @@ t=0:h:length(fp1)/250-h;
 markers = trainingData{1};
 %Spect:
 figure;
-[S, Fspect, T, P] = spectrogram(fp1_f(500:end-500), 5*Fs,4*Fs,10*Fs,Fs);
+[~, Fspect, T, P] = spectrogram(fp1_f(500:end-500), 5*Fs,4*Fs,10*Fs,Fs);
 imagesc(T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
 set(gca,'YDir','normal')
 ylabel('Frequency (Hz)')
@@ -45,7 +45,7 @@ ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel Fp1', 'FontSize', 14)
 figure;
-[S, Fspect, T, P] = spectrogram(fp2_f, 5*Fs,4*Fs,10*Fs,Fs);
+[~, Fspect, T, P] = spectrogram(fp2_f, 5*Fs,4*Fs,10*Fs,Fs);
 imagesc(T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
 set(gca,'YDir','normal')
 ylabel('Frequency (Hz)')
@@ -70,6 +70,11 @@ featureH1 = cell(numWindows, length(classFreqs));
 featureH2 = featureH1;
 featureH3 = featureH1;
 Pxx = featureH1;
+% PSDfeat = zeros(numWindows,4);
+M1 = zeros(numWindows,2);
+M2 = M1;
+I1 = M1;
+I2 = M1;
 % figure(1)
 lx = [0 40];
 ly = [1.2E-6 1.2E-6];
@@ -131,21 +136,31 @@ for j = 1 : length(classFreqs)
             end
         end
         % TODO: PSD for each window
-        [Pxx, ~] = pwelch( eeg_h_custom(Window{i,1},Fs,[3 30],3),[],[],Fs );
-        fpsd = 1:length(Pxx);
-        [M1(i,j), I1(i,j)] = max(Pxx(1:11));
-        [M2(i,j), I2(i,j)] = max(Pxx(12:end));
+        
         totalOps = totalOps - 3;
-        if j==1 %Do only once
-            PSDfeat(i,:) = [ fpsd(I1(i,j)), 10*log10(M1(i,j)), fpsd(11+I2(i,j)), 10*log10(M2(i,j)) ];
+        if j==1 %Do only once 
+            [Pxx, ~] = pwelch( eeg_h_custom(Window{i,1},Fs,[3 30],3),[],[],Fs );
+            fpsd = 1:length(Pxx);
+            PSDsplit = 11;
+            [M1(i,j), I1(i,j)] = max(Pxx(1:PSDsplit));
+            [M2(i,j), I2(i,j)] = max(Pxx(1+PSDsplit:end));
+            PSDfeat{j}(i,:) = [ fpsd(I1(i,j)), 10*log10(M1(i,j)), fpsd(PSDsplit+I2(i,j)), 10*log10(M2(i,j)) ];
+        end
+        if j==2
+            [Pxx, ~] = pwelch( eeg_h_custom(Window{i,1},Fs,[3 30],3),[],[],Fs );
+            fpsd = 1:length(Pxx);
+            PSDsplit = 14;
+            [M1(i,j), I1(i,j)] = max(Pxx(1:PSDsplit));
+            [M2(i,j), I2(i,j)] = max(Pxx(1+PSDsplit:end));
+            PSDfeat{j}(i,:) = [ fpsd(I1(i,j)), 10*log10(M1(i,j)), fpsd(PSDsplit+I2(i,j)), 10*log10(M2(i,j)) ];
         end
         if cont~=0
             figure(2); hold on;
             plot(10*log10(Pxx));
             plot(fpsd(I1(i,j)), 10*log10(M1(i,j)),'-.r*'),xlim(lx);
             text(fpsd(I1(i,j)), 10*log10(M1(i,j)),num2str(fpsd(I1(i,j))));
-            plot(fpsd(11+I2(i,j)), 10*log10(M2(i,j)),'-.r*'),xlim(lx);
-            text(fpsd(11+I2(i,j)), 10*log10(M2(i,j)),num2str(fpsd(11+I2(i,j))));
+            plot(fpsd(PSDsplit+I2(i,j)), 10*log10(M2(i,j)),'-.r*'),xlim(lx);
+            text(fpsd(PSDsplit+I2(i,j)), 10*log10(M2(i,j)),num2str(fpsd(PSDsplit+I2(i,j))));
             hold off;
             fprintf('Operations Remaining: %d\n',totalOps);
             cont = input('continue?\n');
@@ -158,17 +173,17 @@ end
 %%% Todo:Apply Hamming Window.
 %% Organize features: (6Hz)
 for j = 1:size(featureH1,1)
-    ssFeats(j,:)  = [featureH1{j,1} featureH1{j,2} featureH2{j,1} featureH2{j,2} featureH3{j,1} featureH3{j,2} PSDfeat(j,:)]; %
+    ssFeats(j,:)  = [featureH1{j,1} featureH1{j,2} featureH2{j,1} featureH2{j,2} featureH3{j,1} featureH3{j,2} PSDfeat{1}(j,:) PSDfeat{2}(j,:)]; %
 end
 
 %% Organize features: (10Hz)
 for j = 1:size(featureH1,1)
-    ssFeats2(j,:) = [featureH1{j,1} featureH1{j,2} featureH2{j,1} featureH2{j,2} featureH3{j,1} featureH3{j,2} PSDfeat(j,:)]; 
+    ssFeats2(j,:) = [featureH1{j,1} featureH1{j,2} featureH2{j,1} featureH2{j,2} featureH3{j,1} featureH3{j,2} PSDfeat{1}(j,:) PSDfeat{2}(j,:)]; 
 end
 
 %% Organize features: (??Hz)
 for j = 1:size(featureH1,1)
-    ssFeats3(j,:) = [featureH1{j,1} featureH1{j,2} featureH2{j,1} featureH2{j,2} featureH3{j,1} featureH3{j,2} PSDfeat(j,:)]; 
+    ssFeats3(j,:) = [featureH1{j,1} featureH1{j,2} featureH2{j,1} featureH2{j,2} featureH3{j,1} featureH3{j,2} PSDfeat{1}(j,:) PSDfeat{2}(j,:)]; 
 end
 
 

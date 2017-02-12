@@ -155,11 +155,6 @@ numAxes = 10;
 axis_handles = zeros(1,numAxes);
 for ch = 1:numAxes
     axis_handles(ch) = handles.(['axes',num2str(ch)]);
-    %{
-    if ch==1
-        title([char(BioRadio_Name)]) 
-    end
-    %}
 end
 
 %Preallocating BPSignals
