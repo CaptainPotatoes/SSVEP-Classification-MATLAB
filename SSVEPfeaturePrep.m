@@ -1,6 +1,5 @@
 %% Clear & Load Data
 clear;close all;clc;
-%% 
 which_pc = input('WHICH PC? : 1=home, 0=work \n');
 % load the BioRadio API using a MATLAB's .NET interface
 if which_pc == 1
@@ -11,10 +10,11 @@ end
 folder{1} = '\EOG_snap\'; 
 folder{2} = '\SSVEP_snap\'; 
 folder{3} = '\SSVEP_alt_setups\';
-filename = 'Dad_X1_12Hz.mat';
-    disp(filename);
-load([dataRootFolder folder{3} filename]);
-% load('Marc_SSVEP_12_5Hz.mat');
+filename = 'Dad_X1_10Hz.mat';
+%     disp(filename);
+% load([dataRootFolder folder{3} filename]);
+load('Dad_14Hz_6.mat');
+% expectedFreq = input('what frequency?\n');
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 Fs = SamplingRate;
@@ -33,7 +33,7 @@ Lseconds = length(fp1_f);
 h=1/250;
 t=0:h:length(fp1)/250-h;
 markers = trainingData{1};
-%Spect:
+    % Spectrogram:
 figure;
 [~, Fspect, T, P] = spectrogram(fp1_f(500:end-500), 5*Fs,4*Fs,10*Fs,Fs);
 imagesc(T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
@@ -54,10 +54,9 @@ cb = colorbar;
 ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel Fp1', 'FontSize', 14)
-%%%Analysis
+%% Analysis
     close all;
-% classFreqs = [6 10 13? 15??];
-classFreqs = [6 10];
+classFreqs = [6 10 12 14];
 seconds = 2; %2 second window
 winLen = seconds*Fs; 
 winFraction = 4;%125pts; %1/2 of a second %% TODO: CHANGE TO 1/4second
@@ -70,7 +69,7 @@ featureH1 = cell(numWindows, length(classFreqs));
 featureH2 = featureH1;
 featureH3 = featureH1;
 Pxx = featureH1;
-% PSDfeat = zeros(numWindows,4);
+PSDfeat = cell(2,1);
 M1 = zeros(numWindows,2);
 M2 = M1;
 I1 = M1;
@@ -80,7 +79,7 @@ lx = [0 40];
 ly = [1.2E-6 1.2E-6];
 % % plot(lx,ly,'Color','r');
 Frange = 2;
-totalOps = length(classFreqs)*3*numWindows
+totalOps = length(classFreqs)*3*numWindows;
 cont = 1;
 for j = 1 : length(classFreqs)
     currentFreq = classFreqs(j)
@@ -103,6 +102,7 @@ for j = 1 : length(classFreqs)
                         hold on;
                         plot(f, fp1fft),xlim(lx);
                         plot(f(I), M,'-.r*'),xlim(lx);
+                        text(f(I), M, num2str(f(I)));
                         hold off;
                     end
                 case 2
@@ -114,6 +114,7 @@ for j = 1 : length(classFreqs)
                         hold on;
                         plot(f, fp1fft),xlim(lx);
                         plot(f(I), M,'-.r*'),xlim(lx);
+                        text(f(I), M, num2str(f(I)));
                         hold off;
                     end
                     fp2f = ssvepFilter( Window{i,2}, Fs, 2*currentFreq, Frange, 3);
@@ -127,6 +128,7 @@ for j = 1 : length(classFreqs)
                         hold on;
                         plot(f, fp1fft),xlim(lx)
                         plot(f(I), M,'-.r*'),xlim(lx);
+                        text(f(I), M, num2str(f(I)));
                         hold off;
                     end
                     fp2f = ssvepFilter( Window{i,2}, Fs, 2*2*currentFreq, Frange, 3);
@@ -136,7 +138,6 @@ for j = 1 : length(classFreqs)
             end
         end
         % TODO: PSD for each window
-        
         totalOps = totalOps - 3;
         if j==1 %Do only once 
             [Pxx, ~] = pwelch( eeg_h_custom(Window{i,1},Fs,[3 30],3),[],[],Fs );
@@ -168,36 +169,65 @@ for j = 1 : length(classFreqs)
         end
     end
 end
-
 %%% Create moving window:
 %%% Todo:Apply Hamming Window.
 %% Organize features: (6Hz)
+% ssFeats = zeros(numWindows, 30);
 for j = 1:size(featureH1,1)
-    ssFeats(j,:)  = [featureH1{j,1} featureH1{j,2} featureH2{j,1} featureH2{j,2} featureH3{j,1} featureH3{j,2} PSDfeat{1}(j,:) PSDfeat{2}(j,:)]; %
+    if expectedFreq == 6
+        ssFeats(j,:) = [featureH1{j,1} featureH1{j,2} featureH1{j,3} featureH1{j,4}...
+            featureH2{j,1} featureH2{j,2} featureH2{j,3} featureH2{j,4} ...
+            featureH3{j,1} featureH3{j,2} featureH3{j,3} featureH3{j,4} ...
+            PSDfeat{1}(j,:) PSDfeat{2}(j,:)];
+    elseif expectedFreq == 10
+        ssFeats2(j,:) = [featureH1{j,1} featureH1{j,2} featureH1{j,3} featureH1{j,4}...
+            featureH2{j,1} featureH2{j,2} featureH2{j,3} featureH2{j,4} ...
+            featureH3{j,1} featureH3{j,2} featureH3{j,3} featureH3{j,4} ...
+            PSDfeat{1}(j,:) PSDfeat{2}(j,:)];
+    elseif expectedFreq == 12
+        ssFeats3(j,:) = [featureH1{j,1} featureH1{j,2} featureH1{j,3} featureH1{j,4}...
+            featureH2{j,1} featureH2{j,2} featureH2{j,3} featureH2{j,4} ...
+            featureH3{j,1} featureH3{j,2} featureH3{j,3} featureH3{j,4} ...
+            PSDfeat{1}(j,:) PSDfeat{2}(j,:)];
+    elseif expectedFreq == 14
+        ssFeats4(j,:) = [featureH1{j,1} featureH1{j,2} featureH1{j,3} featureH1{j,4}...
+            featureH2{j,1} featureH2{j,2} featureH2{j,3} featureH2{j,4} ...
+            featureH3{j,1} featureH3{j,2} featureH3{j,3} featureH3{j,4} ...
+            PSDfeat{1}(j,:) PSDfeat{2}(j,:)];
+    else
+        error('wat u doin mate, you didnt put the right freq\n');
+    end
 end
-
-%% Organize features: (10Hz)
-for j = 1:size(featureH1,1)
-    ssFeats2(j,:) = [featureH1{j,1} featureH1{j,2} featureH2{j,1} featureH2{j,2} featureH3{j,1} featureH3{j,2} PSDfeat{1}(j,:) PSDfeat{2}(j,:)]; 
-end
-
-%% Organize features: (??Hz)
-for j = 1:size(featureH1,1)
-    ssFeats3(j,:) = [featureH1{j,1} featureH1{j,2} featureH2{j,1} featureH2{j,2} featureH3{j,1} featureH3{j,2} PSDfeat{1}(j,:) PSDfeat{2}(j,:)]; 
-end
-
 
 %% Combine
- numColns = size(ssFeats,2);
- rows = size(ssFeats,1);
+numColns = size(ssFeats,2);
+rows = size(ssFeats,1);
 for i=1:rows
     ssFeats(i,numColns+1) = 6;
 end
 
- numColns = size(ssFeats2,2);
- rows = size(ssFeats2,1);
+numColns = size(ssFeats2,2);
+rows = size(ssFeats2,1);
 for i=1:rows
     ssFeats2(i,numColns+1) = 10;
 end
 
-SSCombine = [ssFeats;ssFeats2];
+numColns = size(ssFeats3,2);
+rows = size(ssFeats3,1);
+for i=1:rows
+    ssFeats3(i,numColns+1) = 12;
+end
+
+numColns = size(ssFeats3_2,2);
+rows = size(ssFeats3_2,1);
+for i=1:rows
+    ssFeats3_2(i,numColns+1) = 12;
+end
+
+numColns = size(ssFeats4,2);
+rows = size(ssFeats4,1);
+for i=1:rows
+    ssFeats4(i,numColns+1) = 14;
+end
+
+SSCombine = [ssFeats;ssFeats2;ssFeats3;ssFeats3_2;ssFeats4];
