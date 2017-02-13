@@ -171,7 +171,8 @@ plotGain_BP = 1;
 fft_len = plotWindow*sampleRate_BP;
 % fft_len = 2^(nextpow2(plotWindow*sampleRate_BP)); 
 % USE WITH fft(X,fft_len_pow2)
-
+f0 = [7 21];
+N = 5;
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
 t = cell(numEnabledBPChannels, 1);
@@ -238,22 +239,17 @@ while get(hObject,'Value') == 1
                 if ch==1
                     % Window and Filter
                     fp1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    fp1_data_filtered = eeg_h_fcn3_50(fp1_data_unfilt, sampleRate_BP);
-                    % FFT:
-                    fp1_fft = fft(fp1_data_filtered);
-                    P2 = abs(fp1_fft/fft_len);
-                    P1 = P2(1:fft_len/2+1);
-                    P1(2:end-1) = 2*P1(2:end-1);
-                    f = sampleRate_BP*(0:(fft_len/2))/fft_len;
+                    fp1_data_filtered = eeg_h_custom(fp1_data_unfilt, sampleRate_BP, f0, N);
+                    [f, P1] = get_fft_data(fp1_data_filtered, sampleRate_BP);
                     plot(axis_handles(3),f,P1);
-                    set(handles.(['axes',num2str(3)]),'XLim',[1 50]);
+                    set(handles.(['axes',num2str(3)]),'XLim',[1 30]);
                     set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
                     % Spectrogram (STFT):
                     if which_pc == 0
                         [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                        imagesc(spect_1, T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+                        imagesc(spect_1, T, Fspect(Fspect<30 & Fspect>1), 10*log10(P(Fspect<30 & Fspect>1,:)));
                         set(spect_1,'YDir','normal')
                         cb = colorbar(spect_1);
                         ylabel(cb, 'Power (db)')
@@ -279,23 +275,17 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(9)]), 'Title'), 'String', 'EOG Filter Fp1')
                 elseif ch==2
                     fp2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    fp2_data_filtered = eeg_h_fcn3_50(fp2_data_unfilt, sampleRate_BP);
-                    % FFT:
-                    fp2_fft = fft(fp2_data_filtered);
-                    P2 = abs(fp2_fft/fft_len);
-                    P1 = P2(1:fft_len/2+1);
-                    P1(2:end-1) = 2*P1(2:end-1);
-                    f = sampleRate_BP*(0:(fft_len/2))/fft_len;
+                    fp2_data_filtered = eeg_h_custom(fp2_data_unfilt, sampleRate_BP, f0, N);
+                    [f, P1] = get_fft_data(fp2_data_filtered, sampleRate_BP);
                     plot(axis_handles(4),f,P1);
-                    
-                    set(handles.(['axes',num2str(4)]),'XLim',[1 50]);
+                    set(handles.(['axes',num2str(4)]),'XLim',[1 30]);
                     set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P2(f)|')
                     set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
                     % Spect:
                     if which_pc == 0
                         [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                        imagesc(spect_2, T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+                        imagesc(spect_2, T, Fspect(Fspect<30 & Fspect>1), 10*log10(P(Fspect<30 & Fspect>1,:)));
                         set(spect_2,'YDir','normal') %gca
                         cb2 = colorbar(spect_2);
                         ylabel(cb2, 'Power (db)')
