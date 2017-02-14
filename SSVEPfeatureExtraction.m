@@ -1,9 +1,20 @@
 %% Clear & Load Data
     %%%SSVEP FEATURE EXTRACTION
 clear;close all;clc;
-load('Marc_nonHair_17.24Hz_2.mat');
-% expectedFreq = input('what frequency?\n');
-% TEMPORARY CONT OVERRIDE:
+which_pc = input('WHICH PC? : 1=home, 0=work \n');
+% which_pc = 0;
+if which_pc == 1
+    dataRootFolder = 'C:\Users\Musa Mahmood\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\data';
+else
+    dataRootFolder = 'C:\Users\mahmoodms\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\data';
+end
+folder{1} = '\EOG_snap\'; 
+folder{2} = '\SSVEP_snap\'; 
+folder{3} = '\SSVEP_alt_setups\';
+
+tic;
+% load([dataRootFolder folder{3} 'Dad_X1_6Hz.mat']);
+load('Marc_nonHair_10Hz_7.mat');
 cont = 0;
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1); 
@@ -47,17 +58,21 @@ ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel 2', 'FontSize', 14)
 %% Analysis
+    %%% TODO: Convert to function that accepts 1 Window
+    %%%       CCA and STFT Analysis.
+    %%%       Scale signals and remove random noise
     close all;
     classFreqs = [10, 12.5, 15, 17.24];
 % classFreqs = 10;
 seconds = 2; %2 second window
+% seconds = 1; %1 second window
 winLen = seconds*Fs; 
-winFraction = 4;%125pts; %1/2 of a second %% TODO: CHANGE TO 1/4second
+winFraction = 4;%125pts; % 1/4second 62pts
 winShift = floor(Fs/winFraction); 
-dataLimit = floor((length(fp1)-winLen)/winLen);
+dataLimit = floor((length(fp1)-winLen)/winLen); %Removes two seconds of data
 start = 1;
 Window = cell( seconds*winFraction*dataLimit - 1, 2);
-numWindows = seconds*winFraction*dataLimit;
+numWindows = seconds*winFraction*dataLimit
 fp1H1 = cell(numWindows, length(classFreqs));
 fp1H2 = fp1H1;
 fp1H3 = fp1H1;
@@ -73,18 +88,19 @@ I1 = M1;
 I2 = M1;
 M3 = M1;
 I3 = M1;
-
 Frange = 2;
 totalOps = length(classFreqs)*3*numWindows;
-% cont = 1;
 fH = figure(1);
 set(fH, 'Position', [100, 100, 1200, 900]);
 lx = [0 40];
+f_pwelch1 = [];
+f_pwelch2 = [];
 for j = 1 : length(classFreqs)
     currentFreq = classFreqs(j)
     for i = 1 : numWindows
         start = 1 + winShift*(i-1);
         winEnd = start + winLen-1;
+        fprintf('Window{%d}from %d to %d \n',i, start, start+winLen-1);
         Window{i,1} = fp1( start : start + winLen-1 );
         Window{i,2} = fp2( start : start + winLen-1 );
         for k = 1:3 %harmonic loop:
@@ -163,26 +179,26 @@ for j = 1 : length(classFreqs)
             end
         end
         totalOps = totalOps - 3;
-%         [Pxx0,Psf] = pwelch( eeg_h_custom(Window{i,1}, Fs, [5 30], 5), 500, 250, 250, Fs );
-%         [Pxx02,Psf2] = pwelch( eeg_h_custom(Window{i,2}, Fs, [5 30], 5), 500, 250, 250, Fs );
-%         LPxx0 = 10*log10(Pxx0);
-%         LPxx02 = 10*log10(Pxx02);
         switch j
             case 1 %10Hz
+                 if seconds == 2
+                    [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs );
+                    [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs ); 
+                 elseif seconds ==1
+                    [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 250, 125, 250, Fs );
+                    [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 250, 125, 250, Fs ); 
+                 end
                  %CH1
-                [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs );
                 LPxx1 = 10*log10(Pxx1);
                 [M1(i), I1(i)] = max(LPxx1(9:13)); %[from 8Hz?12Hz]
                 PSDfeat{j}(i,:) = [ ff(9+I1(i)), M1(i) ];
                  %CH2:
-                [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs ); 
                 LPxx2 = 10*log10(Pxx2);
                 [PM2, PI2] = max(LPxx2(9:13));
                 PSDfeat2{j}(i,:) = [ ff2(9+PI2), PM2 ];
                 %Plot Both
                 if cont~=0
                     subplot(4,1,4); hold on;
-%                     plot(Psf,LPxx0);%plot full current spectrum
                     
                     plot(ff, LPxx1);%CH1
                     plot(ff(8+I1(i)), M1(i),'-.b*'),xlim(lx);
@@ -195,19 +211,23 @@ for j = 1 : length(classFreqs)
                 end
             case 2 %12.5Hz
                  %CH1
-                [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs );
+                 if seconds == 2
+                    [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs );
+                    [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs ); 
+                 elseif seconds ==1
+                    [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 250, 125, 250, Fs );
+                    [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 250, 125, 250, Fs ); 
+                 end
                 LPxx1 = 10*log10(Pxx1);
                 [M1(i), I1(i)] = max(LPxx1(12:14)); %[from 11Hz?13Hz]
                 PSDfeat{j}(i,:) = [ ff(12+I1(i)), M1(i) ];
                  %CH2:
-                [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs ); 
                 LPxx2 = 10*log10(Pxx2);
                 [PM2, PI2] = max(LPxx2(12:14));
                 PSDfeat2{j}(i,:) = [ ff2(12+PI2), PM2 ];
                 %Plot Both
                 if cont~=0
                     subplot(4,1,4); hold on;
-%                     plot(Psf,LPxx0);%plot full current spectrum
                     
                     plot(ff, LPxx1); %CH1
                     plot(ff(11+I1(i)), M1(i),'-.b*'),xlim(lx);
@@ -221,18 +241,22 @@ for j = 1 : length(classFreqs)
                 end
             case 3 %15
                  %CH1
-                [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs );
+                 if seconds == 2
+                    [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs );
+                    [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs ); 
+                 elseif seconds ==1
+                    [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 250, 125, 250, Fs );
+                    [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 250, 125, 250, Fs ); 
+                 end
                 LPxx1 = 10*log10(Pxx1);
                 [M1(i), I1(i)] = max(LPxx1(15:17)); %[from 14Hz?16Hz]
                 PSDfeat{j}(i,:) = [ ff(15+I1(i)), M1(i) ];
                  %CH2:
-                [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs ); 
                 LPxx2 = 10*log10(Pxx2);
                 [PM2, PI2] = max(LPxx2(15:17));
                 PSDfeat2{j}(i,:) = [ ff2(15+PI2), PM2 ];
                 if cont~=0
                     subplot(4,1,4); hold on;
-%                     plot(Psf,LPxx0);%plot full current spectrum
                     
                     plot(ff, LPxx1); %CH1
                     plot(ff(14+I1(i)), M1(i),'-.b*'),xlim(lx);
@@ -245,18 +269,22 @@ for j = 1 : length(classFreqs)
                 end
             case 4 %17.24
                  %CH1
-                [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs );
+                 if seconds == 2
+                    [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs );
+                    [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs ); 
+                 elseif seconds ==1
+                    [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 250, 125, 250, Fs );
+                    [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 250, 125, 250, Fs ); 
+                 end
                 LPxx1 = 10*log10(Pxx1);
                 [M1(i), I1(i)] = max(LPxx1(18:28)); %[from 17Hz?27Hz]
                 PSDfeat{j}(i,:) = [ ff(18+I1(i)), M1(i) ];
                  %CH2:
-                [Pxx2,ff2] = pwelch( ssvepFilter(Window{i,2},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs ); 
                 LPxx2 = 10*log10(Pxx2);
                 [PM2, PI2] = max(LPxx2(18:28));
                 PSDfeat2{j}(i,:) = [ ff2(18+PI2), PM2 ];
                 if cont~=0
                     subplot(4,1,4); hold on;
-%                     plot(Psf,LPxx0);%plot full current spectrum
                     
                     plot(ff, LPxx1); %CH1
                     plot(ff(17+I1(i)), M1(i),'-.b*'),xlim(lx);
@@ -275,41 +303,12 @@ for j = 1 : length(classFreqs)
             cont = input('continue?\n');
             clf(1);
         end
-        %{
-        if j==1 %Do only once 
-%             [Pxx,ff] = pwelch( eeg_h_custom(Window{i,1},Fs,[4 30],5), 500, 250, 250, Fs );
-            [Pxx1,ff] = pwelch( ssvepFilter(Window{i,1},Fs, currentFreq, Frange, 3), 500, 250, 250, Fs );
-            PSDstart = 9;
-            PSDpart1 = 14; %(<=8Hz)
-            PSDend1 = 17; %(8?13Hz)
-            PSDend2 = 28; %(14?27Hz)
-            LPxx = 10*log10(Pxx1);
-            [M1(i,j), I1(i,j)] = max(LPxx(PSDstart:PSDpart1)); % [
-            [M2(i,j), I2(i,j)] = max(LPxx(1+PSDpart1:PSDend1)); % 6Hz Harmonic 2
-            [M3(i,j), I3(i,j)] = max(LPxx(1+PSDend1:PSDend2));
-            PSDfeat(i,:) = [ ff(I1(i,j)), M1(i,j), ff(PSDpart1+I2(i,j)), M2(i,j), ff(PSDend1+I3(i,j)), M3(i,j)];
-        end
-        if cont~=0
-            subplot(4,1,4); hold on;
-            plot(ff,10*log10(Pxx1));
-            plot(ff(PSDstart+I1(i,j)), M1(i,j),'-.b*'),xlim(lx);
-            text(ff(PSDstart+I1(i,j)), M1(i,j),num2str(ff(PSDstart+I1(i,j))));
-            plot(ff(PSDpart1+I2(i,j)), M2(i,j),'-.b*'),xlim(lx);
-            text(ff(PSDpart1+I2(i,j)), M2(i,j),num2str(ff(PSDpart1+I2(i,j))));
-            plot( ff(PSDend1+I3(i,j)), M3(i,j),'-.b*'),xlim(lx);
-            text( ff(PSDend1+I3(i,j)), M3(i,j),num2str(ff(PSDend1+I3(i,j))));
-            hold off;
-            fprintf('Operations Remaining: %d\n',totalOps);
-            cont = input('continue?\n');
-            clf(1);%clf(2);
-        end
-        %}
     end
 end
-
-%%%% Create moving window:
-%%% Todo:Apply Hamming Window.
-%% Organize features: (unknown value)
+close all;
+%%%%.Create moving window:
+%%%.Todo:Apply Hamming Window.
+%%.Organize features: (unknown value)
 clearvars -except fp1H1 fp1H2 fp1H3 fp2H1 fp2H2 fp2H3 PSDfeat PSDfeat2
 testData = zeros(size(fp1H1,1),64);
 for j = 1:size(fp1H1,1)
@@ -323,19 +322,39 @@ for j = 1:size(fp1H1,1)
             PSDfeat2{1}(j,:) PSDfeat2{2}(j,:) PSDfeat2{3}(j,:) PSDfeat2{4}(j,:)];
 end
 clearvars -except testData
+toc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Combine same freqs: (HOWEVER MANY THERE ARE!)
+    b2s    = [b2s_1;b2s_2];
     freq10 = [f10_2;f10_3];
     freq12 = [f12_3;f12_4];
     freq15 = [f15_1;f15_2;f15_3];
     freq17 = [f17_1;f17_2;f17_3;f17_4;f17_5];
-    
+    %Remaining Data (test with):
+    rb2s = b2s_3;                           %98.6%
+    r10 = [f10_4]; %~60%acc
+    r12 = [f12_1;f12_2;f12_5];              %~60.12%
+    r15 = [f15_4;f15_5];                    %~83.7%
+    r17 = [f17_4;f17_5];                    %100% (duh, no changed data). 
+    testData = [rb2s;r10;r12;r15;r17];
+    % test TestData:
+    [A, B] = trainClassifierFKNN(combinedTrainingData(:,1:48));
+    for i = 1:size(f10_4,1)
+        Apredict10(i) = A.predictFcn(f10_4(i,:));
+    end
 %% Combine ALL Data:
+    b2s    = [b2s_1;b2s_2;b2s_3];
     freq10 = [f10_1;f10_2;f10_3;f10_4;f10_5;f10_6;f10_7];
     freq12 = [f12_1;f12_2;f12_3;f12_4;f12_5];
     freq15 = [f15_1;f15_2;f15_3;f15_4;f15_5];
     freq17 = [f17_1;f17_2;f17_3;f17_4;f17_5];
 %% Label and Combine all Training Data
+numColns = size(b2s,2);
+rows = size(b2s,1);
+for i=1:rows
+    b2s(i,numColns+1) = -1;
+end
+
 numColns = size(freq10,2);
 rows = size(freq10,1);
 for i=1:rows
@@ -360,7 +379,7 @@ for i=1:rows
     freq17(i,numColns+1) = 17;
 end
 
-combinedTrainingData = [freq10;freq12;freq15;freq17];
+combinedTrainingData = [b2s;freq10;freq12;freq15;freq17];
 % cALLTD = [freq10;freq12;freq15;freq17];
 %%% Create moving window:
 %%% Todo:Apply Hamming Window.
@@ -375,6 +394,8 @@ trainingData = [freq6; freq10; freq12];
 
 
 [A, B] = trainClassifierQDA3(trainingData); %91
+
+
 %% Organize all features:
 % ssFeats = zeros(numWindows, 30);
 for j = 1:size(fp1H1,1)
