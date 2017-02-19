@@ -1,8 +1,8 @@
 %% Clear & Load Data
     %%%SSVEP FEATURE EXTRACTION
 clear;close all;clc;
-which_pc = input('WHICH PC? : 1=home, 0=work \n');
-% which_pc = 0;
+% which_pc = input('WHICH PC? : 1=home, 0=work \n');
+which_pc = 0;
 if which_pc == 1
     dataRootFolder = 'C:\Users\Musa Mahmood\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\data';
 else
@@ -14,21 +14,31 @@ folder{3} = '\SSVEP_alt_setups\';
 
 tic;
 % load([dataRootFolder folder{3} 'Dad_X1_6Hz.mat']);
-load('Marc_nonHair_10Hz_7.mat');
+% load('mssvep_15_4.mat');
+load('mssvep_10_5.mat');
 cont = 0;
-fp1 = Trial{1}(1:end-250,1); %ignore last second
-fp2 = Trial{2}(1:end-250,1); 
+remove = 500;
+fp1 = Trial{1}(1:end-remove,1); %ignore last second
+fp2 = Trial{2}(1:end-remove,1);
+ch3 = Trial{3}(1:end-remove,1);
+ch4 = Trial{4}(1:end-remove,1);
 Fs = SamplingRate;
     %%% Plot FFT (Raw)
-flim = [7 30];
+flim = [8. 22];
 N = 5;
 fp1_f = eeg_h_custom(fp1, Fs, flim, N);
 fp2_f = eeg_h_custom(fp2, Fs, flim, N);
+ch3_f = eeg_h_custom(ch3, Fs, flim, N);
+ch4_f = eeg_h_custom(ch4, Fs, flim, N);
 [f, P1] = get_fft_data(fp1_f, Fs);
 [f2, P2] = get_fft_data(fp2_f, Fs);
+[f3, P3] = get_fft_data(ch3_f, Fs);
+[f4, P4] = get_fft_data(ch4_f,Fs);
 figure; hold on;
-plot(f,P1),xlim([1 35]);
-plot(f2,P2),xlim([1 35]);
+plot(f,P1,'color','r'),xlim([1 35]);
+plot(f2,P2,'color','c'),xlim([1 35]);
+plot(f3,P3,'color','y'),xlim([1 35]);
+plot(f4,P4,'color','b'),xlim([1 35]);
 hold off;
 Ldp = length(fp1_f); 
 Lseconds = floor(length(fp1_f)/250); 
@@ -57,6 +67,26 @@ cb = colorbar;
 ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel 2', 'FontSize', 14)
+    figure;
+[~, Fspect, T, P] = spectrogram(ch3_f, 5*Fs,4*Fs,10*Fs,Fs);
+imagesc(T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+set(gca,'YDir','normal')
+ylabel('Frequency (Hz)')
+xlabel('Time (s)')
+cb = colorbar;
+ylabel(cb, 'Power (db)')
+colormap(jet)
+title('Channel 3', 'FontSize', 14)
+    figure;
+[~, Fspect, T, P] = spectrogram(ch4_f, 5*Fs,4*Fs,10*Fs,Fs);
+imagesc(T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+set(gca,'YDir','normal')
+ylabel('Frequency (Hz)')
+xlabel('Time (s)')
+cb = colorbar;
+ylabel(cb, 'Power (db)')
+colormap(jet)
+title('Channel 4', 'FontSize', 14)
 %% Analysis
     %%% TODO: Convert to function that accepts 1 Window
     %%%       CCA and STFT Analysis.
