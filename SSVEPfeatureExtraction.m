@@ -1,3 +1,4 @@
+
 %% Clear & Load Data
     %%%SSVEP FEATURE EXTRACTION
 clear;close all;clc;
@@ -12,44 +13,53 @@ folder{1} = '\EOG_snap\';
 folder{2} = '\SSVEP_snap\'; 
 folder{3} = '\SSVEP_alt_setups\';
 
-tic;
+ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
+
 % load([dataRootFolder folder{3} 'Dad_X1_6Hz.mat']);
-% load('mssvep_15_4.mat');
-load('mssvep_10_5.mat');
-cont = 0;
-remove = 500;
-fp1 = Trial{1}(1:end-remove,1); %ignore last second
-fp2 = Trial{2}(1:end-remove,1);
+load('mssvep_10_1.mat');
+% load('mssvep_12.5_1.mat');
+% load('mssvep_15_1.mat');
+% load('mssvep_16.6_3.mat');
+
+cont = 1;
+remove = 250;
+ch1 = Trial{1}(1:end-remove,1); %ignore last second
+ch2 = Trial{2}(1:end-remove,1);
 ch3 = Trial{3}(1:end-remove,1);
 ch4 = Trial{4}(1:end-remove,1);
 Fs = SamplingRate;
-    %%% Plot FFT (Raw)
+    %% Plot FFT (Raw)
 flim = [8. 22];
+winLim = [6 25];
 N = 5;
-fp1_f = eeg_h_custom(fp1, Fs, flim, N);
-fp2_f = eeg_h_custom(fp2, Fs, flim, N);
+ch1_f = eeg_h_custom(ch1, Fs, flim, N);
+ch2_f = eeg_h_custom(ch2, Fs, flim, N);
 ch3_f = eeg_h_custom(ch3, Fs, flim, N);
 ch4_f = eeg_h_custom(ch4, Fs, flim, N);
-[f, P1] = get_fft_data(fp1_f, Fs);
-[f2, P2] = get_fft_data(fp2_f, Fs);
+[f, P1] = get_fft_data(ch1_f, Fs);
+[f2, P2] = get_fft_data(ch2_f, Fs);
 [f3, P3] = get_fft_data(ch3_f, Fs);
 [f4, P4] = get_fft_data(ch4_f,Fs);
 figure; hold on;
 plot(f,P1,'color','r'),xlim([1 35]);
 plot(f2,P2,'color','c'),xlim([1 35]);
-plot(f3,P3,'color','y'),xlim([1 35]);
+plot(f3,P3,'color','r'),xlim([1 35]);
 plot(f4,P4,'color','b'),xlim([1 35]);
 hold off;
-Ldp = length(fp1_f); 
-Lseconds = floor(length(fp1_f)/250); 
+%%%%
+title('FFT(Ch3)');
+ylabel('|P1(f)|');
+xlabel('f (Hz)');
+Ldp = length(ch1_f); 
+Lseconds = floor(length(ch1_f)/250); 
 fprintf('Datapoints = %d\nSeconds = %d\n',Ldp,Lseconds);
 h=1/250;
-t=0:h:length(fp1)/250-h;
+t=0:h:length(ch1)/250-h;
 markers = trainingData{1};
     % Spectrogram:
     figure;
-[~, Fspect, T, P] = spectrogram(fp1_f, 5*Fs,4*Fs,10*Fs,Fs);
-imagesc(T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+[~, Fspect, T, P] = spectrogram(ch1_f, 5*Fs,4*Fs,10*Fs,Fs);
+imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
 set(gca,'YDir','normal')
 ylabel('Frequency (Hz)')
 xlabel('Time (s)')
@@ -58,8 +68,8 @@ ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel 1', 'FontSize', 14)
     figure;
-[~, Fspect, T, P] = spectrogram(fp2_f, 5*Fs,4*Fs,10*Fs,Fs);
-imagesc(T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+[~, Fspect, T, P] = spectrogram(ch2_f, 5*Fs,4*Fs,10*Fs,Fs);
+imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
 set(gca,'YDir','normal')
 ylabel('Frequency (Hz)')
 xlabel('Time (s)')
@@ -69,7 +79,7 @@ colormap(jet)
 title('Channel 2', 'FontSize', 14)
     figure;
 [~, Fspect, T, P] = spectrogram(ch3_f, 5*Fs,4*Fs,10*Fs,Fs);
-imagesc(T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
 set(gca,'YDir','normal')
 ylabel('Frequency (Hz)')
 xlabel('Time (s)')
@@ -79,7 +89,7 @@ colormap(jet)
 title('Channel 3', 'FontSize', 14)
     figure;
 [~, Fspect, T, P] = spectrogram(ch4_f, 5*Fs,4*Fs,10*Fs,Fs);
-imagesc(T, Fspect(Fspect<50 & Fspect>1), 10*log10(P(Fspect<50 & Fspect>1,:)));
+imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
 set(gca,'YDir','normal')
 ylabel('Frequency (Hz)')
 xlabel('Time (s)')
@@ -87,29 +97,40 @@ cb = colorbar;
 ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel 4', 'FontSize', 14)
+%{ 
+    % Plot everything
+figure;
+hold on;
+    plot(ch1_f);
+    plot(ch2_f);
+    plot(ch3_f);
+    plot(ch4_f);
+hold off;
+%}
 %% Analysis
-    %%% TODO: Convert to function that accepts 1 Window
+    %%% TODO: Revamp code so that requires less user input. 
+    %%%       Convert to function that accepts 1 Window
     %%%       CCA and STFT Analysis.
     %%%       Scale signals and remove random noise
     close all;
-    classFreqs = [10, 12.5, 15, 17.24];
+    classFreqs = [10, 12.5, 15, 16.6];
 % classFreqs = 10;
 seconds = 2; %2 second window
 % seconds = 1; %1 second window
 winLen = seconds*Fs; 
 winFraction = 4;%125pts; % 1/4second 62pts
 winShift = floor(Fs/winFraction); 
-dataLimit = floor((length(fp1)-winLen)/winLen); %Removes two seconds of data
+dataLimit = floor((length(ch1)-winLen)/winLen); %Removes two seconds of data
 start = 1;
 Window = cell( seconds*winFraction*dataLimit - 1, 2);
 numWindows = seconds*winFraction*dataLimit
-fp1H1 = cell(numWindows, length(classFreqs));
-fp1H2 = fp1H1;
-fp1H3 = fp1H1;
-fp2H1 = fp1H1;
-fp2H2 = fp1H1;
-fp2H3 = fp1H1;
-Pxx1 = fp1H1;
+ch1H1 = cell(numWindows, length(classFreqs));
+ch1H2 = ch1H1;
+ch1H3 = ch1H1;
+ch2H1 = ch1H1;
+ch2H2 = ch1H1;
+ch2H3 = ch1H1;
+Pxx1 = ch1H1;
 PSDfeat = cell(size(classFreqs,2),1);
 PSDfeat2 = cell(size(classFreqs,2),1);
 M1 = zeros(numWindows,1);
@@ -125,85 +146,89 @@ set(fH, 'Position', [100, 100, 1200, 900]);
 lx = [0 40];
 f_pwelch1 = [];
 f_pwelch2 = [];
+
 for j = 1 : length(classFreqs)
     currentFreq = classFreqs(j)
     for i = 1 : numWindows
         start = 1 + winShift*(i-1);
         winEnd = start + winLen-1;
-        fprintf('Window{%d}from %d to %d \n',i, start, start+winLen-1);
-        Window{i,1} = fp1( start : start + winLen-1 );
-        Window{i,2} = fp2( start : start + winLen-1 );
+%         fprintf('Window{%d}from %d to %d \n',i, start, start+winLen-1);
+        Window{i,1} = ch1( start : start + winLen-1 );
+        Window{i,2} = ch2( start : start + winLen-1 );
+        % Windows: Ch 3&4
+        Window{i,3} = ch3( start : start + winLen-1 );
+        Window{i,4} = ch4( start : start + winLen-1 );
         for k = 1:3 %harmonic loop:
             switch k
                 case 1 % 1st harmonic
                     % CH1
-                    fp1f = ssvepFilter( Window{i,1}, Fs, (2^(k-1))*currentFreq, Frange, 3);
-                    [f, fp1fft] = get_fft_data(fp1f, Fs);
-                    [M, I] = max(fp1fft(:));
+                    ch1f = ssvepFilter( Window{i,1}, Fs, (2^(k-1))*currentFreq, Frange, 3);
+                    [f, ch1fft] = get_fft_data(ch1f, Fs);
+                    [M, I] = max(ch1fft(:));
                     % CH2
-                    fp2f = ssvepFilter( Window{i,2}, Fs, (2^(k-1))*currentFreq, Frange, 3);
-                    [f2, fp2fft] = get_fft_data(fp2f, Fs); 
-                    [M2, I2] = max(fp2fft(:));
+                    ch2f = ssvepFilter( Window{i,2}, Fs, (2^(k-1))*currentFreq, Frange, 3);
+                    [f2, ch2fft] = get_fft_data(ch2f, Fs); 
+                    [M2, I2] = max(ch2fft(:));
                     %Plot Both: (SUBPLOT 1 of 4)
                     subplot(4,1,1);
                     if cont~=0
                         hold on;
-                        plot(f, fp1fft),xlim(lx);
-                        plot(f2, fp2fft),xlim(lx);
+                        plot(f, ch1fft),xlim(lx);
+                        plot(f2, ch2fft),xlim(lx);
                         plot(f(I), M,'-.r*'),xlim(lx);
                         plot(f2(I2), M2,'-.b^'),xlim(lx);
                         text(f(I), M, num2str(f(I)));
                         text(f2(I2), M2, num2str(f2(I2)));
                         hold off;
                     end
-                    fp1H1{i,j} = [f(I),M];
-                    fp2H1{i,j} = [f2(I2),M2];
+                    ch1H1{i,j} = [f(I),M];
+                    ch2H1{i,j} = [f2(I2),M2];
                 case 2
                     % CH1
-                    fp1f = ssvepFilter( Window{i,1}, Fs, (2^(k-1))*currentFreq, Frange, 3);
-                    [f, fp1fft] = get_fft_data(fp1f, Fs);
-                    [M, I] = max(fp1fft(:));
+                    ch1f = ssvepFilter( Window{i,1}, Fs, (2^(k-1))*currentFreq, Frange, 3);
+                    [f, ch1fft] = get_fft_data(ch1f, Fs);
+                    [M, I] = max(ch1fft(:));
                     % CH2
-                    fp2f = ssvepFilter( Window{i,2}, Fs, (2^(k-1))*currentFreq, Frange, 3);
-                    [f2, fp2fft] = get_fft_data(fp2f, Fs); 
-                    [M2, I2] = max(fp2fft(:));
+                    ch2f = ssvepFilter( Window{i,2}, Fs, (2^(k-1))*currentFreq, Frange, 3);
+                    [f2, ch2fft] = get_fft_data(ch2f, Fs); 
+                    [M2, I2] = max(ch2fft(:));
                     %Plot Both:
                     subplot(4,1,2);
                     if cont~=0
                         hold on;
-                        plot(f, fp1fft),xlim(lx);
-                        plot(f2, fp2fft),xlim(lx);
+                        plot(f, ch1fft),xlim(lx);
+                        plot(f2, ch2fft),xlim(lx);
                         plot(f(I), M,'-.r*'),xlim(lx);
                         plot(f2(I2), M2,'-.b^'),xlim(lx);
                         text(f(I), M, num2str(f(I)));
                         text(f2(I2), M2, num2str(f2(I2)));
                         hold off;
                     end
-                    fp1H2{i,j} = [f(I),M];
-                    fp2H2{i,j} = [f2(I2),M2];
+                    ch1H2{i,j} = [f(I),M];
+                    ch2H2{i,j} = [f2(I2),M2];
                 case 3
                     % CH1
-                    fp1f = ssvepFilter( Window{i,1}, Fs, (2^(k-1))*currentFreq, Frange, 3);
-                    [f, fp1fft] = get_fft_data(fp1f, Fs);
-                    [M, I] = max(fp1fft(:));
+                    ch1f = ssvepFilter( Window{i,1}, Fs, (2^(k-1))*currentFreq, Frange, 3);
+                    [f, ch1fft] = get_fft_data(ch1f, Fs);
+                    [M, I] = max(ch1fft(:));
                     % CH2
-                    fp2f = ssvepFilter( Window{i,2}, Fs, (2^(k-1))*currentFreq, Frange, 3);
-                    [f2, fp2fft] = get_fft_data(fp2f, Fs); 
-                    [M2, I2] = max(fp2fft(:));
+                    ch2f = ssvepFilter( Window{i,2}, Fs, (2^(k-1))*currentFreq, Frange, 3);
+                    [f2, ch2fft] = get_fft_data(ch2f, Fs); 
+                    [M2, I2] = max(ch2fft(:));
                     %Plot Both:
                     subplot(4,1,3);
                     if cont~=0
                         hold on;
-                        plot(f, fp1fft),xlim(lx);
-                        plot(f2, fp2fft),xlim(lx);
+                        plot(f, ch1fft),xlim(lx);
+                        plot(f2, ch2fft),xlim(lx);
                         plot(f(I), M,'-.r*'),xlim(lx);
                         plot(f2(I2), M2,'-.b^'),xlim(lx);
                         text(f(I), M, num2str(f(I)));
                         text(f2(I2), M2, num2str(f2(I2)));
                         hold off;
                     end
-                    fp1H3{i,j} = [f(I),M];
-                    fp2H3{i,j} = [f2(I2),M2];
+                    ch1H3{i,j} = [f(I),M];
+                    ch2H3{i,j} = [f2(I2),M2];
                 otherwise
                     break;
             end
@@ -336,23 +361,23 @@ for j = 1 : length(classFreqs)
     end
 end
 close all;
+%% Cleanup
 %%%%.Create moving window:
 %%%.Todo:Apply Hamming Window.
 %%.Organize features: (unknown value)
-clearvars -except fp1H1 fp1H2 fp1H3 fp2H1 fp2H2 fp2H3 PSDfeat PSDfeat2
-testData = zeros(size(fp1H1,1),64);
-for j = 1:size(fp1H1,1)
-    testData(j,:) = [fp1H1{j,1} fp1H1{j,2} fp1H1{j,3} fp1H1{j,4}...
-            fp1H2{j,1} fp1H2{j,2} fp1H2{j,3} fp1H2{j,4} ...
-            fp1H3{j,1} fp1H3{j,2} fp1H3{j,3} fp1H3{j,4} ...
-            fp2H1{j,1} fp2H1{j,2} fp2H1{j,3} fp2H1{j,4}...
-            fp2H2{j,1} fp2H2{j,2} fp2H2{j,3} fp2H2{j,4} ...
-            fp2H3{j,1} fp2H3{j,2} fp2H3{j,3} fp2H3{j,4} ...
+clearvars -except ch1H1 ch1H2 ch1H3 ch2H1 ch2H2 ch2H3 PSDfeat PSDfeat2
+testData = zeros(size(ch1H1,1),64);
+for j = 1:size(ch1H1,1)
+    testData(j,:) = [ch1H1{j,1} ch1H1{j,2} ch1H1{j,3} ch1H1{j,4}...
+            ch1H2{j,1} ch1H2{j,2} ch1H2{j,3} ch1H2{j,4} ...
+            ch1H3{j,1} ch1H3{j,2} ch1H3{j,3} ch1H3{j,4} ...
+            ch2H1{j,1} ch2H1{j,2} ch2H1{j,3} ch2H1{j,4}...
+            ch2H2{j,1} ch2H2{j,2} ch2H2{j,3} ch2H2{j,4} ...
+            ch2H3{j,1} ch2H3{j,2} ch2H3{j,3} ch2H3{j,4} ...
             PSDfeat{1}(j,:) PSDfeat{2}(j,:) PSDfeat{3}(j,:) PSDfeat{4}(j,:) ...
             PSDfeat2{1}(j,:) PSDfeat2{2}(j,:) PSDfeat2{3}(j,:) PSDfeat2{4}(j,:)];
 end
-clearvars -except testData
-toc
+% clearvars -except testData
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Combine same freqs: (HOWEVER MANY THERE ARE!)
     b2s    = [b2s_1;b2s_2];
@@ -428,26 +453,26 @@ trainingData = [freq6; freq10; freq12];
 
 %% Organize all features:
 % ssFeats = zeros(numWindows, 30);
-for j = 1:size(fp1H1,1)
+for j = 1:size(ch1H1,1)
     if expectedFreq == 6
-        ssFeats(j,:) = [fp1H1{j,1} fp1H1{j,2} fp1H1{j,3} fp1H1{j,4}...
-            fp1H2{j,1} fp1H2{j,2} fp1H2{j,3} fp1H2{j,4} ...
-            fp1H3{j,1} fp1H3{j,2} fp1H3{j,3} fp1H3{j,4} ...
+        ssFeats(j,:) = [ch1H1{j,1} ch1H1{j,2} ch1H1{j,3} ch1H1{j,4}...
+            ch1H2{j,1} ch1H2{j,2} ch1H2{j,3} ch1H2{j,4} ...
+            ch1H3{j,1} ch1H3{j,2} ch1H3{j,3} ch1H3{j,4} ...
             PSDfeat{1}(j,:) PSDfeat{2}(j,:)];
     elseif expectedFreq == 10
-        ssFeats2(j,:) = [fp1H1{j,1} fp1H1{j,2} fp1H1{j,3} fp1H1{j,4}...
-            fp1H2{j,1} fp1H2{j,2} fp1H2{j,3} fp1H2{j,4} ...
-            fp1H3{j,1} fp1H3{j,2} fp1H3{j,3} fp1H3{j,4} ...
+        ssFeats2(j,:) = [ch1H1{j,1} ch1H1{j,2} ch1H1{j,3} ch1H1{j,4}...
+            ch1H2{j,1} ch1H2{j,2} ch1H2{j,3} ch1H2{j,4} ...
+            ch1H3{j,1} ch1H3{j,2} ch1H3{j,3} ch1H3{j,4} ...
             PSDfeat{1}(j,:) PSDfeat{2}(j,:)];
     elseif expectedFreq == 12
-        ssFeats3(j,:) = [fp1H1{j,1} fp1H1{j,2} fp1H1{j,3} fp1H1{j,4}...
-            fp1H2{j,1} fp1H2{j,2} fp1H2{j,3} fp1H2{j,4} ...
-            fp1H3{j,1} fp1H3{j,2} fp1H3{j,3} fp1H3{j,4} ...
+        ssFeats3(j,:) = [ch1H1{j,1} ch1H1{j,2} ch1H1{j,3} ch1H1{j,4}...
+            ch1H2{j,1} ch1H2{j,2} ch1H2{j,3} ch1H2{j,4} ...
+            ch1H3{j,1} ch1H3{j,2} ch1H3{j,3} ch1H3{j,4} ...
             PSDfeat{1}(j,:) PSDfeat{2}(j,:)];
     elseif expectedFreq == 14
-        ssFeats4(j,:) = [fp1H1{j,1} fp1H1{j,2} fp1H1{j,3} fp1H1{j,4}...
-            fp1H2{j,1} fp1H2{j,2} fp1H2{j,3} fp1H2{j,4} ...
-            fp1H3{j,1} fp1H3{j,2} fp1H3{j,3} fp1H3{j,4} ...
+        ssFeats4(j,:) = [ch1H1{j,1} ch1H1{j,2} ch1H1{j,3} ch1H1{j,4}...
+            ch1H2{j,1} ch1H2{j,2} ch1H2{j,3} ch1H2{j,4} ...
+            ch1H3{j,1} ch1H3{j,2} ch1H3{j,3} ch1H3{j,4} ...
             PSDfeat{1}(j,:) PSDfeat{2}(j,:)];
     else
         error('wat u doin mate, you didnt put the right freq\n');

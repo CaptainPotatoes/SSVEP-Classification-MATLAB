@@ -79,22 +79,39 @@ fp1filt = eog_h_fcn(fp1,250);
 fp2filt = eog_h_fcn(fp2,250);
 fpzfilt = eog_h_fcn(fpz,250);
 eyeRfilt = eog_h_fcn(eyeR,250);
+%%
+figure; hold on;
+plot(fp1filt,'color','r')
+for i=1:length(markers)
+    text(markers(i,1), fp1filt(markers(i,1)), num2str(markers(i,2)));
+end
+hold off;
+figure; hold on;
+plot(eyeRfilt,'color','c');
+for i=1:length(markers)
+    text(markers(i,1), eyeRfilt(markers(i,1)), num2str(markers(i,2)));
+end
+hold off;
+figure; hold on;
+plot(fpzfilt,'color','m');
+for i=1:length(markers)
+    text(markers(i,1), fpzfilt(markers(i,1)), num2str(markers(i,2)));
+end
+hold off;
+figure; hold on;
+plot(fp2filt,'color','y');
+for i=1:length(markers)
+    text(markers(i,1), fp2filt(markers(i,1)), num2str(markers(i,2)));
+end
+hold off;
 
-% figure(1)
-% hold on;
-% plot(t,fp1filt,'color','r')%,ylim([-8e-4,8e-4]);
-% 
-% plot(t,fp2filt,'color','y')%,ylim([-8e-4,8e-4]);
-% for i=1:length(markers)
-%     text(t(markers(i,1)), fp2filt(markers(i,1)), num2str(markers(i,2)));
-% end
-% hold off
 
+%% ALT PLOT
 figure(1)
 hold on;
 plot(fp1filt,'color','r')%,ylim([-8e-4,8e-4]);
 plot(eyeRfilt,'color','c');
-plot(fpzfilt,'color','b');
+plot(fpzfilt,'color','m');
 plot(fp2filt,'color','y')%,ylim([-8e-4,8e-4]);
 for i=1:length(markers)
     text(markers(i,1), fp2filt(markers(i,1)), num2str(markers(i,2)));
@@ -113,8 +130,8 @@ Window = cell( seconds*winFraction*dataLimit - 1, numCh);
 % Window = cell( 10*dataLimit - 1, 2);
 %Todo: preallocate F_fp1/2
 assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1);
-
-figure(1); 
+figNum = 2;
+figure(figNum); 
 for i = 1 : seconds*winFraction*dataLimit
     start = 1 + winShift*(i-1);
     winEnd = start + winLen-1;
@@ -138,7 +155,7 @@ for i = 1 : seconds*winFraction*dataLimit
     F_fp2(i,:) = featureExtraction( fp2f' );
     F_fpz(i,:) = featureExtraction( fpzf' );
     F_eyeR(i,:) = featureExtraction( eyeRf' );
-    clf(1);
+    clf(figNum);
 end
 %todo: horzcat [ Features ; assignedClass ] 
 % ALLFEATURES = [F_fp1 F_fp2 assignedClass];

@@ -20,7 +20,7 @@ function varargout = SSVEPGUI(varargin)
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 % Edit the above text to modify the response to help SSVEPGUI
-% Last Modified by GUIDE v2.5 19-Feb-2017 12:14:25
+% Last Modified by GUIDE v2.5 21-Feb-2017 10:03:21
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -151,7 +151,7 @@ sampleRate_BP = double(myDevice.BioPotentialSignals.SamplesPerSecond);
 %Preallocating and setting up which area in the SSVEPGUI the plot will go into
     % First two are raw data
     % Next two are data analysis features. 
-numAxes = 16; 
+numAxes = 14; 
 axis_handles = zeros(1,numAxes);
 for ch = 1:numAxes
     axis_handles(ch) = handles.(['axes',num2str(ch)]);
@@ -203,7 +203,7 @@ while get(hObject,'Value') == 1
                         set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
                     end
                 elseif ch==2
-                    set(get(handles.(['axes',num2str(ch)]),'Title'),'String','Channel 1 Data')
+                    set(get(handles.(['axes',num2str(ch)]),'Title'),'String','Channel 2 Data')
                     if length(BioPotentialSignals{ch})>sampleRate_BP
                         fp2_data_filtered = eeg_h_custom(BioPotentialSignals{ch}, sampleRate_BP, f0, N);
                         [f, P1] = get_fft_data(fp2_data_filtered, sampleRate_BP);
@@ -248,32 +248,32 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
                     % Spectrogram (STFT):
                     if which_pc == 0
-                        [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                        imagesc(spect_1, T, Fspect(Fspect<30 & Fspect>1), 10*log10(P(Fspect<30 & Fspect>1,:)));
-                        set(spect_1,'YDir','normal')
-                        cb = colorbar(spect_1);
-                        ylabel(cb, 'Power (db)')
-                        colormap(spect_1,jet)
-                        set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Time (s)')
-                        set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Frequency (Hz)')
-                        set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Spectrogram (Fp1)')
+%                         [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
+%                         imagesc(spect_1, T, Fspect(Fspect<30 & Fspect>1), 10*log10(P(Fspect<30 & Fspect>1,:)));
+%                         set(spect_1,'YDir','normal')
+%                         cb = colorbar(spect_1);
+%                         ylabel(cb, 'Power (db)')
+%                         colormap(spect_1,jet)
+%                         set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Time (s)')
+%                         set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Frequency (Hz)')
+%                         set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Spectrogram (Fp1)')
                     end
                     % Pwelch
                     [Pxx, F] = pwelch(fp1_data_filtered,[],[],250);
-                    plot(axis_handles(7), Pxx); 
-                    set(handles.(['axes',num2str(7)]),'XLim',[0 30]);
-                    set(get(handles.(['axes',num2str(7)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(7)]), 'YLabel'), 'String', 'Power (dB)')
-                    set(get(handles.(['axes',num2str(7)]), 'Title'), 'String', 'Pwelch (Fp1)')
+                    plot(axis_handles(5), Pxx); 
+                    set(handles.(['axes',num2str(5)]),'XLim',[0 30]);
+                    set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                    set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Power (dB)')
+                    set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Pwelch (Fp1)')
                     %EOG filt:
                     eog1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     eog_data_1 = eog_h_fcn(eog1_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(11),t{ch},eog_data_1);
-                    set(handles.(['axes',num2str(11)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
-                    set(handles.(['axes',num2str(11)]),'YLim',[-4E-4 4E-4]);
-                    set(get(handles.(['axes',num2str(11)]), 'XLabel'), 'String', 'Time (s)')
-                    set(get(handles.(['axes',num2str(11)]), 'YLabel'), 'String',  'mV')
-                    set(get(handles.(['axes',num2str(11)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
+                    plot(axis_handles(9),t{ch},eog_data_1);
+                    set(handles.(['axes',num2str(9)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
+                    set(handles.(['axes',num2str(9)]),'YLim',[-4E-4 4E-4]);
+                    set(get(handles.(['axes',num2str(9)]), 'XLabel'), 'String', 'Time (s)')
+                    set(get(handles.(['axes',num2str(9)]), 'YLabel'), 'String',  'mV')
+                    set(get(handles.(['axes',num2str(9)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
                 elseif ch==2
                     fp2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     fp2_data_filtered = eeg_h_custom(fp2_data_unfilt, sampleRate_BP, f0, N);
@@ -285,81 +285,81 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
                     % Spect:
                     if which_pc == 0
-                        [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
-                        imagesc(spect_2, T, Fspect(Fspect<30 & Fspect>1), 10*log10(P(Fspect<30 & Fspect>1,:)));
-                        set(spect_2,'YDir','normal') %gca
-                        cb2 = colorbar(spect_2);
-                        ylabel(cb2, 'Power (db)')
-                        colormap(spect_2,jet)
-                        set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Time (s)')
-                        set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Frequency (Hz)')
-                        set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Spectrogram (Fp2)')
+%                         [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
+%                         imagesc(spect_2, T, Fspect(Fspect<30 & Fspect>1), 10*log10(P(Fspect<30 & Fspect>1,:)));
+%                         set(spect_2,'YDir','normal') %gca
+%                         cb2 = colorbar(spect_2);
+%                         ylabel(cb2, 'Power (db)')
+%                         colormap(spect_2,jet)
+%                         set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Time (s)')
+%                         set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Frequency (Hz)')
+%                         set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Spectrogram (Fp2)')
                     end
                     % P welch
                     [Pxx, F] = pwelch(fp2_data_filtered,[],[],250);
-                    plot(axis_handles(8), Pxx); 
-                    set(handles.(['axes',num2str(8)]),'XLim',[0 30]);
-                    set(get(handles.(['axes',num2str(8)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(8)]), 'YLabel'), 'String', 'Power (dB)')
-                    set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', 'Pwelch (Fp2)')
+                    plot(axis_handles(6), Pxx); 
+                    set(handles.(['axes',num2str(6)]),'XLim',[0 30]);
+                    set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                    set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Power (dB)')
+                    set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Pwelch (Fp2)')
                     %EOG Filt
                     eog2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
                     eog_data_1 = eog_h_fcn(eog2_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(12),t{ch},eog_data_1);
-                    set(handles.(['axes',num2str(12)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
-                    set(handles.(['axes',num2str(12)]),'YLim',[-4E-4 4E-4]);
-                    set(get(handles.(['axes',num2str(12)]), 'XLabel'), 'String', 'Time (s)')
-                    set(get(handles.(['axes',num2str(12)]), 'YLabel'), 'String',  'mV')
-                    set(get(handles.(['axes',num2str(12)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
-                end
-                if ch==3
-                    eog3_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    eog_data_1 = eog_h_fcn(eog3_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(9),t{ch},eog_data_1);
-                    set(handles.(['axes',num2str(9)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
-                    set(handles.(['axes',num2str(9)]),'YLim',[-4E-4 4E-4]);
-                    set(get(handles.(['axes',num2str(9)]), 'XLabel'), 'String', 'Time (s)')
-                    set(get(handles.(['axes',num2str(9)]), 'YLabel'), 'String',  'mV')
-                    set(get(handles.(['axes',num2str(9)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
-                    %%FFT CH3:
-                    CH3_data_filtered = eeg_h_custom(eog3_data_unfilt, sampleRate_BP, f0, N);
-                    [f, P1] = get_fft_data(CH3_data_filtered, sampleRate_BP);
-                    plot(axis_handles(13),f,P1);
-                    set(handles.(['axes',num2str(13)]),'XLim',[1 30]);
-                    set(get(handles.(['axes',num2str(13)]), 'XLabel'), 'String', 'f (Hz)')
-                    set(get(handles.(['axes',num2str(13)]), 'YLabel'), 'String', '|P1(f)|')
-                    set(get(handles.(['axes',num2str(13)]), 'Title'), 'String', 'FFT(Ch3, Fpz)')
-                    %PSD CH3:
-                    [Pxx, F] = pwelch(CH3_data_filtered,[],[],250);
-                    plot(axis_handles(14), Pxx); 
-                    set(handles.(['axes',num2str(14)]),'XLim',[0 30]);
-                    set(get(handles.(['axes',num2str(14)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(14)]), 'YLabel'), 'String', 'Power (dB)')
-                    set(get(handles.(['axes',num2str(14)]), 'Title'), 'String', 'Pwelch (Ch3)')
-                elseif ch==4
-                    eog4_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    eog_data_2 = eog_h_fcn(eog4_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(10),t{ch},eog_data_2);
-                    set(handles.(['axes',num2str(10)]),'XLim',[t{2}(end)-plotWindow t{2}(end)]);
+                    plot(axis_handles(10),t{ch},eog_data_1);
+                    set(handles.(['axes',num2str(10)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
                     set(handles.(['axes',num2str(10)]),'YLim',[-4E-4 4E-4]);
                     set(get(handles.(['axes',num2str(10)]), 'XLabel'), 'String', 'Time (s)')
                     set(get(handles.(['axes',num2str(10)]), 'YLabel'), 'String',  'mV')
                     set(get(handles.(['axes',num2str(10)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
+                end
+                if ch==3
+                    eog3_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
+                    eog_data_1 = eog_h_fcn(eog3_data_unfilt, sampleRate_BP);
+                    plot(axis_handles(7),t{ch},eog_data_1);
+                    set(handles.(['axes',num2str(7)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
+                    set(handles.(['axes',num2str(7)]),'YLim',[-4E-4 4E-4]);
+                    set(get(handles.(['axes',num2str(7)]), 'XLabel'), 'String', 'Time (s)')
+                    set(get(handles.(['axes',num2str(7)]), 'YLabel'), 'String',  'mV')
+                    set(get(handles.(['axes',num2str(7)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
+                    %%FFT CH3:
+                    CH3_data_filtered = eeg_h_custom(eog3_data_unfilt, sampleRate_BP, f0, N);
+                    [f, P1] = get_fft_data(CH3_data_filtered, sampleRate_BP);
+                    plot(axis_handles(11),f,P1);
+                    set(handles.(['axes',num2str(11)]),'XLim',[1 30]);
+                    set(get(handles.(['axes',num2str(11)]), 'XLabel'), 'String', 'f (Hz)')
+                    set(get(handles.(['axes',num2str(11)]), 'YLabel'), 'String', '|P1(f)|')
+                    set(get(handles.(['axes',num2str(11)]), 'Title'), 'String', 'FFT(Ch3, Fpz)')
+                    %PSD CH3:
+                    [Pxx, F] = pwelch(CH3_data_filtered,[],[],250);
+                    plot(axis_handles(12), Pxx); 
+                    set(handles.(['axes',num2str(12)]),'XLim',[0 30]);
+                    set(get(handles.(['axes',num2str(12)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                    set(get(handles.(['axes',num2str(12)]), 'YLabel'), 'String', 'Power (dB)')
+                    set(get(handles.(['axes',num2str(12)]), 'Title'), 'String', 'Pwelch (Ch3)')
+                elseif ch==4
+                    eog4_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
+                    eog_data_2 = eog_h_fcn(eog4_data_unfilt, sampleRate_BP);
+                    plot(axis_handles(8),t{ch},eog_data_2);
+                    set(handles.(['axes',num2str(8)]),'XLim',[t{2}(end)-plotWindow t{2}(end)]);
+                    set(handles.(['axes',num2str(8)]),'YLim',[-4E-4 4E-4]);
+                    set(get(handles.(['axes',num2str(8)]), 'XLabel'), 'String', 'Time (s)')
+                    set(get(handles.(['axes',num2str(8)]), 'YLabel'), 'String',  'mV')
+                    set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
                     %ffT
                     CH4_data_filtered = eeg_h_custom(eog4_data_unfilt, sampleRate_BP, f0, N);
                     [f, P1] = get_fft_data(CH4_data_filtered, sampleRate_BP);
-                    plot(axis_handles(15),f,P1);
-                    set(handles.(['axes',num2str(15)]),'XLim',[1 30]);
-                    set(get(handles.(['axes',num2str(15)]), 'XLabel'), 'String', 'f (Hz)')
-                    set(get(handles.(['axes',num2str(15)]), 'YLabel'), 'String', '|P1(f)|')
-                    set(get(handles.(['axes',num2str(15)]), 'Title'), 'String', 'FFT(Ch4, Fpz)')
+                    plot(axis_handles(13),f,P1);
+                    set(handles.(['axes',num2str(13)]),'XLim',[1 30]);
+                    set(get(handles.(['axes',num2str(13)]), 'XLabel'), 'String', 'f (Hz)')
+                    set(get(handles.(['axes',num2str(13)]), 'YLabel'), 'String', '|P1(f)|')
+                    set(get(handles.(['axes',num2str(13)]), 'Title'), 'String', 'FFT(Ch4, Fpz)')
                     %PSD CH4:
                     [Pxx, F] = pwelch(CH4_data_filtered,[],[],250); 
-                    plot(axis_handles(16), Pxx); 
-                    set(handles.(['axes',num2str(16)]),'XLim',[0 30]);
-                    set(get(handles.(['axes',num2str(16)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(16)]), 'YLabel'), 'String', 'Power (dB)')
-                    set(get(handles.(['axes',num2str(16)]), 'Title'), 'String', 'Pwelch (Ch4)')
+                    plot(axis_handles(14), Pxx); 
+                    set(handles.(['axes',num2str(14)]),'XLim',[0 30]);
+                    set(get(handles.(['axes',num2str(14)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                    set(get(handles.(['axes',num2str(14)]), 'YLabel'), 'String', 'Power (dB)')
+                    set(get(handles.(['axes',num2str(14)]), 'Title'), 'String', 'Pwelch (Ch4)')
                 end
             end
 
@@ -406,9 +406,9 @@ if get(hObject,'Value') == 0
     save(filename,'Trial','SamplingRate','RecordingNotes','trainingData');
 end
 
-% --- Executes on button press in pushbutton_eog_class_1.
-function pushbutton_eog_class_1_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton_eog_class_1 (see GCBO)
+% --- Executes on button press in pushbuttonDoubleBlink.
+function pushbuttonDoubleBlink_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonDoubleBlink (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global Idx doubleBlinkIdx doubleBlinkCount trainingData totalCount
@@ -435,38 +435,10 @@ else
     
     assignin('base','tD',trainingData);
 end
-% --- Executes on button press in pushbutton_eog_class_5.
-function pushbutton_eog_class_5_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton_eog_class_5 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-global Idx eyeMoveUDIdx eyeMoveCount trainingData totalCount
-if eyeMoveCount==1
-    eyeMoveUDIdx = zeros(1,1);
-    
-    eyeMoveUDIdx(1,1) = size(Idx{1,1},2)
-    
-    eyeMoveCount = eyeMoveCount+1;
-    totalCount{1} = totalCount{1}+1;
-    
-    trainingData{1}(totalCount{1},1) = eyeMoveUDIdx; %index
-    trainingData{1}(totalCount{1},2) = 2; %class
-    assignin('base','tD',trainingData);
-else
-    eyeMoveUDIdx(1,1) = size(Idx{1,1},2)
-    
-    eyeMoveCount = eyeMoveCount+1;
-    totalCount{1} = totalCount{1}+1;
-    
-    trainingData{1}(totalCount{1},1) = eyeMoveUDIdx; %index
-    trainingData{1}(totalCount{1},2) = 2; %class
-    
-    assignin('base','tD',trainingData);
-end
 
-% --- Executes on button press in pushbutton7.
-function pushbutton7_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton7 (see GCBO)
+% --- Executes on button press in pushbuttonSingleBlink.
+function pushbuttonSingleBlink_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonSingleBlink (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global Idx singleBlinkIdx singleBlinkCount trainingData totalCount
@@ -494,37 +466,123 @@ else
     assignin('base','tD',trainingData);
 end
 
-
-% --- Executes on button press in pushbuttonLR.
-function pushbuttonLR_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbuttonLR (see GCBO)
+% --- Executes on button press in pushbuttonUp.
+function pushbuttonUp_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonUp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global Idx eyeMoveLRIdx eyeMoveCount trainingData totalCount
+global Idx eyeMoveUpIdx eyeMoveCount trainingData totalCount
 if eyeMoveCount==1
-    eyeMoveLRIdx = zeros(1,1);
+    eyeMoveUpIdx = zeros(1,1);
     
-    eyeMoveLRIdx(1,1) = size(Idx{1,1},2)
+    eyeMoveUpIdx(1,1) = size(Idx{1,1},2)
     
     eyeMoveCount = eyeMoveCount+1;
     totalCount{1} = totalCount{1}+1;
     
-    trainingData{1}(totalCount{1},1) = eyeMoveLRIdx; %index
+    trainingData{1}(totalCount{1},1) = eyeMoveUpIdx; %index
+    trainingData{1}(totalCount{1},2) = 2; %class
+    assignin('base','tD',trainingData);
+else
+    eyeMoveUpIdx(1,1) = size(Idx{1,1},2)
+    
+    eyeMoveCount = eyeMoveCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = eyeMoveUpIdx; %index
+    trainingData{1}(totalCount{1},2) = 2; %class
+    
+    assignin('base','tD',trainingData);
+end
+
+% --- Executes on button press in pushbuttonDown.
+function pushbuttonDown_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonDown (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx eyeMoveDownIdx eyeMoveCount trainingData totalCount
+if eyeMoveCount==1
+    eyeMoveDownIdx = zeros(1,1);
+    
+    eyeMoveDownIdx(1,1) = size(Idx{1,1},2)
+    
+    eyeMoveCount = eyeMoveCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = eyeMoveDownIdx; %index
     trainingData{1}(totalCount{1},2) = 3; %class
     assignin('base','tD',trainingData);
 else
-    eyeMoveLRIdx(1,1) = size(Idx{1,1},2)
+    eyeMoveDownIdx(1,1) = size(Idx{1,1},2)
     
     eyeMoveCount = eyeMoveCount+1;
     totalCount{1} = totalCount{1}+1;
     
-    trainingData{1}(totalCount{1},1) = eyeMoveLRIdx; %index
+    trainingData{1}(totalCount{1},1) = eyeMoveDownIdx; %index
     trainingData{1}(totalCount{1},2) = 3; %class
     
     assignin('base','tD',trainingData);
 end
 
-%  -- --- -- - 
+% --- Executes on button press in pushbuttonLeft.
+function pushbuttonLeft_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonLeft (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx eyeMoveLeftIdx eyeMoveCount trainingData totalCount
+if eyeMoveCount==1
+    eyeMoveLeftIdx = zeros(1,1);
+    
+    eyeMoveLeftIdx(1,1) = size(Idx{1,1},2)
+    
+    eyeMoveCount = eyeMoveCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = eyeMoveLeftIdx; %index
+    trainingData{1}(totalCount{1},2) = 4; %class
+    assignin('base','tD',trainingData);
+else
+    eyeMoveLeftIdx(1,1) = size(Idx{1,1},2)
+    
+    eyeMoveCount = eyeMoveCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = eyeMoveLeftIdx; %index
+    trainingData{1}(totalCount{1},2) = 4; %class
+    
+    assignin('base','tD',trainingData);
+end
+
+% --- Executes on button press in pushbuttonRight.
+function pushbuttonRight_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbuttonRight (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx eyeMoveRightIdx eyeMoveCount trainingData totalCount
+if eyeMoveCount==1
+    eyeMoveRightIdx = zeros(1,1);
+    
+    eyeMoveRightIdx(1,1) = size(Idx{1,1},2)
+    
+    eyeMoveCount = eyeMoveCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = eyeMoveRightIdx; %index
+    trainingData{1}(totalCount{1},2) = 5; %class
+    assignin('base','tD',trainingData);
+else
+    eyeMoveRightIdx(1,1) = size(Idx{1,1},2)
+    
+    eyeMoveCount = eyeMoveCount+1;
+    totalCount{1} = totalCount{1}+1;
+    
+    trainingData{1}(totalCount{1},1) = eyeMoveRightIdx; %index
+    trainingData{1}(totalCount{1},2) = 5; %class
+    
+    assignin('base','tD',trainingData);
+end
+
+%------------------------ %%%%%%%%%%%% ?IGNORE? %%%%%%%%%%% ---------------------------%
 
 function edit_ChannelLocations_Callback(hObject, eventdata, handles)
 % hObject    handle to edit_ChannelLocations (see GCBO)
@@ -662,4 +720,3 @@ function editMiscInfo_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
