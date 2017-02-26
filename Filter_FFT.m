@@ -63,7 +63,7 @@ Features(:,numFeatures+1) = Class;
 %% Shifting Window Method
 clear;clc;close all;
 % load('Trial_DB1');
-load('meog_t1.mat')
+load('f_eog_1.mat')
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
@@ -79,7 +79,7 @@ fp1filt = eog_h_fcn(fp1,250);
 fp2filt = eog_h_fcn(fp2,250);
 fpzfilt = eog_h_fcn(fpz,250);
 eyeRfilt = eog_h_fcn(eyeR,250);
-%%
+%
 figure; hold on;
 plot(fp1filt,'color','r')
 for i=1:length(markers)

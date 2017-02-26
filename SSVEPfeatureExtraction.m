@@ -1,4 +1,4 @@
-
+%%%%% SSVEP FEATURE EXTRACTION (NEW: 2/21)
 %% Clear & Load Data
     %%%SSVEP FEATURE EXTRACTION
 clear;close all;clc;
@@ -16,19 +16,19 @@ folder{3} = '\SSVEP_alt_setups\';
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
 
 % load([dataRootFolder folder{3} 'Dad_X1_6Hz.mat']);
-load('mssvep_10_1.mat');
-% load('mssvep_12.5_1.mat');
+% load('mssvep_10_1.mat');
+load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
 % load('mssvep_16.6_3.mat');
 
-cont = 1;
+% cont = 1;
 remove = 250;
 ch1 = Trial{1}(1:end-remove,1); %ignore last second
 ch2 = Trial{2}(1:end-remove,1);
 ch3 = Trial{3}(1:end-remove,1);
 ch4 = Trial{4}(1:end-remove,1);
 Fs = SamplingRate;
-    %% Plot FFT (Raw)
+    % Plot FFT (Raw)
 flim = [8. 22];
 winLim = [6 25];
 N = 5;
@@ -146,7 +146,49 @@ set(fH, 'Position', [100, 100, 1200, 900]);
 lx = [0 40];
 f_pwelch1 = [];
 f_pwelch2 = [];
-
+%new method:
+%Scroll thru windows and look at all freqs across flim range:
+figure(1);
+filtCh = cell(4,1);
+fftCh = cell(4,1);
+M = cell(numWindows, 4);
+I = cell(numWindows, 4);
+for i = 1: numWindows
+    start = 1 + winShift*(i-1);
+    winEnd = start + winLen-1;
+    fprintf('Window{%d}from %d to %d \n',i, start, start+winLen-1);
+    Window{i,1} = ch1( start : start + winLen-1 );
+    Window{i,2} = ch2( start : start + winLen-1 );
+    Window{i,3} = ch3( start : start + winLen-1 );
+    Window{i,4} = ch4( start : start + winLen-1 );
+    %As For Loop:
+    hold on;
+    for j=1:4 % Number of channels:
+        filtCh{j} = eeg_h_custom(Window{i,j}, Fs, flim, N);
+        [f,fftCh{j}] = get_fft_data(filtCh{j}, Fs);
+        [M{i,j}, I{i,j}] = max(fftCh{j}(:));
+        if cont~=0
+            %plot
+            plot(f, fftCh{j}),xlim(lx);
+            plot(f(I{i,j}), M{i,j},'-.r*'),xlim(lx);
+            title('FFT(Chs 1-4): Peaks highlighted.');
+            ylabel('|P1(f)|');
+            xlabel('f (Hz)');
+        end
+    end
+    hold off;
+    % FILT ALL:
+    %User Input:
+    totalOps = totalOps - 3;
+    %%% TODO: SET UP SYSTEM FOR APPROVING/DISAPPROVING FEATURE EXTRACTION
+    %%% SPLIT ANALYSIS INTO SUBPLOTS
+    if cont~=0
+        fprintf('Operations Remaining: %d\n',totalOps);
+        cont = input('continue?\n');
+        clf(1);
+    end
+end
+%%
 for j = 1 : length(classFreqs)
     currentFreq = classFreqs(j)
     for i = 1 : numWindows
@@ -179,6 +221,7 @@ for j = 1 : length(classFreqs)
                         plot(f2(I2), M2,'-.b^'),xlim(lx);
                         text(f(I), M, num2str(f(I)));
                         text(f2(I2), M2, num2str(f2(I2)));
+                       
                         hold off;
                     end
                     ch1H1{i,j} = [f(I),M];
