@@ -43,6 +43,10 @@ newWin = 250;
 ii = 1:newWin:(minlen-max(winL));
 ops = (length(winL)*length(ii))
 xl = [5 25];
+wlen = 2^nextpow2(Fs);
+h=wlen/4;
+nfft = 2^nextpow2(wlen+1);
+K = sum(hamming(wlen, 'periodic'))/wlen;
 
 figure(1);
 for i = 1:length(ii)
@@ -50,19 +54,33 @@ for i = 1:length(ii)
         Windows.ch1{i,j} = customFilt( ch1(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
         [FFTData.ch1f{j}, FFTData.ch1fft{i,j}] = get_fft_data(Windows.ch1{i,j}, Fs);
             [FFTData.ch1_M{i,j}, FFTData.ch1_I{i,j}] = max(FFTData.ch1fft{i,j});
+            if(winL(j) >=500)
+                subplot(2,1,2);
+                [STFTData.s{i, j-7}, STFTData.f{i, j-7}, STFTData.t{i, j-7}] = stft( Windows.ch1{i,j}, wlen, h, nfft, Fs );
+                STFTData.s{i, j-7} = 20*log10(abs(STFTData.s{i, j-7})/wlen/K + 1e-6); 
+                imagesc(STFTData.t{i, j-7}, STFTData.f{i, j-7},STFTData.s{i, j-7});
+                %%%%%% TODO window [5 25] 
+                set(gca,'YDir','normal')
+                set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+                xlabel('Time, s')
+                ylabel('Frequency, Hz')
+                title('Amplitude spectrogram of the signal')
+                handl = colorbar;
+                set(handl, 'FontName', 'Times New Roman', 'FontSize', 14)
+                ylabel(handl, 'Magnitude, dB')
+            end
+            
         Windows.ch2{i,j} = customFilt( ch2(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
         [~, FFTData.ch2fft{i,j}] = get_fft_data(Windows.ch2{i,j}, Fs);
             [FFTData.ch2_M{i,j}, FFTData.ch2_I{i,j}] = max(FFTData.ch2fft{i,j});
         Windows.ch3{i,j} = customFilt( ch3(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
         [~, FFTData.ch3fft{i,j}] = get_fft_data(Windows.ch3{i,j}, Fs);
             [FFTData.ch3_M{i,j}, FFTData.ch3_I{i,j}] = max(FFTData.ch3fft{i,j});
-%         Windows.ch4{i,j} = customFilt( ch4(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
-%         [~, FFTData.ch4fft{i,j}] = get_fft_data(Windows.ch4{i,j}, Fs);
-%             [FFTData.ch4_M{i,j}, FFTData.ch4_I{i,j}] = max(FFTData.ch4fft{i,j});
         %%%%% SEE EXAMPLE ON HOW TO APPLY STFT
         % PLOT: 
         if isempty(cont)
             fprintf('%d ? %d \n', ii(i),ii(i)+winL(j)-1);
+            subplot(2,1,1);
             hold on;
             plot(FFTData.ch1f{j}, FFTData.ch1fft{i,j}),xlim(xl);
                 plot(FFTData.ch1f{j}(FFTData.ch1_I{i,j}), FFTData.ch1_M{i,j},'-.r*');

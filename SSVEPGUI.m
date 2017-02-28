@@ -20,7 +20,7 @@ function varargout = SSVEPGUI(varargin)
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 % Edit the above text to modify the response to help SSVEPGUI
-% Last Modified by GUIDE v2.5 21-Feb-2017 10:03:21
+% Last Modified by GUIDE v2.5 27-Feb-2017 13:16:51
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
@@ -52,8 +52,9 @@ function SSVEPGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for SSVEPGUI
 handles.output = hObject;
 global trainingData
-trainingData = cell(1);
+trainingData = cell(1,2);
 trainingData{1} = [0,0];
+trainingData{2} = [0,0];
 % Update handles structure
 guidata(hObject, handles);
 
@@ -135,8 +136,9 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 global myDevice Idx 
 global trainingData totalCount which_pc
 
-totalCount = cell(1);
+totalCount = cell(2);
 totalCount{1} = 0;
+totalCount{2} = 0;
 BioRadio_Name = 'EEG-SSVEP';
 numEnabledBPChannels = double(myDevice.BioPotentialSignals.Count);
 
@@ -169,7 +171,7 @@ plotGain_BP = 1;
 fft_len = plotWindow*sampleRate_BP;
 % fft_len = 2^(nextpow2(plotWindow*sampleRate_BP)); 
 % USE WITH fft(X,fft_len_pow2)
-f0 = [8.75 23.5];
+f0 = [8.75 18.5];
 N = 5;
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
@@ -373,11 +375,12 @@ end     %/while connected==1
 
 if get(hObject,'Value') == 0
     myDevice.StopAcquisition;
-    Trial = cell(1,4);
-            Trial{1,1} = BioPotentialSignals{1};
-            Trial{1,2} = BioPotentialSignals{2};
-            Trial{1,3} = BioPotentialSignals{3};
-            Trial{1,4} = BioPotentialSignals{4};
+    
+    Trial = cell(1,numEnabledBPChannels);
+    for i=1:numEnabledBPChannels
+        Trial{1,i} = BioPotentialSignals{i};
+    end
+    assignin('base','NumberOfChannels',numEnabledBPChannels);
     assignin('base','Trial',Trial)
     SamplingRate = sampleRate_BP;
     assignin('base','SamplingRate',SamplingRate);
@@ -581,6 +584,109 @@ else
     
     assignin('base','tD',trainingData);
 end
+
+
+% --- Executes on button press in pushbutton11. (10Hz)
+function pushbutton11_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton11 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx freq10Idx freqCount trainingData totalCount
+if freqCount==1
+    freq10Idx = zeros(1,1);
+    freq10Idx(1,1) = size(Idx{1,1},2)
+    freqCount = freqCount+1;
+    totalCount{2} = totalCount{2}+1;
+    
+    trainingData{2}(totalCount{2},1) = freq10Idx;
+    trainingData{2}(totalCount{2},2) = 1; %class 
+    assignin('base','tD',trainingData);
+else
+    freq10Idx(1,1) = size(Idx{1,1},2)
+    freqCount = freqCount+1;
+    totalCount{2} = totalCount{2}+1;
+    
+    trainingData{2}(totalCount{2},1) = freq10Idx;
+    trainingData{2}(totalCount{2},2) = 1; %class 
+    assignin('base','tD',trainingData);
+end
+
+
+% --- Executes on button press in pushbutton12.
+function pushbutton12_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton12 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx freq12Idx freqCount trainingData totalCount
+if freqCount==1
+    freq12Idx = zeros(1,1);
+    freq12Idx(1,1) = size(Idx{1,1},2)
+    freqCount = freqCount+1;
+    totalCount{2} = totalCount{2}+1;
+    
+    trainingData{2}(totalCount{2},1) = freq12Idx;
+    trainingData{2}(totalCount{2},2) = 2; %class 
+    assignin('base','tD',trainingData);
+else
+    freq12Idx(1,1) = size(Idx{1,1},2)
+    freqCount = freqCount+1;
+    totalCount{2} = totalCount{2}+1;
+    
+    trainingData{2}(totalCount{2},1) = freq12Idx;
+    trainingData{2}(totalCount{2},2) = 2; %class 
+    assignin('base','tD',trainingData);
+end
+
+% --- Executes on button press in pushbutton13.
+function pushbutton13_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton13 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx freq15Idx freqCount trainingData totalCount
+if freqCount==1
+    freq15Idx = zeros(1,1);
+    freq15Idx(1,1) = size(Idx{1,1},2)
+    freqCount = freqCount+1;
+    totalCount{2} = totalCount{2}+1;
+    
+    trainingData{2}(totalCount{2},1) = freq15Idx;
+    trainingData{2}(totalCount{2},2) = 3; %class 
+    assignin('base','tD',trainingData);
+else
+    freq15Idx(1,1) = size(Idx{1,1},2)
+    freqCount = freqCount+1;
+    totalCount{2} = totalCount{2}+1;
+    
+    trainingData{2}(totalCount{2},1) = freq15Idx;
+    trainingData{2}(totalCount{2},2) = 3; %class 
+    assignin('base','tD',trainingData);
+end
+% --- Executes on button press in pushbutton14.
+function pushbutton14_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton14 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+global Idx freq16Idx freqCount trainingData totalCount
+
+if freqCount==1
+    freq16Idx = zeros(1,1);
+    freq16Idx(1,1) = size(Idx{1,1},2)
+    freqCount = freqCount+1;
+    totalCount{2} = totalCount{2}+1;
+    
+    trainingData{2}(totalCount{2},1) = freq16Idx;
+    trainingData{2}(totalCount{2},2) = 3; %class 
+    assignin('base','tD',trainingData);
+else
+    freq16Idx(1,1) = size(Idx{1,1},2)
+    freqCount = freqCount+1;
+    totalCount{2} = totalCount{2}+1;
+    
+    trainingData{2}(totalCount{2},1) = freq16Idx;
+    trainingData{2}(totalCount{2},2) = 3; %class 
+    assignin('base','tD',trainingData);
+end
+
 
 %------------------------ %%%%%%%%%%%% ?IGNORE? %%%%%%%%%%% ---------------------------%
 

@@ -17,7 +17,7 @@ ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
 
 % load([dataRootFolder folder{3} 'Dad_X1_6Hz.mat']);
 % load('mssvep_10_1.mat');
-load('mssvep_12.5_1.mat');
+% load('mssvep_t1_16_1.mat');
 % load('mssvep_15_1.mat');
 % load('mssvep_16.6_3.mat');
 
@@ -26,27 +26,27 @@ remove = 250;
 ch1 = Trial{1}(1:end-remove,1); %ignore last second
 ch2 = Trial{2}(1:end-remove,1);
 ch3 = Trial{3}(1:end-remove,1);
-ch4 = Trial{4}(1:end-remove,1);
+% ch4 = Trial{4}(1:end-remove,1);
 Fs = SamplingRate;
     % Plot FFT (Raw)
-flim = [8. 22];
-winLim = [6 25];
+flim = [8.2 19.5];
+winLim = [7 21];
 N = 5;
 ch1_f = eeg_h_custom(ch1, Fs, flim, N);
 ch2_f = eeg_h_custom(ch2, Fs, flim, N);
 ch3_f = eeg_h_custom(ch3, Fs, flim, N);
-ch4_f = eeg_h_custom(ch4, Fs, flim, N);
+% ch4_f = eeg_h_custom(ch4, Fs, flim, N);
 [f, P1] = get_fft_data(ch1_f, Fs);
 [f2, P2] = get_fft_data(ch2_f, Fs);
 [f3, P3] = get_fft_data(ch3_f, Fs);
-[f4, P4] = get_fft_data(ch4_f,Fs);
+% [f4, P4] = get_fft_data(ch4_f,Fs);
 figure; hold on;
 plot(f,P1,'color','r'),xlim([1 35]);
 plot(f2,P2,'color','c'),xlim([1 35]);
 plot(f3,P3,'color','r'),xlim([1 35]);
-plot(f4,P4,'color','b'),xlim([1 35]);
+% plot(f4,P4,'color','b'),xlim([1 35]);
 hold off;
-%%%%
+%%^%
 title('FFT(Ch3)');
 ylabel('|P1(f)|');
 xlabel('f (Hz)');
@@ -87,6 +87,7 @@ cb = colorbar;
 ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel 3', 'FontSize', 14)
+%%
     figure;
 [~, Fspect, T, P] = spectrogram(ch4_f, 5*Fs,4*Fs,10*Fs,Fs);
 imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
