@@ -16,8 +16,8 @@ folder{3} = '\SSVEP_alt_setups\';
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
 
 % load([dataRootFolder folder{3} 'Dad_X1_6Hz.mat']);
-% load('mssvep_10_1.mat');
-% load('mssvep_t1_16_1.mat');
+load('mssvep_10_1.mat');
+% load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
 % load('mssvep_16.6_3.mat');
 
@@ -29,13 +29,14 @@ ch3 = Trial{3}(1:end-remove,1);
 % ch4 = Trial{4}(1:end-remove,1);
 Fs = SamplingRate;
     % Plot FFT (Raw)
-flim = [8.2 19.5];
+flim = [8.0 19.5];
 winLim = [7 21];
 N = 5;
-ch1_f = eeg_h_custom(ch1, Fs, flim, N);
-ch2_f = eeg_h_custom(ch2, Fs, flim, N);
-ch3_f = eeg_h_custom(ch3, Fs, flim, N);
-% ch4_f = eeg_h_custom(ch4, Fs, flim, N);
+ch1_f = scaleAbs(customFilt(ch1, Fs, flim, N));
+ch2_f = scaleAbs(customFilt(ch2, Fs, flim, N));
+ch3_f = scaleAbs(customFilt(ch3, Fs, flim, N));
+% ch4_f = scaleAbs(customFilt(ch4, Fs, flim, N));
+
 [f, P1] = get_fft_data(ch1_f, Fs);
 [f2, P2] = get_fft_data(ch2_f, Fs);
 [f3, P3] = get_fft_data(ch3_f, Fs);
@@ -87,7 +88,7 @@ cb = colorbar;
 ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel 3', 'FontSize', 14)
-%%
+%% ---
     figure;
 [~, Fspect, T, P] = spectrogram(ch4_f, 5*Fs,4*Fs,10*Fs,Fs);
 imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
