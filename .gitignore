@@ -11,3 +11,5 @@ MusaTrial_withECGdevice_16-bit.mat
 SSVEP_8Hz_Trial1_SUBJ1.MAT
 SSVEPfeaturePrep.asv
 featureExtraction/codegen/mex/
+welch_estimator_mex.mexw64
+*.asv
