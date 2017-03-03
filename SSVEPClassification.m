@@ -108,7 +108,9 @@ for i = 1:length(ii)
                 [STFTData.s{i, j-7}, STFTData.f{i, j-7}, STFTData.t{i, j-7}] = stft( Windows.ch1{i,j}, wlen, h, nfft, Fs );
                 STFTData.s{i, j-7} = 20*log10(abs(STFTData.s{i, j-7})/wlen/K + 1e-6); 
                 imagesc(STFTData.t{i, j-7}, STFTData.f{i, j-7},STFTData.s{i, j-7}),ylim([7.25 20]);
-                %%%%%% TODO window [5 25] 
+                %%%%%% TODO window [5 25] + feature extraction from s f t
+                    %%%%TODO: Power spectral density. 
+                    
                 set(gca,'YDir','normal')
                 set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
                 xlabel('Time, s')
