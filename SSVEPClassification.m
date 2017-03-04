@@ -54,7 +54,8 @@ figure
 plot(freqs, S),xlim([1 35]);
 cont = [];
  %% Skip Spects.  
-    showSpect = input('Show Spectrograms?\n');
+%     showSpect = input('Show Spectrograms?\n');
+showSpect = 0;
  % Spectrograms:
  if showSpect == 1
     figure;
@@ -90,7 +91,7 @@ ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel 3', 'FontSize', 14)
  end   
-%% Analysis:
+%% Analysis (New; Modified):
 % start with smallest possible window:
 % TODO: EACH winL will result in a feature. USE: FFT, STFT, PSD, and ??
 % SEPARATE FEATURES BY 1s, 2s, and 4s elapsed and have separate classifiers
@@ -109,33 +110,39 @@ wlen = 2^nextpow2(Fs);
 h=wlen/4;
 nfft = 2^nextpow2(wlen+1);
 K = sum(hamming(wlen, 'periodic'))/wlen;
-fH = figure(1);
-set(fH, 'Position', [100, 100, 1200, 1000]);
+if isempty(cont)
+    fH = figure(1);
+    set(fH, 'Position', [100, 100, 1200, 1000]);
+end
 loc500 = find(winL==500)-1;
 for i = 1:length(ii)
     for j = 1:length(winL)
-        Windows.ch1{i,j} = customFilt( ch1(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
-        [FFTData.ch1f{j}, FFTData.ch1fft{i,j}] = get_fft_data(Windows.ch1{i,j}, Fs);
-        [FFTData.ch1_M{i,j}, FFTData.ch1_I{i,j}] = max(FFTData.ch1fft{i,j});
-        Windows.ch2{i,j} = customFilt( ch2(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
-        [~, FFTData.ch2fft{i,j}] = get_fft_data(Windows.ch2{i,j}, Fs);
-        [FFTData.ch2_M{i,j}, FFTData.ch2_I{i,j}] = max(FFTData.ch2fft{i,j});
-        Windows.ch3{i,j} = customFilt( ch3(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
-        [~, FFTData.ch3fft{i,j}] = get_fft_data(Windows.ch3{i,j}, Fs);
-        [FFTData.ch3_M{i,j}, FFTData.ch3_I{i,j}] = max(FFTData.ch3fft{i,j});
+        Ch1.Windows{i,j} = customFilt( ch1(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
+        [Ch1.fFFT{j}, Ch1.FFT{i,j}] = get_fft_data(Ch1.Windows{i,j}, Fs);
+        [Ch1.MaxFFT{i,j}, Ch1.IndicesMaxFFT{i,j}] = max(Ch1.FFT{i,j});
+        
+        Ch2.Windows{i,j} = customFilt( ch2(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
+        [~, Ch2.FFT{i,j}] = get_fft_data(Ch2.Windows{i,j}, Fs);
+        [Ch2.MaxFFT{i,j}, Ch2.IndicesMaxFFT{i,j}] = max(Ch2.FFT{i,j});
+        
+        Ch3.Windows{i,j} = customFilt( ch3(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
+        [~, Ch3.FFT{i,j}] = get_fft_data(Ch3.Windows{i,j}, Fs);
+        [Ch3.MaxFFT{i,j}, Ch3.IndicesMaxFFT{i,j}] = max(Ch3.FFT{i,j});
+        
 %           --- POWER SPECTRAL DENSITY EST ---
-            [PSDData.ch1_PSD{i,j}, PSDData.ch1_F{i,j}] = welch_estimator(Windows.ch1{i,j}, Fs, hann(winL(j)));
-            PSDData.ch1_PSD{i,j} = PSDData.ch1_PSD{i,j}(1,:);%3D->2D
-            [PSDData.ch2_PSD{i,j}, PSDData.ch2_F{i,j}] = welch_estimator(Windows.ch2{i,j}, Fs, hann(winL(j)));
-            PSDData.ch2_PSD{i,j} = PSDData.ch2_PSD{i,j}(1,:);%3D->2D
-            [PSDData.ch3_PSD{i,j}, PSDData.ch3_F{i,j}] = welch_estimator(Windows.ch3{i,j}, Fs, hann(winL(j)));
-            PSDData.ch3_PSD{i,j} = PSDData.ch3_PSD{i,j}(1,:);%3D->2D
+                % Note: DOES NOT ACCEPT WINDOWS OF ODD LENGTH %
+            [Ch1.PSDData{i,j}, Ch1.fPSD{j}] = welch_estimator(Ch1.Windows{i,j}, Fs, hann(winL(j)));
+            Ch1.PSDData{i,j} = Ch1.PSDData{i,j}(1,:);%3D->2D
+            [Ch2.PSDData{i,j}, Ch2.fPSD{j}] = welch_estimator(Ch2.Windows{i,j}, Fs, hann(winL(j)));
+            Ch2.PSDData{i,j} = Ch2.PSDData{i,j}(1,:);%3D->2D
+            [Ch3.PSDData{i,j}, Ch3.fPSD{j}] = welch_estimator(Ch3.Windows{i,j}, Fs, hann(winL(j)));
+            Ch3.PSDData{i,j} = Ch3.PSDData{i,j}(1,:);%3D->2D
             if isempty(cont)
                 subplot(3,1,2); hold on;
-%                 plot(PSDData.ch1_F{i,j}, 10*log10(abs(reshape(PSDData.ch1_PSD{i,j}/2,length(PSDData.ch1_F{i,j}),1)))),xlim(xl);
-                plot(PSDData.ch1_F{i,j}, PSDData.ch1_PSD{i,j}),xlim(xl);
-                plot(PSDData.ch2_F{i,j}, PSDData.ch2_PSD{i,j}),xlim(xl);
-                plot(PSDData.ch3_F{i,j}, PSDData.ch3_PSD{i,j}),xlim(xl);
+%                 plot(Ch1.fPSD{i,j}, 10*log10(abs(reshape(PSDData.ch1_PSD{i,j}/2,length(Ch1.fPSD{i,j}),1)))),xlim(xl);
+                plot(Ch1.fPSD{j}, Ch1.PSDData{i,j}),xlim(xl);
+                plot(Ch2.fPSD{j}, Ch2.PSDData{i,j}),xlim(xl);
+                plot(Ch3.fPSD{j}, Ch3.PSDData{i,j}),xlim(xl);
                 xlabel('Normalized frequency'); %ylabel('PSD [dB]');
                 ylabel('Power Spectrum Magnitude');
                 title('Power Spectral Test');
@@ -144,39 +151,47 @@ for i = 1:length(ii)
 %           --- APPLY STFT ---
             if(winL(j) >= 500)
                 subplot(3,1,3);
-                [STFTData.s{i, j-loc500}, STFTData.f{i, j-loc500}, STFTData.t{i, j-loc500}] = stft( Windows.ch3{i,j}, wlen, h, nfft, Fs );
-                STFTData.s{i, j-loc500} = 20*log10(abs(STFTData.s{i, j-loc500})/wlen/K + 1e-6); 
-                imagesc(STFTData.t{i, j-loc500}, STFTData.f{i, j-loc500},STFTData.s{i, j-loc500}),ylim([7.25 20]);
-                %%%%%% TODO window [5 25] + feature extraction from s f t
-                    %%%%TODO: Power spectral density. 
-                set(gca,'YDir','normal')
-                set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-                xlabel('Time, s')
-                ylabel('Frequency, Hz')
-                title('Amplitude spectrogram of the signal')
-                handl = colorbar;
-                set(handl, 'FontName', 'Times New Roman', 'FontSize', 14)
-                ylabel(handl, 'Magnitude, dB')
+                %CH1
+                [Ch1.sSTFT{i, j-loc500}, Ch1.fSTFT{j-loc500}, Ch1.tSTFT{j-loc500}] = stft( Ch1.Windows{i,j}, wlen, h, nfft, Fs );
+                Ch1.sSTFT{i, j-loc500} = 20*log10(abs(Ch1.sSTFT{i, j-loc500})/wlen/K + 1e-6); 
+                %CH2
+                [Ch2.sSTFT{i, j-loc500}, Ch2.fSTFT{j-loc500}, Ch2.tSTFT{j-loc500}] = stft( Ch2.Windows{i,j}, wlen, h, nfft, Fs );
+                Ch2.sSTFT{i, j-loc500} = 20*log10(abs(Ch2.sSTFT{i, j-loc500})/wlen/K + 1e-6);
+                %CH3
+                [Ch3.sSTFT{i, j-loc500}, Ch3.fSTFT{j-loc500}, Ch3.tSTFT{j-loc500}] = stft( Ch3.Windows{i,j}, wlen, h, nfft, Fs );
+                Ch3.sSTFT{i, j-loc500} = 20*log10(abs(Ch3.sSTFT{i, j-loc500})/wlen/K + 1e-6);
+                %%%%%%-TODO feature extraction from s f t [5->20Hz]
+                if isempty(cont)
+                    imagesc(Ch1.tSTFT{j-loc500}, Ch1.fSTFT{j-loc500},Ch1.sSTFT{i, j-loc500}),ylim([7.25 20]);
+                    set(gca,'YDir','normal')
+                    set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+                    xlabel('Time, s')
+                    ylabel('Frequency, Hz')
+                    title('Amplitude spectrogram of the signal')
+                    handl = colorbar;
+                    set(handl, 'FontName', 'Times New Roman', 'FontSize', 14)
+                    ylabel(handl, 'Magnitude, dB')
+%                 imagesc(Ch2.tSTFT{i, j-loc500}, Ch2.fSTFT{i, j-loc500},Ch2.sSTFT{i, j-loc500}),ylim([7.25 20]);
+%                 imagesc(Ch3.tSTFT{i, j-loc500}, Ch3.fSTFT{i, j-loc500},Ch3.sSTFT{i, j-loc500}),ylim([7.25 20]);
+                end
             end
-
-
         % PLOT: 
         if isempty(cont)
-            fprintf('%d ? %d \n', ii(i),ii(i)+winL(j)-1);
+            fprintf('%d -> %d \n', ii(i),ii(i)+winL(j)-1);
             subplot(3,1,1);
             hold on;
-            plot(FFTData.ch1f{j}, FFTData.ch1fft{i,j}),xlim(xl);
-                plot(FFTData.ch1f{j}(FFTData.ch1_I{i,j}), FFTData.ch1_M{i,j},'-.r*');
-                str = [' f = ' num2str(FFTData.ch1f{j}(FFTData.ch1_I{i,j})) '  M = ' num2str( FFTData.ch1_M{i,j} )];
-                text(FFTData.ch1f{j}(FFTData.ch1_I{i,j}), FFTData.ch1_M{i,j}, str);
-            plot(FFTData.ch1f{j}, FFTData.ch2fft{i,j}),xlim(xl);
-                 plot(FFTData.ch1f{j}(FFTData.ch2_I{i,j}), FFTData.ch2_M{i,j},'-.m*');
-                str = [' f = ' num2str(FFTData.ch1f{j}(FFTData.ch2_I{i,j})) '  M = ' num2str( FFTData.ch2_M{i,j} )];
-                text(FFTData.ch1f{j}(FFTData.ch2_I{i,j}), FFTData.ch2_M{i,j}, str);
-            plot(FFTData.ch1f{j}, FFTData.ch3fft{i,j}),xlim(xl);
-                plot(FFTData.ch1f{j}(FFTData.ch3_I{i,j}), FFTData.ch3_M{i,j},'-.c*');
-                str = [' f = ' num2str(FFTData.ch1f{j}(FFTData.ch3_I{i,j})) '  M = ' num2str( FFTData.ch3_M{i,j} )];
-                text(FFTData.ch1f{j}(FFTData.ch3_I{i,j}), FFTData.ch3_M{i,j}, str);
+            plot(Ch1.fFFT{j}, Ch1.FFT{i,j}),xlim(xl);
+                plot(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j}), Ch1.MaxFFT{i,j},'-.r*');
+                str = [' f = ' num2str(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch1.MaxFFT{i,j} )];
+                text(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j}), Ch1.MaxFFT{i,j}, str);
+            plot(Ch1.fFFT{j}, Ch2.FFT{i,j}),xlim(xl);
+                plot(Ch1.fFFT{j}(Ch2.IndicesMaxFFT{i,j}), Ch2.MaxFFT{i,j},'-.m*');
+                str = [' f = ' num2str(Ch1.fFFT{j}(Ch2.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch2.MaxFFT{i,j} )];
+                text(Ch1.fFFT{j}(Ch2.IndicesMaxFFT{i,j}), Ch2.MaxFFT{i,j}, str);
+            plot(Ch1.fFFT{j}, Ch3.FFT{i,j}),xlim(xl);
+                plot(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j}), Ch3.MaxFFT{i,j},'-.c*');
+                str = [' f = ' num2str(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch3.MaxFFT{i,j} )];
+                text(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j}), Ch3.MaxFFT{i,j}, str);
             title('FFT (Ch 1-3): With Peaks');
             ylabel('|P1(f)|');
             xlabel('f (Hz)');
@@ -186,3 +201,5 @@ for i = 1:length(ii)
         end
     end
 end
+clearvars -except Ch1 Ch2 Ch3
+
