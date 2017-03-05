@@ -1,7 +1,7 @@
 %% Shifting Window Method
 clear;clc;close all;
 % load('Trial_DB1');
-load('meog_t1.mat')
+load('meog_t0.mat')
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
@@ -45,8 +45,9 @@ hold off;
 
 
 %% ALT PLOT
-clf(1);
-figure(1)
+close all;
+f1 = figure(1);
+set(f1, 'Position', [100, 100, 1600, 900]);
 hold on;
 plot(fp1filt,'color','r')%,ylim([-8e-4,8e-4]);
 plot(eyeRfilt,'color','c');
@@ -54,10 +55,14 @@ plot(fpzfilt,'color','m');
 plot(fp2filt,'color','y')%,ylim([-8e-4,8e-4]);
 for i=1:length(markers)
     text(markers(i,1), fp2filt(markers(i,1)), num2str(markers(i,2)));
+    if mod(i,2)==0
+        text(markers(i,1), fp2filt(markers(i,1))+2.5E-5, [num2str(markers(i,1))] );
+    else
+        text(markers(i,1), fp2filt(markers(i,1))-2.5E-5, [num2str(markers(i,1))] );
+    end
 end
 hold off
 %% Set classes:
-% close all;
 seconds = 1; %2 second window
 winLen = seconds*Fs; 
 winFraction = 2;%2.5; %1/4 of a second
@@ -68,7 +73,8 @@ numCh = 4;
 Window = cell( seconds*winFraction*dataLimit - 1, numCh);
 assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1);
 figNum = 2;
-figure(figNum); 
+fH = figure(figNum); 
+set(fH, 'Position', [100, 100, 1200, 900]);
 for i = 1 : seconds*winFraction*dataLimit
     start = 1 + winShift*(i-1);
     winEnd = start + winLen-1;
@@ -87,7 +93,11 @@ for i = 1 : seconds*winFraction*dataLimit
     plot(fpzf),ylim([-2.5E-4 2.5E-4]);
     plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
     hold off;
-    tY(i,1) = input('Enter an integer value!\n');
+    getClass = [];
+    while isempty(getClass)
+        getClass = input('Enter an integer value!\n');
+    end
+    tY(i,1) = getClass;
     F_fp1(i,:) = featureExtractionEOG( fp1f' );
     F_fp2(i,:) = featureExtractionEOG( fp2f' );
     F_fpz(i,:) = featureExtractionEOG( fpzf' );

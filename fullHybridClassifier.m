@@ -12,37 +12,34 @@ function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tX, tY )
 
 chLen = length(ch1);
 if chLen>=250
-    % Make sure all channels are arrays:
-    ch1 = ch1(:);
-    ch2 = ch2(:);
-    ch3 = ch3(:);
-    ch4 = ch4(:);
-    % Filter using optimized EOG filter: 
-    % (take last second, regardless of actual window length):
-    ch1f = eogcfilt(ch1(end-249:end));
-    ch2f = eogcfilt(ch2(end-249:end));
-    ch3f = eogcfilt(ch3(end-249:end));
-    ch4f = eogcfilt(ch4(end-249:end));
-    %Extract EOG features: (1s window)
-    fch1f = featureExtractionEOG(ch1f);
-    fch2f = featureExtractionEOG(ch2f);
-    fch3f = featureExtractionEOG(ch3f);
-    fch4f = featureExtractionEOG(ch4f);
+    for i = 1:size(ch1,2);
+        % Filter using optimized EOG filter: 
+        % (take last second, regardless of actual window length):
+        ch1f = eogcfilt(ch1(end-249:end,i));
+        ch2f = eogcfilt(ch2(end-249:end,i));
+        ch3f = eogcfilt(ch3(end-249:end,i));
+        ch4f = eogcfilt(ch4(end-249:end,i));
+        %Extract EOG features: (1s window)
+        fch1f(i,:) = featureExtractionEOG(ch1f');
+        fch2f(i,:) = featureExtractionEOG(ch2f');
+        fch3f(i,:) = featureExtractionEOG(ch3f');
+        fch4f(i,:) = featureExtractionEOG(ch4f');
+    end
     %Combine features:
     samplesX = [fch1f fch2f fch3f fch4f] ;
     %Boolean DB: represents presence of a double blink.
     DB = false;
     Y = knn(samplesX, tX, tY, 3);
     if Y==1
-        DB = true
+        DB = true;
     end
 end
 % SSVEP CLASSIFICATION: 
 % PRECONDITIONS: EOG must not have been triggered.
     % starts with 1/2 second analysis and moves up. 
-if ~DB
+% if ~DB
     % if Y~=1
-end
+% end
 
 end
 

@@ -1,5 +1,6 @@
 function [ Y ] = eogcfilt( X )
-%EOGCFILT EOG Filter for conversion to C. All inputs must be constant:
+%EOGCFILT EOG Filter for conversion to C. All inputs must be constant.
+% Vectorize:
 X = X(:);
 % Sampling Frequency = 250;
 %BW for 10Hz upper bound, Order of 3.
