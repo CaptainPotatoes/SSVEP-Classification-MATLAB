@@ -13,3 +13,4 @@ SSVEPfeaturePrep.asv
 featureExtraction/codegen/mex/
 welch_estimator_mex.mexw64
 *.asv
+codegen/

@@ -9,8 +9,12 @@ function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tX, tY )
 % A '1' is a double blink.
 % Any other result is a pass, and classification continues.
 % Window length??
-
+Y=0; %Default Value.
 chLen = length(ch1);
+fch1f = zeros(size(ch1,2),8);
+fch2f = zeros(size(ch1,2),8);
+fch3f = zeros(size(ch1,2),8);
+fch4f = zeros(size(ch1,2),8);
 if chLen>=250
     for i = 1:size(ch1,2);
         % Filter using optimized EOG filter: 

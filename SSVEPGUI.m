@@ -176,6 +176,11 @@ N = 5;
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
 t = cell(numEnabledBPChannels, 1);
+fp1_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
+fp2_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
+eog3_data_unfilt = zeros(plotWindow*sampleRate_BP,1); 
+eog4_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
+load('tXtY.mat');
 while get(hObject,'Value') == 1
     pause(0.08)
     for ch = 1:numEnabledBPChannels
@@ -363,6 +368,16 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(14)]), 'YLabel'), 'String', 'Power (dB)')
                     set(get(handles.(['axes',num2str(14)]), 'Title'), 'String', 'Pwelch (Ch4)')
                 end
+%                 CLASSIFY EOG DATA:
+                   %take each ch unfilt (5s) & cut into 5 pieces, & pass
+                   %thru fullHybridClassifier: Put in columns:
+                   for i=1:plotWindow
+                        Window1(:,i) = fp1_data_unfilt(250*(i-1)+1:250*i);
+                        Window2(:,i) = fp2_data_unfilt(250*(i-1)+1:250*i);
+                        Window3(:,i) = eog3_data_unfilt(250*(i-1)+1:250*i);
+                        Window4(:,i) = eog4_data_unfilt(250*(i-1)+1:250*i);
+                   end
+                   Y = fullHybridClassifier(Window1, Window2, Window3, Window4, tX, tY)'
             end
 
             %% Todo: FFT and plot on axes #3
