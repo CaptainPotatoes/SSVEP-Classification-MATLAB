@@ -60,55 +60,7 @@ if isempty(humanActivityDataTestMinusActivity2)
             end
         end
      end
-%{
-    Activity = zeros(500,1);
-    Activity(1:6,1) = 1;
-    Activity(7,1) = 3;
-    Activity(8,1) = 1 ;
-    Activity(9,1) = 5;
-    Activity(10:25,1) = 1 ;
-    Activity(26:27,1) = 3 ;
-    Activity(28:43,1) = 1;
-    Activity(44,1) = 3 ;
-    Activity(45,1) = 5 ;
-    Activity(46:60,1) = 1; 
-    Activity(61,1) = 5 ;
-    Activity(62:104,1) = 1; 
-    Activity(105,1) = 3; 
-    Activity(106:126,1) = 1; 
-    Activity(127,1) = 5 ;
-    Activity(128:141,1) = 1 ;
-    Activity(142,1) = 5 ;
-    Activity(143:157,1) = 1 ;
-    Activity(158,1) = 5 ;
-    Activity(159:211,1) = 1 ;
-    Activity(212,1) = 5 ;
-    Activity(213:222,1) = 1 ;
-    Activity(223,1) = 5;
-    Activity(224:234,1) = 1 ;
-    Activity(235,1) = 5 ;
-    Activity(236:243,1) = 1 ;
-    Activity(244,1) = 5;
-    Activity(245:255,1) = 1 ;
-    Activity(256,1) = 5 ;
-    Activity(257:285,1) = 1 ;
-    Activity(286,1) = 5 ;
-    Activity(287:291,1) = 1 ;
-    Activity(292,1) = 5 ;
-    Activity(293:298,1) = 1 ;
-    Activity(299,1) = 5  ;
-    Activity(300:306,1) = 1 ;
-    Activity(307,1) = 5 ;
-    Activity(308:312,1) = 1 ;
-    Activity(313,1) = 5 ;
-    Activity(314:321,1) = 1 ;
-    Activity(322:393,1) = 3 ;
-    Activity(394:436,1) = 4;
-    Activity(437:467,1) = 2;
-    Activity(468:479,1) = 6;
-    Activity(480:485,1) = 1;
-    Activity(486:500,1) = 2;
-%}
+
     ActivityModified=zeros(32,1);
     ActivityModified(1,1)=5;
     ActivityModified(2,1)= 5 ;
@@ -140,6 +92,7 @@ if isempty(humanActivityDataTestMinusActivity2)
 
     %humanActivityDataTest = horzcat(T_mean, T_stdv, T_pca, T_max, T_min, T_countmin, T_countmax, T_Integrate, Activity);
     humanActivityDataTestMinusActivity = horzcat(T_mean, T_stdv, T_pca, T_max, T_min, T_countmin, T_countmax, T_Integrate);
+    %Organized training data (features extracted). 
     humanActivityDataTestMinusActivity2 = [humanActivityDataTestMinusActivity(9,:);humanActivityDataTestMinusActivity(45,:);humanActivityDataTestMinusActivity(61,:);humanActivityDataTestMinusActivity(127,:);humanActivityDataTestMinusActivity(142,:);humanActivityDataTestMinusActivity(158,:);humanActivityDataTestMinusActivity(212,:);humanActivityDataTestMinusActivity(223,:);humanActivityDataTestMinusActivity(235,:);humanActivityDataTestMinusActivity(244,:);humanActivityDataTestMinusActivity(256,:);humanActivityDataTestMinusActivity(286,:);humanActivityDataTestMinusActivity(292,:);humanActivityDataTestMinusActivity(299,:);humanActivityDataTestMinusActivity(307,:);humanActivityDataTestMinusActivity(313,:);humanActivityDataTestMinusActivity(314:321,:);humanActivityDataTestMinusActivity(322:329,:)];
 else
 end
