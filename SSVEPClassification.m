@@ -101,7 +101,8 @@ minlen = min([ length(ch1) length(ch2) length(ch3) ]);
 % winL = [63 125 188 250 313 375 438 500 ...
 %     563 625 688 750 813 875 938 1000 ...
 %     1250 1500 1750 2000]; % Window Lengths (.25s to 4s)
-winL = [64 126 188 250 376 438 500 688 750 938 1000];
+% winL = [64 126 188 250 376 438 500 688 750 938 1000];
+winL = [ 126 250 376 500 626 750 876 1000 ];
 newWin = 250;
 ii = 1:newWin:(minlen-max(winL));
 ops = (length(winL)*length(ii));
