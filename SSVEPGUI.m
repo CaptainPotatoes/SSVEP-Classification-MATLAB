@@ -180,7 +180,8 @@ fp1_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
 fp2_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
 eog3_data_unfilt = zeros(plotWindow*sampleRate_BP,1); 
 eog4_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
-load('tXtY.mat');
+%LOAD tXtY::
+load('allEOGtD.mat');
 while get(hObject,'Value') == 1
     pause(0.08)
     for ch = 1:numEnabledBPChannels

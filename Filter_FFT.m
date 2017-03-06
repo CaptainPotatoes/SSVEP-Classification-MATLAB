@@ -1,7 +1,7 @@
 %% Shifting Window Method
 clear;clc;close all;
 % load('Trial_DB1');
-load('meog_t1.mat')
+load('meog_t4.mat')
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
@@ -44,7 +44,7 @@ end
 hold off;
 
 
-%% ALT PLOT
+%--ALT PLOT
 close all;
 f1 = figure(1);
 set(f1, 'Position', [100, 100, 1600, 900]);
@@ -75,8 +75,10 @@ assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1);
 figNum = 2;
 fH = figure(figNum); 
 set(fH, 'Position', [100, 100, 1200, 900]);
-minPeakProm = 1E-4;
-for i = 1 : seconds*winFraction*dataLimit
+minPeakProm = 0.5E-4;
+iterations = seconds*winFraction*dataLimit;
+disp(iterations);
+for i = 1 : iterations
     start = 1 + winShift*(i-1);
     winEnd = start + winLen-1;
     fprintf('Current index = [%d to %d]\r\n',start, winEnd);
@@ -88,9 +90,9 @@ for i = 1 : seconds*winFraction*dataLimit
     fp2f = eogcfilt( Window{i,2} );
     fpzf = eogcfilt( Window{i,3} );
     eyeRf = eogcfilt( Window{i,4} );
-    [p, l] = findpeaks(fp1f, 'MinPeakProminence',minPeakProm);
-    [p1, l1] = findpeaks(fp2f, 'MinPeakProminence',minPeakProm);
-    [p2, l2] = findpeaks(fpzf, 'MinPeakProminence',minPeakProm);
+    [p, l] = findpeaks(fp1f, 'MinPeakHeight',minPeakProm);
+    [p1, l1] = findpeaks(fp2f, 'MinPeakHeight',minPeakProm);
+    [p2, l2] = findpeaks(fpzf, 'MinPeakHeight',minPeakProm);
     hold on;
     plot(fp1f),ylim([-2.5E-4 2.5E-4]); 
     plot(fp2f),ylim([-2.5E-4 2.5E-4]);
