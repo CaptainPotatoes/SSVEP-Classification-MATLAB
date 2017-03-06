@@ -1,7 +1,7 @@
 %% Shifting Window Method
 clear;clc;close all;
 % load('Trial_DB1');
-load('meog_t0.mat')
+load('meog_t1.mat')
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
@@ -65,7 +65,7 @@ hold off
 %% Set classes:
 seconds = 1; %2 second window
 winLen = seconds*Fs; 
-winFraction = 2;%2.5; %1/4 of a second
+winFraction = 4;%2.5; %1/4 of a second
 winShift = floor(Fs/winFraction); 
 dataLimit = floor((length(fp1)-winLen)/winLen);
 start = 1;
@@ -75,6 +75,7 @@ assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1);
 figNum = 2;
 fH = figure(figNum); 
 set(fH, 'Position', [100, 100, 1200, 900]);
+minPeakProm = 1E-4;
 for i = 1 : seconds*winFraction*dataLimit
     start = 1 + winShift*(i-1);
     winEnd = start + winLen-1;
@@ -83,15 +84,20 @@ for i = 1 : seconds*winFraction*dataLimit
     Window{i,2} = fp2( start : start + winLen-1 );
     Window{i,3} = fpz( start : start + winLen-1 );
     Window{i,4} = eyeR( start : start + winLen-1 );
-    fp1f = eog_h_fcn( Window{i,1}, Fs); 
-    fp2f = eog_h_fcn( Window{i,2}, Fs);
-    fpzf = eog_h_fcn( Window{i,3}, Fs);
-    eyeRf = eog_h_fcn( Window{i,4}, Fs);
+    fp1f = eogcfilt( Window{i,1} ); 
+    fp2f = eogcfilt( Window{i,2} );
+    fpzf = eogcfilt( Window{i,3} );
+    eyeRf = eogcfilt( Window{i,4} );
+    [p, l] = findpeaks(fp1f, 'MinPeakProminence',minPeakProm);
+    [p1, l1] = findpeaks(fp2f, 'MinPeakProminence',minPeakProm);
+    [p2, l2] = findpeaks(fp3f, 'MinPeakProminence',minPeakProm);
     hold on;
-    plot(fp1f),ylim([-2.5E-4 2.5E-4]);    % Plot filtered Data. 
+    plot(fp1f),ylim([-2.5E-4 2.5E-4]); 
     plot(fp2f),ylim([-2.5E-4 2.5E-4]);
     plot(fpzf),ylim([-2.5E-4 2.5E-4]);
     plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
+    plot(l,p,'-*r'); 
+    plot(l1,p1,
     hold off;
     getClass = [];
     while isempty(getClass)

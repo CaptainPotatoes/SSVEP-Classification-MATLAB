@@ -273,8 +273,8 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Power (dB)')
                     set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Pwelch (Fp1)')
                     %EOG filt:
-                    eog1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    eog_data_1 = eog_h_fcn(eog1_data_unfilt, sampleRate_BP);
+%                     eog1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
+                    eog_data_1 = eog_h_fcn(fp1_data_unfilt, sampleRate_BP);
                     plot(axis_handles(9),t{ch},eog_data_1);
                     set(handles.(['axes',num2str(9)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
                     set(handles.(['axes',num2str(9)]),'YLim',[-4E-4 4E-4]);
@@ -310,8 +310,8 @@ while get(hObject,'Value') == 1
                     set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Power (dB)')
                     set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Pwelch (Fp2)')
                     %EOG Filt
-                    eog2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    eog_data_1 = eog_h_fcn(eog2_data_unfilt, sampleRate_BP);
+%                     eog2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
+                    eog_data_1 = eog_h_fcn(fp2_data_unfilt, sampleRate_BP);
                     plot(axis_handles(10),t{ch},eog_data_1);
                     set(handles.(['axes',num2str(10)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
                     set(handles.(['axes',num2str(10)]),'YLim',[-4E-4 4E-4]);
@@ -376,8 +376,9 @@ while get(hObject,'Value') == 1
                         Window2(:,i) = fp2_data_unfilt(250*(i-1)+1:250*i);
                         Window3(:,i) = eog3_data_unfilt(250*(i-1)+1:250*i);
                         Window4(:,i) = eog4_data_unfilt(250*(i-1)+1:250*i);
+
                    end
-                   Y = fullHybridClassifier(Window1, Window2, Window3, Window4, tX, tY)'
+%                    Y = fullHybridClassifier(Window1, Window2, Window3, Window4, tX, tY)'
             end
 
             %% Todo: FFT and plot on axes #3
