@@ -90,14 +90,15 @@ for i = 1 : seconds*winFraction*dataLimit
     eyeRf = eogcfilt( Window{i,4} );
     [p, l] = findpeaks(fp1f, 'MinPeakProminence',minPeakProm);
     [p1, l1] = findpeaks(fp2f, 'MinPeakProminence',minPeakProm);
-    [p2, l2] = findpeaks(fp3f, 'MinPeakProminence',minPeakProm);
+    [p2, l2] = findpeaks(fpzf, 'MinPeakProminence',minPeakProm);
     hold on;
     plot(fp1f),ylim([-2.5E-4 2.5E-4]); 
     plot(fp2f),ylim([-2.5E-4 2.5E-4]);
     plot(fpzf),ylim([-2.5E-4 2.5E-4]);
     plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
     plot(l,p,'-*r'); 
-    plot(l1,p1,
+    plot(l1,p1,'-*c');
+    plot(l2,p2,'-*y');
     hold off;
     getClass = [];
     while isempty(getClass)
