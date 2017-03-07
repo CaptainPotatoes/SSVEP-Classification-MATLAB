@@ -6,14 +6,14 @@
 clear;close all;clc;
     %Import Data:
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
-load('mssvep_16.6_3.mat');
+load('mssvep_t2_10_3.mat');
 remove = 250; % Remove final second of data.
 Fs = SamplingRate;
 %Import as variables and scale all to one:
-
-ch1 = Trial{1}(1:end-remove,1);
-ch2 = Trial{2}(1:end-remove,1);
-ch3 = Trial{3}(1:end-remove,1);
+remove1 = 1;
+ch1 = Trial{1}(remove1:end-remove,1);
+ch2 = Trial{2}(remove1:end-remove,1);
+ch3 = Trial{3}(remove1:end-remove,1);
 % ch3 = ch3(1:2000);
 if size(Trial,2) > 3
     ch4 = Trial{4}(1:end-remove,1);
@@ -55,7 +55,7 @@ plot(freqs, S),xlim([1 35]);
 cont = [];
  %% Skip Spects.  
 %     showSpect = input('Show Spectrograms?\n');
-showSpect = 0;
+showSpect = 1;
  % Spectrograms:
  if showSpect == 1
     figure;

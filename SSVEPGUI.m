@@ -172,6 +172,7 @@ fft_len = plotWindow*sampleRate_BP;
 % fft_len = 2^(nextpow2(plotWindow*sampleRate_BP)); 
 % USE WITH fft(X,fft_len_pow2)
 f0 = [8.75 18.5];
+xl = [5 20];
 N = 5;
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
@@ -205,7 +206,7 @@ while get(hObject,'Value') == 1
                         fp1_data_filtered = eeg_h_custom(BioPotentialSignals{ch}, sampleRate_BP, f0, N);
                         [f, P1] = get_fft_data(fp1_data_filtered, sampleRate_BP);
                         plot(axis_handles(3),f,P1);
-                        set(handles.(['axes',num2str(3)]),'XLim',[1 30]);
+                        set(handles.(['axes',num2str(3)]),'XLim',xl);
                         set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
                         set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
                         set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
@@ -216,7 +217,7 @@ while get(hObject,'Value') == 1
                         fp2_data_filtered = eeg_h_custom(BioPotentialSignals{ch}, sampleRate_BP, f0, N);
                         [f, P1] = get_fft_data(fp2_data_filtered, sampleRate_BP);
                         plot(axis_handles(4),f,P1);
-                        set(handles.(['axes',num2str(4)]),'XLim',[1 30]);
+                        set(handles.(['axes',num2str(4)]),'XLim',xl);
                         set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
                         set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P1(f)|')
                         set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
@@ -250,7 +251,7 @@ while get(hObject,'Value') == 1
                     fp1_data_filtered = eeg_h_custom(fp1_data_unfilt, sampleRate_BP, f0, N);
                     [f, P1] = get_fft_data(fp1_data_filtered, sampleRate_BP);
                     plot(axis_handles(3),f,P1);
-                    set(handles.(['axes',num2str(3)]),'XLim',[1 30]);
+                    set(handles.(['axes',num2str(3)]),'XLim',xl);
                     set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
@@ -269,7 +270,7 @@ while get(hObject,'Value') == 1
                     % Pwelch
                     [Pxx, F] = pwelch(fp1_data_filtered,[],[],250);
                     plot(axis_handles(5), Pxx); 
-                    set(handles.(['axes',num2str(5)]),'XLim',[0 30]);
+                    set(handles.(['axes',num2str(5)]),'XLim',xl);
                     set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Power (dB)')
                     set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Pwelch (Fp1)')
@@ -287,7 +288,7 @@ while get(hObject,'Value') == 1
                     fp2_data_filtered = eeg_h_custom(fp2_data_unfilt, sampleRate_BP, f0, N);
                     [f, P1] = get_fft_data(fp2_data_filtered, sampleRate_BP);
                     plot(axis_handles(4),f,P1);
-                    set(handles.(['axes',num2str(4)]),'XLim',[1 30]);
+                    set(handles.(['axes',num2str(4)]),'XLim',xl);
                     set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P2(f)|')
                     set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
@@ -306,7 +307,7 @@ while get(hObject,'Value') == 1
                     % P welch
                     [Pxx, F] = pwelch(fp2_data_filtered,[],[],250);
                     plot(axis_handles(6), Pxx); 
-                    set(handles.(['axes',num2str(6)]),'XLim',[0 30]);
+                    set(handles.(['axes',num2str(6)]),'XLim',xl);
                     set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Power (dB)')
                     set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Pwelch (Fp2)')
@@ -333,14 +334,14 @@ while get(hObject,'Value') == 1
                     CH3_data_filtered = eeg_h_custom(eog3_data_unfilt, sampleRate_BP, f0, N);
                     [f, P1] = get_fft_data(CH3_data_filtered, sampleRate_BP);
                     plot(axis_handles(11),f,P1);
-                    set(handles.(['axes',num2str(11)]),'XLim',[1 30]);
+                    set(handles.(['axes',num2str(11)]),'XLim',xl);
                     set(get(handles.(['axes',num2str(11)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(11)]), 'YLabel'), 'String', '|P1(f)|')
                     set(get(handles.(['axes',num2str(11)]), 'Title'), 'String', 'FFT(Ch3, Fpz)')
                     %PSD CH3:
                     [Pxx, F] = pwelch(CH3_data_filtered,[],[],250);
                     plot(axis_handles(12), Pxx); 
-                    set(handles.(['axes',num2str(12)]),'XLim',[0 30]);
+                    set(handles.(['axes',num2str(12)]),'XLim',xl);
                     set(get(handles.(['axes',num2str(12)]), 'XLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(12)]), 'YLabel'), 'String', 'Power (dB)')
                     set(get(handles.(['axes',num2str(12)]), 'Title'), 'String', 'Pwelch (Ch3)')
@@ -357,14 +358,14 @@ while get(hObject,'Value') == 1
                     CH4_data_filtered = eeg_h_custom(eog4_data_unfilt, sampleRate_BP, f0, N);
                     [f, P1] = get_fft_data(CH4_data_filtered, sampleRate_BP);
                     plot(axis_handles(13),f,P1);
-                    set(handles.(['axes',num2str(13)]),'XLim',[1 30]);
+                    set(handles.(['axes',num2str(13)]),'XLim',xl);
                     set(get(handles.(['axes',num2str(13)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(13)]), 'YLabel'), 'String', '|P1(f)|')
                     set(get(handles.(['axes',num2str(13)]), 'Title'), 'String', 'FFT(Ch4, Fpz)')
                     %PSD CH4:
                     [Pxx, F] = pwelch(CH4_data_filtered,[],[],250); 
                     plot(axis_handles(14), Pxx); 
-                    set(handles.(['axes',num2str(14)]),'XLim',[0 30]);
+                    set(handles.(['axes',num2str(14)]),'XLim',xl);
                     set(get(handles.(['axes',num2str(14)]), 'XLabel'), 'String', 'Frequency (Hz)')
                     set(get(handles.(['axes',num2str(14)]), 'YLabel'), 'String', 'Power (dB)')
                     set(get(handles.(['axes',num2str(14)]), 'Title'), 'String', 'Pwelch (Ch4)')
