@@ -1,13 +1,26 @@
-function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tX, tY )
+function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG)
 %Full hybrid EOG/EEG classifier
-% Ch 1 = Fp1
-% Ch 2 = Fp2
-% Ch 3 = Fpz
-% Ch 4 = Right Eye
+% Ch1 = Fp1
+% Ch2 = Fp2
+% Ch3 = Fpz
+% Ch4 = Right Eye ??
+% tXEOG = Training Data for EOG
+% tYEOG = Classes for EOG
+% tX    = SSVEP Training Data
+% tY    = SSVEP Training Classes
+% 
 % The first part of this classifier determines if an emergency stop is
 % requested in the form of a double-blink by the subject:
 % A '1' is a double blink.
 % Any other result is a pass, and classification continues.
+% The SSVEP Portion will output one of the following corresponding to its
+% frequency makeup:
+% CLASS :: CORRESPONDING FREQ (ACTUAL)
+% 10    :: 10.00Hz
+% 12    :: 12.50Hz
+% 15    :: 15.15Hz
+% 16    :: 16.66Hz
+
 % Window length??
 Y=0; %Default Value.
 chLen = length(ch1);
@@ -16,6 +29,7 @@ fch1f = zeros(size(ch1,2),numFeatures);
 fch2f = zeros(size(ch1,2),numFeatures);
 fch3f = zeros(size(ch1,2),numFeatures);
 fch4f = zeros(size(ch1,2),numFeatures);
+DB = false;
 if chLen>=250
     for i = 1:size(ch1,2);
         % Filter using optimized EOG filter: 
@@ -33,18 +47,24 @@ if chLen>=250
     %Combine features:
     samplesX = [fch1f fch2f fch3f fch4f] ;
     %Boolean DB: represents presence of a double blink.
-    DB = false;
-    Y = knn(samplesX, tX, tY, 3);
+    Y = knn(samplesX, tXEOG, tYEOG, 3);
     if Y==1
         DB = true;
     end
 end
 % SSVEP CLASSIFICATION: 
-% PRECONDITIONS: EOG must not have been triggered.
+% PRECONDITIONS: EOG must not have been triggered. 
     % starts with 1/2 second analysis and moves up. 
-% if ~DB
-    % if Y~=1
-% end
+    % Output can be one of the four SSVEP classes [10 12 15 16]
+%{
+if chLen>=124
+    if ~DB
+        tsX = zeros(18,18);
+        %If no double blink has been detected in final second of data. 
+        Y = knn(tsX, tX, tY, 1); %Fine KNN
+    end
+end
+%}
 
 end
 

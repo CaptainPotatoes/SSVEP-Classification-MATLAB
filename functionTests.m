@@ -22,6 +22,8 @@ fH = figure(figNum);
 set(fH, 'Position', [100, 100, 1200, 900]);
 cont = [];
 for i = 1 : seconds*winFraction*dataLimit
+    % TODO: Pass a 5s split window to fullHybridClassifier (similar to what
+    % I did with SSVEPGUI).
     start = 1 + winShift*(i-1);
     winEnd = start + winLen-1;
     fprintf('Current index = [%d to %d]\r\n',start, winEnd);

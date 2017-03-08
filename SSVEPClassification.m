@@ -6,7 +6,7 @@
 clear;close all;clc;
     %Import Data:
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
-load('mssvep_t2_10_3.mat');
+load('mssvep_16.6_3.mat');
 remove = 250; % Remove final second of data.
 Fs = SamplingRate;
 %Import as variables and scale all to one:
@@ -47,11 +47,11 @@ hold off;
 title('FFT(Ch1-4)');
 ylabel('|P1(f)|');
 xlabel('f (Hz)');
-wind = [1024 512 256 128];
-[S,freqs] = welch_estimator(ch3_f, 250, hann(1024)); 
+% wind = [1024 512 256 128];
+[S,wfreqs] = welch_estimator(ch3_f, 250, hann(1024)); 
 S = S(1, :);
 figure
-plot(freqs, S),xlim([1 35]);
+plot(wfreqs, S),xlim([1 35]);
 cont = [];
  %% Skip Spects.  
 %     showSpect = input('Show Spectrograms?\n');
@@ -98,11 +98,7 @@ title('Channel 3', 'FontSize', 14)
 % for each. 
 close all;
 minlen = min([ length(ch1) length(ch2) length(ch3) ]);
-% winL = [63 125 188 250 313 375 438 500 ...
-%     563 625 688 750 813 875 938 1000 ...
-%     1250 1500 1750 2000]; % Window Lengths (.25s to 4s)
-% winL = [64 126 188 250 376 438 500 688 750 938 1000];
-winL = [ 126 250 376 500 626 750 876 1000 ];
+winL = [ 126 250 376 500 626 750 876 1000 2000]; %0.5?4s
 newWin = 250;
 ii = 1:newWin:(minlen-max(winL));
 ops = (length(winL)*length(ii));
@@ -113,11 +109,20 @@ nfft = 2^nextpow2(wlen+1);
 K = sum(hamming(wlen, 'periodic'))/wlen;
 if isempty(cont)
     fH = figure(1);
-    set(fH, 'Position', [100, 100, 1200, 1000]);
+    set(fH, 'Position', [100, 100, 1600, 1000]);
 end
 loc500 = find(winL==500)-1;
+% ----- CLASSIFIER THRESHOLDS -----
+PeakThresholdPSD = 0.5E-11;
+f0(1,:) = [8 11]; %10
+f0(2,:) = [11.01 13.5];
+f0(3,:) = [13.51 15.75];
+f0(4,:) = [15.76 17.15];
 for i = 1:length(ii)
     for j = 1:length(winL)
+        if isempty(cont)
+            fprintf('%d -> %d \n', ii(i),ii(i)+winL(j)-1);
+        end
         Ch1.Windows{i,j} = customFilt( ch1(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
         [Ch1.fFFT{j}, Ch1.FFT{i,j}] = get_fft_data(Ch1.Windows{i,j}, Fs);
         [Ch1.MaxFFT{i,j}, Ch1.IndicesMaxFFT{i,j}] = max(Ch1.FFT{i,j});
@@ -138,12 +143,24 @@ for i = 1:length(ii)
             Ch2.PSDData{i,j} = Ch2.PSDData{i,j}(1,:);%3D->2D
             [Ch3.PSDData{i,j}, Ch3.fPSD{j}] = welch_estimator(Ch3.Windows{i,j}, Fs, hann(winL(j)));
             Ch3.PSDData{i,j} = Ch3.PSDData{i,j}(1,:);%3D->2D
+                % FIND MAX VALUE:
+            [Ch1.PSDPeak{i,j}, Ch1.PSDi{i,j}] = max(Ch1.PSDData{i,j});
+            [Ch2.PSDPeak{i,j}, Ch2.PSDi{i,j}] = max(Ch2.PSDData{i,j});
+            [Ch3.PSDPeak{i,j}, Ch3.PSDi{i,j}] = max(Ch3.PSDData{i,j});
+                % FIND LOCAL MAX VALUES:
+                    % IGNORE EVERYTHING OUTSIDE OF [9 18]Hz
+                    % TODO: FIND LOCAL MAX IN FOUR FREQ REGIONS:
+                    %CH 2 LM:
             if isempty(cont)
                 subplot(3,1,2); hold on;
-%                 plot(Ch1.fPSD{i,j}, 10*log10(abs(reshape(PSDData.ch1_PSD{i,j}/2,length(Ch1.fPSD{i,j}),1)))),xlim(xl);
                 plot(Ch1.fPSD{j}, Ch1.PSDData{i,j}),xlim(xl);
                 plot(Ch2.fPSD{j}, Ch2.PSDData{i,j}),xlim(xl);
                 plot(Ch3.fPSD{j}, Ch3.PSDData{i,j}),xlim(xl);
+                % Plot Max Values
+                plot(Ch1.fPSD{j}(Ch1.PSDi{i,j}),Ch1.PSDPeak{i,j},'or');
+                plot(Ch2.fPSD{j}(Ch2.PSDi{i,j}),Ch2.PSDPeak{i,j},'om');
+                plot(Ch3.fPSD{j}(Ch3.PSDi{i,j}),Ch3.PSDPeak{i,j},'og');
+                % Plot Local Maxima
                 xlabel('Normalized frequency'); %ylabel('PSD [dB]');
                 ylabel('Power Spectrum Magnitude');
                 title('Power Spectral Test');
@@ -178,7 +195,6 @@ for i = 1:length(ii)
             end
         % PLOT: 
         if isempty(cont)
-            fprintf('%d -> %d \n', ii(i),ii(i)+winL(j)-1);
             subplot(3,1,1);
             hold on;
             plot(Ch1.fFFT{j}, Ch1.FFT{i,j}),xlim(xl);
@@ -202,5 +218,28 @@ for i = 1:length(ii)
         end
     end
 end
+
+%% Combine Features:
 clearvars -except Ch1 Ch2 Ch3
+%Preallocate:
+numFeatures = 2*(2*(size(Ch1.MaxFFT,2)-1)+2); %Includes FFT & PSD Maxs
+tXCh1 = zeros(size(Ch1.MaxFFT,1),numFeatures);
+tXCh2 = zeros(size(Ch1.MaxFFT,1),numFeatures);
+tXCh3 = zeros(size(Ch1.MaxFFT,1),numFeatures);
+for r = 1:size(Ch1.MaxFFT,1) %Rows
+    for c1 = 1:size(Ch1.MaxFFT,2)
+        tXCh1(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch1.IndicesMaxFFT{r,c1});
+        tXCh1(r,2*(c1-1)+2) = Ch1.MaxFFT{r,c1};
+        tXCh1(r,2*(c1-1)+15) = Ch1.fPSD{c1}(Ch1.PSDi{r,c1});
+        tXCh1(r,2*(c1-1)+16) = Ch1.PSDPeak{r,c1};
+    end
+end
+% for i = length
+% tX = [tXCh1; tXCh2; tXCh3] 
+
+% tY = 
+
+% tXtY = 
+% clearvars -except tX tY tXtY 
+
 
