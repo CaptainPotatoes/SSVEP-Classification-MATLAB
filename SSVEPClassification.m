@@ -6,7 +6,8 @@
 clear;close all;clc;
     %Import Data:
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
-load('mssvep_t2_10_1.mat');
+% load('mssvep_t2_10_1.mat');
+load('mssvep_16.6_3.mat');
 remove = 0; % Remove final second of data.
 Fs = SamplingRate;
 %Import as variables and scale all to one:
@@ -95,7 +96,8 @@ title('Channel 3', 'FontSize', 14)
 cont = [0];
 close all;
 minlen = min([ length(ch1) length(ch2) length(ch3) ]);
-winL = [ 250 376 500 626 750 876 1000 ]; %0.5?4s
+% winL = [ 250 376 500 626 750 876 1000 ]; %0.5?4s
+winL = [250]
 newWin = 250;
 ii = 1:newWin:(minlen-max(winL));
 ops = (length(winL)*length(ii));
@@ -110,14 +112,18 @@ if isempty(cont)
     set(fH, 'Position', [100, 100, 1600, 1000]);
 end
 loc500 = find(winL==500)-1;
-% ----- CLASSIFIER THRESHOLDS -----
+% ----- CLASSIFIER THRESHOLDS ----- %
 PeakThresholdPSD = 0.5E-11;
 % -- Actual Frequencies: (rounded to 4 decimal places)
 f0 = [10.0000 12.5000 15.1515 16.6667];
 % Tolerance (f0 +/- f0t)
+% Low-res tolerances.
+f0t_low = 0.45;
+f0r_low = [f0'-f0t_low, f0'+f0t_low];
+% High-res tolerances.
 f0t = 0.3;
-% Frequency ranges (based on tolerance, for STFT.):
 f0r = [f0'-f0t, f0'+f0t];
+% Frequency ranges (based on tolerance, for STFT.):
 % -- Classifier Possible Outputs:
 fp = [10 12 15 16];
 tYrejectCount = 1;
@@ -126,7 +132,7 @@ for i = 1:length(ii)
         if isempty(cont)
             fprintf('%d -> %d \n', ii(i),ii(i)+winL(j)-1);
         end
-        %TODO: REPLACE CUSTOM FILTER WITH STATIC ONE:
+        %TODO: REPLACE CUSTOM FILTER WITH STATIC ONE FOR CONVERSION
         Ch1.Windows{i,j} = customFilt( ch1(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
         [Ch1.fFFT{j}, Ch1.FFT{i,j}] = get_fft_data(Ch1.Windows{i,j}, Fs);
         [Ch1.MaxFFT{i,j}, Ch1.IndicesMaxFFT{i,j}] = max(Ch1.FFT{i,j});
@@ -138,14 +144,11 @@ for i = 1:length(ii)
         Ch3.Windows{i,j} = customFilt( ch3(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
         [~, Ch3.FFT{i,j}] = get_fft_data(Ch3.Windows{i,j}, Fs);
         [Ch3.MaxFFT{i,j}, Ch3.IndicesMaxFFT{i,j}] = max(Ch3.FFT{i,j});
-%           --- POWER SPECTRAL DENSITY EST ---
+            %%% --- POWER SPECTRAL DENSITY EST --- %%%
                 % Note: DOES NOT ACCEPT WINDOWS OF ODD LENGTH %
             [Ch1.PSDData{i,j}, Ch1.fPSD{j}] = welch_estimator(Ch1.Windows{i,j}, Fs, hann(winL(j)));
-%             Ch1.PSDData{i,j} = Ch1.PSDData{i,j}(1,:);%3D->2D
             [Ch2.PSDData{i,j}, Ch2.fPSD{j}] = welch_estimator(Ch2.Windows{i,j}, Fs, hann(winL(j)));
-%             Ch2.PSDData{i,j} = Ch2.PSDData{i,j}(1,:);%3D->2D
             [Ch3.PSDData{i,j}, Ch3.fPSD{j}] = welch_estimator(Ch3.Windows{i,j}, Fs, hann(winL(j)));
-%             Ch3.PSDData{i,j} = Ch3.PSDData{i,j}(1,:);%3D->2D
                 % FIND MAX VALUE:
             [Ch1.PSDPeak{i,j}, Ch1.PSDi{i,j}] = max(Ch1.PSDData{i,j});
             [Ch2.PSDPeak{i,j}, Ch2.PSDi{i,j}] = max(Ch2.PSDData{i,j});
@@ -194,7 +197,7 @@ for i = 1:length(ii)
                 xlabel('f (Hz)');
                 hold off;
             end
-%           --- APPLY STFT ---
+            %%% --- APPLY STFT --- %%%
             if(winL(j) >= 500)
                 %CH1
                 [Ch1.sSTFT{i, j-loc500}, Ch1.fSTFT{j-loc500}, Ch1.tSTFT{j-loc500}] = stft( Ch1.Windows{i,j}, h, nfft, Fs );
@@ -234,14 +237,57 @@ for i = 1:length(ii)
                 end
             end
         % --- DECISION TREE --- %:
-        
-        
+        %1 - Boolean Checks:
+        for b = 1:length(f0)
+            if winL(j)<=376
+                frange = f0r_low(b,:);
+                Ch1.B{i,j}.b1(b) = isWithin(Ch1.fPSD{j}(Ch1.PSDi{i,j}),frange);
+                Ch2.B{i,j}.b1(b) = isWithin(Ch2.fPSD{j}(Ch1.PSDi{i,j}),frange);
+                Ch3.B{i,j}.b1(b) = isWithin(Ch3.fPSD{j}(Ch1.PSDi{i,j}),frange);
+                if(Ch1.B{i,j}.b1(b))
+                    Ch1.B{i,j}.m1(b) = Ch1.PSDPeak{i,j};
+                else
+                    Ch1.B{i,j}.m1(b) = 0.0;
+                end
+                if(Ch2.B{i,j}.b1(b))
+                    Ch2.B{i,j}.m1(b) = Ch2.PSDPeak{i,j};
+                else
+                    Ch2.B{i,j}.m1(b) = 0.0;
+                end
+                if(Ch3.B{i,j}.b1(b))
+                    Ch3.B{i,j}.m1(b) = Ch3.PSDPeak{i,j};
+                else
+                    Ch3.B{i,j}.m1(b) = 0.0;
+                end
+            else
+                frange = f0r(b,:);
+                Ch1.B{i,j}.b1(b) = isWithin(Ch1.fPSD{j}(Ch1.PSDi{i,j}),frange);
+                Ch2.B{i,j}.b1(b) = isWithin(Ch2.fPSD{j}(Ch1.PSDi{i,j}),frange);
+                Ch3.B{i,j}.b1(b) = isWithin(Ch3.fPSD{j}(Ch1.PSDi{i,j}),frange);
+                if(Ch1.B{i,j}.b1(b))
+                    Ch1.B{i,j}.m1(b) = Ch1.PSDPeak{i,j};
+                else
+                    Ch1.B{i,j}.m1(b) = 0.0;
+                end
+                if(Ch2.B{i,j}.b1(b))
+                    Ch2.B{i,j}.m1(b) = Ch2.PSDPeak{i,j};
+                else
+                    Ch2.B{i,j}.m1(b) = 0.0;
+                end
+                if(Ch3.B{i,j}.b1(b))
+                    Ch3.B{i,j}.m1(b) = Ch3.PSDPeak{i,j};
+                else
+                    Ch3.B{i,j}.m1(b) = 0.0;
+                end
+            end
+        end
+        % --- USER INPUT --- %
         if isempty(cont)
             cont = input('Approve/continue?\n');
             if ~isempty(cont)
                 if cont~=0
                     tYreject(tYrejectCount,:) = i;
-                    tYrejectCount = tYrejectCount+1
+                    tYrejectCount = tYrejectCount+1;
                     cont = [];
                 end
             end
@@ -251,38 +297,46 @@ for i = 1:length(ii)
 end
 
 %% Combine Features:
-% clearvars -except Ch1 Ch2 Ch3
+% clearvars -except Ch1 Ch2 Ch3 winL f0
 %Preallocate:
-numFeatures = 2*(2*(size(Ch1.MaxFFT,2)-1)+2); %Includes FFT & PSD Maxs
-tXCh1 = zeros(size(Ch1.MaxFFT,1),numFeatures);
-tXCh2 = zeros(size(Ch1.MaxFFT,1),numFeatures);
-tXCh3 = zeros(size(Ch1.MaxFFT,1),numFeatures);
-for r = 1:size(Ch1.MaxFFT,1) %Rows
-    for c1 = 1:size(Ch1.MaxFFT,2)
-%         Ch1:
-        tXCh1(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch1.IndicesMaxFFT{r,c1});
-        tXCh1(r,2*(c1-1)+2) = Ch1.MaxFFT{r,c1};
-        tXCh1(r,2*(c1-1)+15) = Ch1.fPSD{c1}(Ch1.PSDi{r,c1});
-        tXCh1(r,2*(c1-1)+16) = Ch1.PSDPeak{r,c1};
-%         Ch2:
-        tXCh2(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch2.IndicesMaxFFT{r,c1});
-        tXCh2(r,2*(c1-1)+2) = Ch2.MaxFFT{r,c1};
-        tXCh2(r,2*(c1-1)+15) = Ch2.fPSD{c1}(Ch2.PSDi{r,c1});
-        tXCh2(r,2*(c1-1)+16) = Ch2.PSDPeak{r,c1};
-%         Ch3:
-        tXCh3(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch3.IndicesMaxFFT{r,c1});
-        tXCh3(r,2*(c1-1)+2) = Ch3.MaxFFT{r,c1};
-        tXCh3(r,2*(c1-1)+15) = Ch3.fPSD{c1}(Ch3.PSDi{r,c1});
-        tXCh3(r,2*(c1-1)+16) = Ch3.PSDPeak{r,c1};
+tY = zeros(size(Ch1.MaxFFT,1), 1);
+for w = 1:length(winL)
+    for r = 1:size(Ch1.MaxFFT,1) %Rows
+        for c1 = 1
+    %         Ch1:
+            tXCh1.FFT(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch1.IndicesMaxFFT{r,c1});
+            tXCh1.FFT(r,2*(c1-1)+2) = Ch1.MaxFFT{r,c1};
+            tXCh1.PSD(r,2*(c1-1)+1) = Ch1.fPSD{c1}(Ch1.PSDi{r,c1});
+            tXCh1.PSD(r,2*(c1-1)+2) = Ch1.PSDPeak{r,c1};
+    %         Ch2:
+            tXCh2.FFT(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch2.IndicesMaxFFT{r,c1});
+            tXCh2.FFT(r,2*(c1-1)+2) = Ch2.MaxFFT{r,c1};
+            tXCh2.PSD(r,2*(c1-1)+1) = Ch2.fPSD{c1}(Ch2.PSDi{r,c1});
+            tXCh2.PSD(r,2*(c1-1)+2) = Ch2.PSDPeak{r,c1};
+    %         Ch3:
+            tXCh3.FFT(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch3.IndicesMaxFFT{r,c1});
+            tXCh3.FFT(r,2*(c1-1)+2) = Ch3.MaxFFT{r,c1};
+            tXCh3.PSD(r,2*(c1-1)+1) = Ch3.fPSD{c1}(Ch3.PSDi{r,c1});
+            tXCh3.PSD(r,2*(c1-1)+2) = Ch3.PSDPeak{r,c1};
+        end
+            for c = 1:length(f0)
+                tXCh1.M(r, c) = Ch1.B{r,j}.m1(c);
+                tXCh2.M(r, c) = Ch2.B{r,j}.m1(c);
+                tXCh3.M(r, c) = Ch3.B{r,j}.m1(c);
+            end
+        tY(r,1) = 16; 
     end
-    tY(r,1) = 16; 
 end
-
+tX = [tXCh1.FFT tXCh1.PSD tXCh1.M ...
+    tXCh2.FFT tXCh2.PSD tXCh2.M ...
+    tXCh3.FFT tXCh3.PSD tXCh3.M ];
 tX = [tXCh1 tXCh2 tXCh3];
 tXtY = [tX tY];
-% Sort out what will be passed to CCA. 
-etx = floor(size(tX,1)/2);
-[Wx, Wy, r] = cca(tX(1:etx,:), tX(etx+1:end,:));
 % clearvars -except tX tY tXtY 
+
+%% Sort out what will be passed to CCA. 
+% etx = floor(size(tX,1)/2);
+% [Wx, Wy, r] = cca(tX(1:etx,:), tX(etx+1:end,:));
+
 
 
