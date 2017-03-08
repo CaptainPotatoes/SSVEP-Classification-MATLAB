@@ -6,12 +6,25 @@
 clear;close all;clc;
     %Import Data:
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
-% load('mssvep_t2_10_1.mat');
-load('mssvep_16.6_3.mat');
-remove = 0; % Remove final second of data.
+% load('mssvep_16.6_3.mat');
+% load('mssvep_t1_baseline.mat');
+% load('mssvep_t1_baseline_1.mat');
+% load('mssvep_10_2.mat');
+% load('mssvep_10_3.mat');
+load('mssvep_15_1.mat');
+% load('mssvep_15_4.mat');
+% load('mssvep_15_5.mat');
+% load('mssvep_t2_12_1.mat');
+% load('mssvep_t1_12_1.mat');
+% load('mssvep_t1_12_2.mat');
+%--- LOAD CLASS ---%
+CLASS = 12
+%---
+remove = 500; % Remove final second of data.
+removeFromStart = 250;
+
 Fs = SamplingRate;
 %Import as variables and scale all to one:
-removeFromStart = 0;
 ch1 = Trial{1}(1+removeFromStart:end-remove,1);
 ch2 = Trial{2}(1+removeFromStart:end-remove,1);
 ch3 = Trial{3}(1+removeFromStart:end-remove,1);
@@ -93,11 +106,11 @@ title('Channel 3', 'FontSize', 14)
 % TODO: EACH winL will result in a feature. USE: FFT, STFT, PSD, and ??
 % SEPARATE FEATURES BY 1s, 2s, and 4s elapsed and have separate classifiers
 % for each. 
-cont = [0];
+cont = [];
 close all;
 minlen = min([ length(ch1) length(ch2) length(ch3) ]);
-% winL = [ 250 376 500 626 750 876 1000 ]; %0.5?4s
-winL = [250]
+winL = [ 250 376 500 626 750 876 1000 ]; %0.5?4s
+% winL = [250]
 newWin = 250;
 ii = 1:newWin:(minlen-max(winL));
 ops = (length(winL)*length(ii));
@@ -297,43 +310,94 @@ for i = 1:length(ii)
 end
 
 %% Combine Features:
-% clearvars -except Ch1 Ch2 Ch3 winL f0
 %Preallocate:
-tY = zeros(size(Ch1.MaxFFT,1), 1);
+tY = cell(length(winL),1);
+tXCh1 = cell(length(winL),1);
+tXCh2 = tXCh1;
+tXCh3 = tXCh1;
+tX = tXCh1;
 for w = 1:length(winL)
-    for r = 1:size(Ch1.MaxFFT,1) %Rows
-        for c1 = 1
-    %         Ch1:
-            tXCh1.FFT(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch1.IndicesMaxFFT{r,c1});
-            tXCh1.FFT(r,2*(c1-1)+2) = Ch1.MaxFFT{r,c1};
-            tXCh1.PSD(r,2*(c1-1)+1) = Ch1.fPSD{c1}(Ch1.PSDi{r,c1});
-            tXCh1.PSD(r,2*(c1-1)+2) = Ch1.PSDPeak{r,c1};
-    %         Ch2:
-            tXCh2.FFT(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch2.IndicesMaxFFT{r,c1});
-            tXCh2.FFT(r,2*(c1-1)+2) = Ch2.MaxFFT{r,c1};
-            tXCh2.PSD(r,2*(c1-1)+1) = Ch2.fPSD{c1}(Ch2.PSDi{r,c1});
-            tXCh2.PSD(r,2*(c1-1)+2) = Ch2.PSDPeak{r,c1};
-    %         Ch3:
-            tXCh3.FFT(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch3.IndicesMaxFFT{r,c1});
-            tXCh3.FFT(r,2*(c1-1)+2) = Ch3.MaxFFT{r,c1};
-            tXCh3.PSD(r,2*(c1-1)+1) = Ch3.fPSD{c1}(Ch3.PSDi{r,c1});
-            tXCh3.PSD(r,2*(c1-1)+2) = Ch3.PSDPeak{r,c1};
+    for r = 1:size(Ch1.MaxFFT,1) %Rows {w}
+%         Ch1:
+        tXCh1{w}.FFT(r,1) = Ch1.fFFT{w}(Ch1.IndicesMaxFFT{r,w});
+        tXCh1{w}.FFT(r,2) = Ch1.MaxFFT{r,w};
+        tXCh1{w}.PSD(r,1) = Ch1.fPSD{w}(Ch1.PSDi{r,w});
+        tXCh1{w}.PSD(r,2) = Ch1.PSDPeak{r,w};
+%         Ch2:
+        tXCh2{w}.FFT(r,1) = Ch1.fFFT{w}(Ch2.IndicesMaxFFT{r,w});
+        tXCh2{w}.FFT(r,2) = Ch2.MaxFFT{r,w};
+        tXCh2{w}.PSD(r,1) = Ch2.fPSD{w}(Ch2.PSDi{r,w});
+        tXCh2{w}.PSD(r,2) = Ch2.PSDPeak{r,w};
+%         Ch3:
+        tXCh3{w}.FFT(r,1) = Ch1.fFFT{w}(Ch3.IndicesMaxFFT{r,w});
+        tXCh3{w}.FFT(r,2) = Ch3.MaxFFT{r,w};
+        tXCh3{w}.PSD(r,1) = Ch3.fPSD{w}(Ch3.PSDi{r,w});
+        tXCh3{w}.PSD(r,2) = Ch3.PSDPeak{r,w};
+        for c = 1:length(f0)
+            tXCh1{w}.M(r, c) = Ch1.B{r,w}.m1(c);
+            tXCh2{w}.M(r, c) = Ch2.B{r,w}.m1(c);
+            tXCh3{w}.M(r, c) = Ch3.B{r,w}.m1(c);
         end
-            for c = 1:length(f0)
-                tXCh1.M(r, c) = Ch1.B{r,j}.m1(c);
-                tXCh2.M(r, c) = Ch2.B{r,j}.m1(c);
-                tXCh3.M(r, c) = Ch3.B{r,j}.m1(c);
-            end
-        tY(r,1) = 16; 
+        tY{w}(r,1) = CLASS; 
     end
+    tX{w} = [tXCh1{w}.FFT tXCh1{w}.PSD tXCh1{w}.M ...
+    tXCh2{w}.FFT tXCh2{w}.PSD tXCh2{w}.M ...
+    tXCh3{w}.FFT tXCh3{w}.PSD tXCh3{w}.M ];
 end
-tX = [tXCh1.FFT tXCh1.PSD tXCh1.M ...
-    tXCh2.FFT tXCh2.PSD tXCh2.M ...
-    tXCh3.FFT tXCh3.PSD tXCh3.M ];
-tX = [tXCh1 tXCh2 tXCh3];
 tXtY = [tX tY];
-% clearvars -except tX tY tXtY 
+numberSamplesX = length(ii);
+clearvars -except tX tY tXtY winL f0 f0r f0r_low tXCh1 tXCh2 tXCh3 CLASS numberSamplesX seconds
 
+%% Compile all Data:
+clear all;clc;close all;
+    % Baseline
+load('tD0_baseline1.mat')
+tXtY0 = tXtY;
+load('tD0_baseline2.mat')
+tXtY1 = tXtY;
+    % 10Hz
+load('tD10_1.mat')
+tXtY10_1 = tXtY;
+load('tD10_2.mat')
+tXtY10_2 = tXtY;
+    %12Hz
+load('tD12_1.mat')
+tXtY12_1 = tXtY;
+load('tD12_2.mat')
+tXtY12_2 = tXtY;
+load('tD12_3.mat')
+tXtY12_3 = tXtY;
+    %15Hz
+load('tD15_1.mat')
+tXtY15_1 = tXtY;
+load('tD15_2.mat')
+tXtY15_2 = tXtY;
+load('tD15_3.mat')
+tXtY15_3 = tXtY;
+    %16Hz
+load('tD16.mat')
+tXtY16 = tXtY;
+
+for i = 1:size(tXtY,1)
+    tXtY_C{i,1} = [tXtY0{i,1};tXtY1{i,1};...
+        tXtY10_1{i,1};tXtY10_2{i,1};...
+        tXtY12_1{i,1};tXtY12_2{i,1};tXtY12_3{i,1};...
+        tXtY15_1{i,1};tXtY15_2{i,1};tXtY15_3{i,1};tXtY16{i,1}]; 
+    tXtY_C{i,2} = [tXtY0{i,2};tXtY1{i,2};...
+        tXtY10_1{i,2};tXtY10_2{i,2};...
+        tXtY12_1{i,2};tXtY12_2{i,2};tXtY12_3{i,2};...
+        tXtY15_1{i,2};tXtY15_2{i,2};tXtY15_3{i,2};tXtY16{i,2}];
+end
+clearvars -except tXtY*
+clear tXtY
+tXtY_250 = [tXtY_C{1,1} tXtY_C{1,2}];
+tXtY_376 = [tXtY_C{2,1} tXtY_C{2,2}];
+tXtY_500 = [tXtY_C{3,1} tXtY_C{3,2}];
+tXtY_626 = [tXtY_C{4,1} tXtY_C{4,2}];
+tXtY_750 = [tXtY_C{5,1} tXtY_C{5,2}];
+tXtY_876 = [tXtY_C{6,1} tXtY_C{6,2}];
+tXtY_1000 = [tXtY_C{7,1} tXtY_C{7,2}];
+[Wx, Wy] = cca(tXtY_C{7,1}', tXtY_C{7,2}');
 %% Sort out what will be passed to CCA. 
 % etx = floor(size(tX,1)/2);
 % [Wx, Wy, r] = cca(tX(1:etx,:), tX(etx+1:end,:));
