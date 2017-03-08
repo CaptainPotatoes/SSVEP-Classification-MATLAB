@@ -3,12 +3,12 @@ function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG)
 % Ch1 = Fp1
 % Ch2 = Fp2
 % Ch3 = Fpz
-% Ch4 = Right Eye ??
+% Ch4 = Right Eye
 % 
 % tXEOG = Training Data for EOG
 % tYEOG = Classes for EOG
 % 
-% tX    = SSVEP Training Data
+% tX    = SSVEP Training Data (not sure if I will include just yet).
 % tY    = SSVEP Training Classes
 % 
 % The first part of this classifier determines if an emergency stop is
@@ -32,6 +32,7 @@ fch2f = zeros(size(ch1,2),numFeatures);
 fch3f = zeros(size(ch1,2),numFeatures);
 fch4f = zeros(size(ch1,2),numFeatures);
 DB = false;
+SSVEP_PRESENT = false;
 if chLen>=250
     for i = 1:size(ch1,2);
         % Filter using optimized EOG filter: 
@@ -58,15 +59,30 @@ end
 % PRECONDITIONS: EOG must not have been triggered. 
     % starts with 1/2 second analysis and moves up. 
     % Output can be one of the four SSVEP classes [10 12 15 16]
-%{
+
 if chLen>=124
     if ~DB
-        tsX = zeros(18,18);
         %If no double blink has been detected in final second of data. 
-        Y = knn(tsX, tX, tY, 1); %Fine KNN
+        % Use a decision tree.
+        %Y = knn(tsX, tX, tY, 1); %Fine KNN
+        ch1f = eegcfilt(ch1);
+        ch2f = eegcfilt(ch2);
+        ch3f = eegcfilt(ch3);
+        ch4f = eegcfilt(ch4);
+        % Extract EEG Features
+        SSVEPfch1(i,:) = featureExtractionSSVEP(ch1f');
+        SSVEPfch2(i,:) = featureExtractionSSVEP(ch2f');
+        SSVEPfch3(i,:) = featureExtractionSSVEP(ch3f');
+        SSVEPfch4(i,:) = featureExtractionSSVEP(ch4f');
+        % Analysis:
+        samplesX = [SSVEPfch1 SSVEPfch2 SSVEPfch3 SSVEPfch4] ;
+        % Decisions
+        if ~SSVEP_PRESENT
+            Y = 0;
+        end
     end
 end
-%}
+
 
 end
 
