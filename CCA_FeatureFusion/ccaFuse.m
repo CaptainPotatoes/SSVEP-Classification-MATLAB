@@ -158,7 +158,9 @@ testY = testY * Wypca;
 
 %% Fusion using Canonical Correlation Analysis (CCA)
 
-[Wxcca,Wycca] = canoncorr(trainX,trainY);
+% [Wxcca,Wycca] = canoncorr(trainX,trainY);
+% MODIFIED:
+[Wxcca,Wycca,~] = cca(trainX, trainY);
 
 trainXcca = trainX * Wxcca;
 trainYcca = trainY * Wycca;

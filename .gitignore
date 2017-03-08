@@ -15,3 +15,5 @@ welch_estimator_mex.mexw64
 *.asv
 codegen/
 TEST.mat
+*.mexw64
+*.prj

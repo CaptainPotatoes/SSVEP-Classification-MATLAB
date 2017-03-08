@@ -6,19 +6,19 @@
 clear;close all;clc;
     %Import Data:
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
-load('mssvep_16.6_3.mat');
-remove = 250; % Remove final second of data.
+load('mssvep_t2_10_1.mat');
+remove = 0; % Remove final second of data.
 Fs = SamplingRate;
 %Import as variables and scale all to one:
-remove1 = 1;
-ch1 = Trial{1}(remove1:end-remove,1);
-ch2 = Trial{2}(remove1:end-remove,1);
-ch3 = Trial{3}(remove1:end-remove,1);
-% ch3 = ch3(1:2000);
+removeFromStart = 0;
+ch1 = Trial{1}(1+removeFromStart:end-remove,1);
+ch2 = Trial{2}(1+removeFromStart:end-remove,1);
+ch3 = Trial{3}(1+removeFromStart:end-remove,1);
+
 if size(Trial,2) > 3
     ch4 = Trial{4}(1:end-remove,1);
 end
-
+seconds = length(ch1)/Fs
 flim   = [8.0 18];
 winLim = [7.5 20];
 N = 5;
@@ -49,13 +49,11 @@ ylabel('|P1(f)|');
 xlabel('f (Hz)');
 % wind = [1024 512 256 128];
 [S,wfreqs] = welch_estimator(ch3_f, 250, hann(1024)); 
-S = S(1, :);
+% S = S(1, :);
 figure
 plot(wfreqs, S),xlim([1 35]);
-cont = [];
- %% Skip Spects.  
+showSpect = 1;  
 %     showSpect = input('Show Spectrograms?\n');
-showSpect = 1;
  % Spectrograms:
  if showSpect == 1
     figure;
@@ -94,6 +92,7 @@ title('Channel 3', 'FontSize', 14)
 % TODO: EACH winL will result in a feature. USE: FFT, STFT, PSD, and ??
 % SEPARATE FEATURES BY 1s, 2s, and 4s elapsed and have separate classifiers
 % for each. 
+cont = [0];
 close all;
 minlen = min([ length(ch1) length(ch2) length(ch3) ]);
 winL = [ 250 376 500 626 750 876 1000 ]; %0.5?4s
@@ -103,6 +102,7 @@ ops = (length(winL)*length(ii));
 xl = [5 25];
 wlen = 2^nextpow2(Fs);
 h=wlen/4;
+win = hamming(wlen, 'periodic'); %CAN BE CONVERTED TO C IF WLEN IS CONSTANT
 nfft = 2^nextpow2(wlen+1);
 K = sum(hamming(wlen, 'periodic'))/wlen;
 if isempty(cont)
@@ -112,10 +112,14 @@ end
 loc500 = find(winL==500)-1;
 % ----- CLASSIFIER THRESHOLDS -----
 PeakThresholdPSD = 0.5E-11;
-f0(1,:) = [8 11]; %10
-f0(2,:) = [11.01 13.5];
-f0(3,:) = [13.51 15.75];
-f0(4,:) = [15.76 17.15];
+% -- Actual Frequencies: (rounded to 4 decimal places)
+f0 = [10.0000 12.5000 15.1515 16.6667];
+% Tolerance (f0 +/- f0t)
+f0t = 0.3;
+% Frequency ranges (based on tolerance, for STFT.):
+f0r = [f0'-f0t, f0'+f0t];
+% -- Classifier Possible Outputs:
+fp = [10 12 15 16];
 tYrejectCount = 1;
 for i = 1:length(ii)
     for j = 1:length(winL)
@@ -137,11 +141,11 @@ for i = 1:length(ii)
 %           --- POWER SPECTRAL DENSITY EST ---
                 % Note: DOES NOT ACCEPT WINDOWS OF ODD LENGTH %
             [Ch1.PSDData{i,j}, Ch1.fPSD{j}] = welch_estimator(Ch1.Windows{i,j}, Fs, hann(winL(j)));
-            Ch1.PSDData{i,j} = Ch1.PSDData{i,j}(1,:);%3D->2D
+%             Ch1.PSDData{i,j} = Ch1.PSDData{i,j}(1,:);%3D->2D
             [Ch2.PSDData{i,j}, Ch2.fPSD{j}] = welch_estimator(Ch2.Windows{i,j}, Fs, hann(winL(j)));
-            Ch2.PSDData{i,j} = Ch2.PSDData{i,j}(1,:);%3D->2D
+%             Ch2.PSDData{i,j} = Ch2.PSDData{i,j}(1,:);%3D->2D
             [Ch3.PSDData{i,j}, Ch3.fPSD{j}] = welch_estimator(Ch3.Windows{i,j}, Fs, hann(winL(j)));
-            Ch3.PSDData{i,j} = Ch3.PSDData{i,j}(1,:);%3D->2D
+%             Ch3.PSDData{i,j} = Ch3.PSDData{i,j}(1,:);%3D->2D
                 % FIND MAX VALUE:
             [Ch1.PSDPeak{i,j}, Ch1.PSDi{i,j}] = max(Ch1.PSDData{i,j});
             [Ch2.PSDPeak{i,j}, Ch2.PSDi{i,j}] = max(Ch2.PSDData{i,j});
@@ -150,6 +154,7 @@ for i = 1:length(ii)
                     % IGNORE EVERYTHING OUTSIDE OF [9 18]Hz
                     % TODO: FIND LOCAL MAX IN FOUR FREQ REGIONS:
             if isempty(cont)
+                %%% -------- PLOT PSDs ------------ %%%
                 subplot(3,3,[4 6]); hold on;
                 plot(Ch1.fPSD{j}, Ch1.PSDData{i,j}),xlim(xl);
                 plot(Ch2.fPSD{j}, Ch2.PSDData{i,j}),xlim(xl);
@@ -158,22 +163,47 @@ for i = 1:length(ii)
                 plot(Ch1.fPSD{j}(Ch1.PSDi{i,j}),Ch1.PSDPeak{i,j},'or');
                 plot(Ch2.fPSD{j}(Ch2.PSDi{i,j}),Ch2.PSDPeak{i,j},'om');
                 plot(Ch3.fPSD{j}(Ch3.PSDi{i,j}),Ch3.PSDPeak{i,j},'og');
+                str = [' f = ' num2str(Ch1.fPSD{j}(Ch1.PSDi{i,j}))];
+                text(Ch1.fPSD{j}(Ch1.PSDi{i,j}),Ch1.PSDPeak{i,j},str);
+                str = [' f = ' num2str(Ch2.fPSD{j}(Ch2.PSDi{i,j}))];
+                text(Ch2.fPSD{j}(Ch2.PSDi{i,j}),Ch2.PSDPeak{i,j},str);
+                str = [' f = ' num2str(Ch3.fPSD{j}(Ch3.PSDi{i,j}))];
+                text(Ch3.fPSD{j}(Ch3.PSDi{i,j}),Ch3.PSDPeak{i,j},str);
                 % Plot Local Maxima
                 xlabel('Normalized frequency'); %ylabel('PSD [dB]');
                 ylabel('Power Spectrum Magnitude');
                 title('Power Spectral Test');
                 hold off;
+                %%% -------- PLOT FFTs ------------ %%%
+                subplot(3,3,[1 3]);
+                hold on;
+                plot(Ch1.fFFT{j}, Ch1.FFT{i,j}),xlim(xl);
+                    plot(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j}), Ch1.MaxFFT{i,j},'-.r*');
+                    str = [' f = ' num2str(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch1.MaxFFT{i,j} )];
+                    text(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j}), Ch1.MaxFFT{i,j}, str);
+                plot(Ch1.fFFT{j}, Ch2.FFT{i,j}),xlim(xl);
+                    plot(Ch1.fFFT{j}(Ch2.IndicesMaxFFT{i,j}), Ch2.MaxFFT{i,j},'-.m*');
+                    str = [' f = ' num2str(Ch1.fFFT{j}(Ch2.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch2.MaxFFT{i,j} )];
+                    text(Ch1.fFFT{j}(Ch2.IndicesMaxFFT{i,j}), Ch2.MaxFFT{i,j}, str);
+                plot(Ch1.fFFT{j}, Ch3.FFT{i,j}),xlim(xl);
+                    plot(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j}), Ch3.MaxFFT{i,j},'-.c*');
+                    str = [' f = ' num2str(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch3.MaxFFT{i,j} )];
+                    text(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j}), Ch3.MaxFFT{i,j}, str);
+                title('FFT (Ch 1-3): With Peaks');
+                ylabel('|P1(f)|');
+                xlabel('f (Hz)');
+                hold off;
             end
 %           --- APPLY STFT ---
             if(winL(j) >= 500)
                 %CH1
-                [Ch1.sSTFT{i, j-loc500}, Ch1.fSTFT{j-loc500}, Ch1.tSTFT{j-loc500}] = stft( Ch1.Windows{i,j}, wlen, h, nfft, Fs );
+                [Ch1.sSTFT{i, j-loc500}, Ch1.fSTFT{j-loc500}, Ch1.tSTFT{j-loc500}] = stft( Ch1.Windows{i,j}, h, nfft, Fs );
                 Ch1.sSTFT{i, j-loc500} = 20*log10(abs(Ch1.sSTFT{i, j-loc500})/wlen/K + 1e-6); 
                 %CH2
-                [Ch2.sSTFT{i, j-loc500}, Ch2.fSTFT{j-loc500}, Ch2.tSTFT{j-loc500}] = stft( Ch2.Windows{i,j}, wlen, h, nfft, Fs );
+                [Ch2.sSTFT{i, j-loc500}, Ch2.fSTFT{j-loc500}, Ch2.tSTFT{j-loc500}] = stft( Ch2.Windows{i,j}, h, nfft, Fs );
                 Ch2.sSTFT{i, j-loc500} = 20*log10(abs(Ch2.sSTFT{i, j-loc500})/wlen/K + 1e-6);
                 %CH3
-                [Ch3.sSTFT{i, j-loc500}, Ch3.fSTFT{j-loc500}, Ch3.tSTFT{j-loc500}] = stft( Ch3.Windows{i,j}, wlen, h, nfft, Fs );
+                [Ch3.sSTFT{i, j-loc500}, Ch3.fSTFT{j-loc500}, Ch3.tSTFT{j-loc500}] = stft( Ch3.Windows{i,j}, h, nfft, Fs );
                 Ch3.sSTFT{i, j-loc500} = 20*log10(abs(Ch3.sSTFT{i, j-loc500})/wlen/K + 1e-6);
                 %%%%%%-TODO feature extraction from s f t [5->20Hz]
                 if isempty(cont)
@@ -203,31 +233,14 @@ for i = 1:length(ii)
                     ylabel(handl, 'Magnitude, dB')
                 end
             end
-        % PLOT: 
+        % --- DECISION TREE --- %:
+        
+        
         if isempty(cont)
-            subplot(3,3,[1 3]);
-            hold on;
-            plot(Ch1.fFFT{j}, Ch1.FFT{i,j}),xlim(xl);
-                plot(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j}), Ch1.MaxFFT{i,j},'-.r*');
-                str = [' f = ' num2str(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch1.MaxFFT{i,j} )];
-                text(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j}), Ch1.MaxFFT{i,j}, str);
-            plot(Ch1.fFFT{j}, Ch2.FFT{i,j}),xlim(xl);
-                plot(Ch1.fFFT{j}(Ch2.IndicesMaxFFT{i,j}), Ch2.MaxFFT{i,j},'-.m*');
-                str = [' f = ' num2str(Ch1.fFFT{j}(Ch2.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch2.MaxFFT{i,j} )];
-                text(Ch1.fFFT{j}(Ch2.IndicesMaxFFT{i,j}), Ch2.MaxFFT{i,j}, str);
-            plot(Ch1.fFFT{j}, Ch3.FFT{i,j}),xlim(xl);
-                plot(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j}), Ch3.MaxFFT{i,j},'-.c*');
-                str = [' f = ' num2str(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch3.MaxFFT{i,j} )];
-                text(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j}), Ch3.MaxFFT{i,j}, str);
-            plot(Ch1.fFFT{j}, Ch4.FFT{i,j}),xlim(xl);
-            title('FFT (Ch 1-3): With Peaks');
-            ylabel('|P1(f)|');
-            xlabel('f (Hz)');
-            hold off;
             cont = input('Approve/continue?\n');
             if ~isempty(cont)
                 if cont~=0
-                    tYreject(tYrejectCount,:) = [i];
+                    tYreject(tYrejectCount,:) = i;
                     tYrejectCount = tYrejectCount+1
                     cont = [];
                 end
@@ -238,7 +251,7 @@ for i = 1:length(ii)
 end
 
 %% Combine Features:
-clearvars -except Ch1 Ch2 Ch3
+% clearvars -except Ch1 Ch2 Ch3
 %Preallocate:
 numFeatures = 2*(2*(size(Ch1.MaxFFT,2)-1)+2); %Includes FFT & PSD Maxs
 tXCh1 = zeros(size(Ch1.MaxFFT,1),numFeatures);
@@ -267,7 +280,9 @@ end
 
 tX = [tXCh1 tXCh2 tXCh3];
 tXtY = [tX tY];
-
+% Sort out what will be passed to CCA. 
+etx = floor(size(tX,1)/2);
+[Wx, Wy, r] = cca(tX(1:etx,:), tX(etx+1:end,:));
 % clearvars -except tX tY tXtY 
 
 

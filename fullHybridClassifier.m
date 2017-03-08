@@ -4,8 +4,10 @@ function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG)
 % Ch2 = Fp2
 % Ch3 = Fpz
 % Ch4 = Right Eye ??
+% 
 % tXEOG = Training Data for EOG
 % tYEOG = Classes for EOG
+% 
 % tX    = SSVEP Training Data
 % tY    = SSVEP Training Classes
 % 

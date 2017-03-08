@@ -78,18 +78,18 @@ for a = 1:number_of_blocks
     S = S + P;
 end
 S = S*2/(sum(window.^2)*fs*number_of_blocks); % Average them out
-Sf = zeros(sensors,size(S,1));
+Sf = zeros(sensors,sensors,size(S,1));
 c=1;
-% for a = 1:sensors
-    for b = 1:sensors
-        Sf(b,:) = S(:,c);
+for a = 1:sensors
+    for b = a:sensors
+        Sf(a,b,:) = S(:,c);
         c = c+1;
     end
-% end
+end
 % clear S
 CSM = Sf;
 for i = 1:size(CSM,3)
-    CSM(:,i) = CSM(:,i) + CSM(:,i)' - eye(sensors).*CSM(:,i);
+    CSM(:,:,i) = CSM(:,:,i) + CSM(:,:,i)' - eye(sensors).*CSM(:,:,i);
 end
 
 end
