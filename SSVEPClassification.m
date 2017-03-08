@@ -68,7 +68,6 @@ cb = colorbar;
 ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel 1', 'FontSize', 14)
-
     figure;
 [~, Fspect, T, P] = spectrogram(ch2_f, 5*Fs,4*Fs,10*Fs,Fs);
 imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
@@ -79,7 +78,6 @@ cb = colorbar;
 ylabel(cb, 'Power (db)')
 colormap(jet)
 title('Channel 2', 'FontSize', 14)
-
     figure;
 [~, Fspect, T, P] = spectrogram(ch3_f, 5*Fs,4*Fs,10*Fs,Fs);
 imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
@@ -98,7 +96,7 @@ title('Channel 3', 'FontSize', 14)
 % for each. 
 close all;
 minlen = min([ length(ch1) length(ch2) length(ch3) ]);
-winL = [ 126 250 376 500 626 750 876 1000 2000]; %0.5?4s
+winL = [ 250 376 500 626 750 876 1000 ]; %0.5?4s
 newWin = 250;
 ii = 1:newWin:(minlen-max(winL));
 ops = (length(winL)*length(ii));
@@ -118,11 +116,13 @@ f0(1,:) = [8 11]; %10
 f0(2,:) = [11.01 13.5];
 f0(3,:) = [13.51 15.75];
 f0(4,:) = [15.76 17.15];
+tYrejectCount = 1;
 for i = 1:length(ii)
     for j = 1:length(winL)
         if isempty(cont)
             fprintf('%d -> %d \n', ii(i),ii(i)+winL(j)-1);
         end
+        %TODO: REPLACE CUSTOM FILTER WITH STATIC ONE:
         Ch1.Windows{i,j} = customFilt( ch1(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
         [Ch1.fFFT{j}, Ch1.FFT{i,j}] = get_fft_data(Ch1.Windows{i,j}, Fs);
         [Ch1.MaxFFT{i,j}, Ch1.IndicesMaxFFT{i,j}] = max(Ch1.FFT{i,j});
@@ -134,7 +134,6 @@ for i = 1:length(ii)
         Ch3.Windows{i,j} = customFilt( ch3(ii(i):ii(i)+winL(j)-1), Fs, flim, N);
         [~, Ch3.FFT{i,j}] = get_fft_data(Ch3.Windows{i,j}, Fs);
         [Ch3.MaxFFT{i,j}, Ch3.IndicesMaxFFT{i,j}] = max(Ch3.FFT{i,j});
-        
 %           --- POWER SPECTRAL DENSITY EST ---
                 % Note: DOES NOT ACCEPT WINDOWS OF ODD LENGTH %
             [Ch1.PSDData{i,j}, Ch1.fPSD{j}] = welch_estimator(Ch1.Windows{i,j}, Fs, hann(winL(j)));
@@ -150,9 +149,8 @@ for i = 1:length(ii)
                 % FIND LOCAL MAX VALUES:
                     % IGNORE EVERYTHING OUTSIDE OF [9 18]Hz
                     % TODO: FIND LOCAL MAX IN FOUR FREQ REGIONS:
-                    %CH 2 LM:
             if isempty(cont)
-                subplot(3,1,2); hold on;
+                subplot(3,3,[4 6]); hold on;
                 plot(Ch1.fPSD{j}, Ch1.PSDData{i,j}),xlim(xl);
                 plot(Ch2.fPSD{j}, Ch2.PSDData{i,j}),xlim(xl);
                 plot(Ch3.fPSD{j}, Ch3.PSDData{i,j}),xlim(xl);
@@ -168,7 +166,6 @@ for i = 1:length(ii)
             end
 %           --- APPLY STFT ---
             if(winL(j) >= 500)
-                subplot(3,1,3);
                 %CH1
                 [Ch1.sSTFT{i, j-loc500}, Ch1.fSTFT{j-loc500}, Ch1.tSTFT{j-loc500}] = stft( Ch1.Windows{i,j}, wlen, h, nfft, Fs );
                 Ch1.sSTFT{i, j-loc500} = 20*log10(abs(Ch1.sSTFT{i, j-loc500})/wlen/K + 1e-6); 
@@ -180,22 +177,35 @@ for i = 1:length(ii)
                 Ch3.sSTFT{i, j-loc500} = 20*log10(abs(Ch3.sSTFT{i, j-loc500})/wlen/K + 1e-6);
                 %%%%%%-TODO feature extraction from s f t [5->20Hz]
                 if isempty(cont)
-                    imagesc(Ch1.tSTFT{j-loc500}, Ch1.fSTFT{j-loc500},Ch1.sSTFT{i, j-loc500}),ylim([7.25 20]);
+                    subplot(3,3,7);
+                    imagesc(Ch1.tSTFT{j-loc500},Ch1.fSTFT{j-loc500},Ch1.sSTFT{i, j-loc500}),ylim([7.25 20]);
                     set(gca,'YDir','normal')
-                    set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
                     xlabel('Time, s')
                     ylabel('Frequency, Hz')
                     title('Amplitude spectrogram of the signal')
                     handl = colorbar;
-                    set(handl, 'FontName', 'Times New Roman', 'FontSize', 14)
                     ylabel(handl, 'Magnitude, dB')
-%                 imagesc(Ch2.tSTFT{i, j-loc500}, Ch2.fSTFT{i, j-loc500},Ch2.sSTFT{i, j-loc500}),ylim([7.25 20]);
-%                 imagesc(Ch3.tSTFT{i, j-loc500}, Ch3.fSTFT{i, j-loc500},Ch3.sSTFT{i, j-loc500}),ylim([7.25 20]);
+                    subplot(3,3,8);
+                    imagesc(Ch2.tSTFT{j-loc500},Ch2.fSTFT{j-loc500},Ch2.sSTFT{i, j-loc500}),ylim([7.25 20]);
+                    set(gca,'YDir','normal')
+                    xlabel('Time, s')
+                    ylabel('Frequency, Hz')
+                    title('Amplitude spectrogram of the signal')
+                    handl = colorbar;
+                    ylabel(handl, 'Magnitude, dB')
+                    subplot(3,3,9);
+                    imagesc(Ch3.tSTFT{j-loc500},Ch3.fSTFT{j-loc500},Ch3.sSTFT{i, j-loc500}),ylim([7.25 20]);
+                    set(gca,'YDir','normal')
+                    xlabel('Time, s')
+                    ylabel('Frequency, Hz')
+                    title('Amplitude spectrogram of the signal')
+                    handl = colorbar;
+                    ylabel(handl, 'Magnitude, dB')
                 end
             end
         % PLOT: 
         if isempty(cont)
-            subplot(3,1,1);
+            subplot(3,3,[1 3]);
             hold on;
             plot(Ch1.fFFT{j}, Ch1.FFT{i,j}),xlim(xl);
                 plot(Ch1.fFFT{j}(Ch1.IndicesMaxFFT{i,j}), Ch1.MaxFFT{i,j},'-.r*');
@@ -209,11 +219,19 @@ for i = 1:length(ii)
                 plot(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j}), Ch3.MaxFFT{i,j},'-.c*');
                 str = [' f = ' num2str(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j})) '  M = ' num2str( Ch3.MaxFFT{i,j} )];
                 text(Ch1.fFFT{j}(Ch3.IndicesMaxFFT{i,j}), Ch3.MaxFFT{i,j}, str);
+            plot(Ch1.fFFT{j}, Ch4.FFT{i,j}),xlim(xl);
             title('FFT (Ch 1-3): With Peaks');
             ylabel('|P1(f)|');
             xlabel('f (Hz)');
             hold off;
-            cont = input('continue?\n');
+            cont = input('Approve/continue?\n');
+            if ~isempty(cont)
+                if cont~=0
+                    tYreject(tYrejectCount,:) = [i];
+                    tYrejectCount = tYrejectCount+1
+                    cont = [];
+                end
+            end
             clf(1);
         end
     end
@@ -228,18 +246,28 @@ tXCh2 = zeros(size(Ch1.MaxFFT,1),numFeatures);
 tXCh3 = zeros(size(Ch1.MaxFFT,1),numFeatures);
 for r = 1:size(Ch1.MaxFFT,1) %Rows
     for c1 = 1:size(Ch1.MaxFFT,2)
+%         Ch1:
         tXCh1(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch1.IndicesMaxFFT{r,c1});
         tXCh1(r,2*(c1-1)+2) = Ch1.MaxFFT{r,c1};
         tXCh1(r,2*(c1-1)+15) = Ch1.fPSD{c1}(Ch1.PSDi{r,c1});
         tXCh1(r,2*(c1-1)+16) = Ch1.PSDPeak{r,c1};
+%         Ch2:
+        tXCh2(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch2.IndicesMaxFFT{r,c1});
+        tXCh2(r,2*(c1-1)+2) = Ch2.MaxFFT{r,c1};
+        tXCh2(r,2*(c1-1)+15) = Ch2.fPSD{c1}(Ch2.PSDi{r,c1});
+        tXCh2(r,2*(c1-1)+16) = Ch2.PSDPeak{r,c1};
+%         Ch3:
+        tXCh3(r,2*(c1-1)+1) = Ch1.fFFT{c1}(Ch3.IndicesMaxFFT{r,c1});
+        tXCh3(r,2*(c1-1)+2) = Ch3.MaxFFT{r,c1};
+        tXCh3(r,2*(c1-1)+15) = Ch3.fPSD{c1}(Ch3.PSDi{r,c1});
+        tXCh3(r,2*(c1-1)+16) = Ch3.PSDPeak{r,c1};
     end
+    tY(r,1) = 16; 
 end
-% for i = length
-% tX = [tXCh1; tXCh2; tXCh3] 
 
-% tY = 
+tX = [tXCh1 tXCh2 tXCh3];
+tXtY = [tX tY];
 
-% tXtY = 
 % clearvars -except tX tY tXtY 
 
 
