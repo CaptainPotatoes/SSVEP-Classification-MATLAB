@@ -45,11 +45,11 @@ title('FFT(Ch1-4)');
 ylabel('|P1(f)|');
 xlabel('f (Hz)');
 % wind = [1024 512 256 128];
-[S,wfreqs] = welch_estimator(ch3_f, 250, hann(1024)); 
+[S,wfreqs] = welch_psd(ch3_f, 250, hann(1024)); 
 S = S(1, :);
-[S2,~] = welch_estimator(ch2_f, 250, hann(1024)); 
+[S2,~] = welch_psd(ch2_f, 250, hann(1024)); 
 S2 = S2(1, :);
-[S3,~] = welch_estimator(ch1_f, 250, hann(1024)); 
+[S3,~] = welch_psd(ch1_f, 250, hann(1024)); 
 S3 = S3(1, :);
 
 figure
@@ -60,7 +60,7 @@ plot(wfreqs, S3),xlim([1 35]);
 hold off;
 
 ch4_f = (ch1_f(1:8962)+ch2_f(1:8962)+ch3_f(1:8962))/3;
-[S,wfreqs] = welch_estimator(ch4_f, 250, hann(1024)); 
+[S,wfreqs] = welch_psd(ch4_f, 250, hann(1024)); 
 S = S(1, :);
 figure
 plot(wfreqs, S),xlim([1 35]);

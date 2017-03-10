@@ -1,4 +1,4 @@
- %% SSVEP Classification
+%% SSVEP Classification
 % The puspose of this program is to differentiate between different SSVEP
 % signals including signal changes. This is accomplished using a variable
 % windows. 
@@ -6,19 +6,9 @@
 clear;close all;clc;
     %Import Data:
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
-% load('mssvep_16.6_3.mat');
-% load('mssvep_t1_baseline.mat');
-% load('mssvep_t1_baseline_1.mat');
-% load('mssvep_10_2.mat');
-% load('mssvep_10_3.mat');
-load('mssvep_15_1.mat');
-% load('mssvep_15_4.mat');
-% load('mssvep_15_5.mat');
-% load('mssvep_t2_12_1.mat');
-% load('mssvep_t1_12_1.mat');
-% load('mssvep_t1_12_2.mat');
+load('mssvep_16.6_3.mat');
+% load('mssvep_15_1.mat');
 %--- LOAD CLASS ---%
-CLASS = 12
 %---
 remove = 500; % Remove final second of data.
 removeFromStart = 250;
@@ -28,10 +18,15 @@ Fs = SamplingRate;
 ch1 = Trial{1}(1+removeFromStart:end-remove,1);
 ch2 = Trial{2}(1+removeFromStart:end-remove,1);
 ch3 = Trial{3}(1+removeFromStart:end-remove,1);
+ln = min([length(ch1) length(ch2) length(ch3)]);
+ch1 = ch1(1:ln);
+ch2 = ch2(1:ln);
+ch3 = ch3(1:ln);
 
 if size(Trial,2) > 3
     ch4 = Trial{4}(1:end-remove,1);
 end
+
 seconds = length(ch1)/Fs
 flim   = [8.0 18];
 winLim = [7.5 20];
@@ -44,16 +39,18 @@ if size(Trial,2) > 3
     ch4_f = scaleAbs(customFilt(ch4, Fs, flim, N));
 end
 [f,  P1]  = get_fft_data(ch1_f, Fs);
-[f2, P2] = get_fft_data(ch2_f, Fs);
-[f3, P3] = get_fft_data(ch3_f, Fs);
+[~, P2] = get_fft_data(ch2_f, Fs);
+[~, P3] = get_fft_data(ch3_f, Fs);
 if size(Trial,2) > 3
     [f4, P4] = get_fft_data(ch4_f, Fs);
 end
-figure(1); 
+    fH = figure(1); 
+    set(fH, 'Position', [100, 100, 1600, 1000]);
+    subplot(2,2,1);
 hold on;
 plot(f,  P1,'color','m'),xlim([1 35]);
-plot(f2, P2,'color','c'),xlim([1 35]);
-plot(f3, P3,'color','r'),xlim([1 35]);
+plot(f, P2,'color','c'),xlim([1 35]);
+plot(f, P3,'color','r'),xlim([1 35]);
 if size(Trial,2) > 3
     plot(f4, P4,'color','b'),xlim([1 35]);
 end
@@ -61,13 +58,27 @@ hold off;
 title('FFT(Ch1-4)');
 ylabel('|P1(f)|');
 xlabel('f (Hz)');
+    subplot(2,2,2)
+    plot(f,(P1+P2+P3)),xlim([1 35]);
+subplot(2,2,3);
 % wind = [1024 512 256 128];
-[S,wfreqs] = welch_estimator(ch3_f, 250, hann(1024)); 
-% S = S(1, :);
-figure
-plot(wfreqs, S),xlim([1 35]);
+hannWin = hann(1024);
+[S1 ,wfreqs] = welch_psd(ch1_f, 250, hannWin); 
+[S2,~    ] = welch_psd(ch2_f, 250, hannWin);
+[S3,~    ] = welch_psd(ch3_f, 250, hannWin);
+hold on;
+plot(wfreqs, S1),xlim([1 35]);
+plot(wfreqs, S2),xlim([1 35]);
+plot(wfreqs, S3),xlim([1 35]);
+hold off;
+
+subplot(2,2,4)
+plot(wfreqs, (S1+S2+S3)),xlim([1 35]);
+
+
 showSpect = 1;  
-%     showSpect = input('Show Spectrograms?\n');
+%%     TODO: PLOT SPECTROGRAMS USING TWO METHODS, AND COMPARE.
+showSpect = input('Show Spectrograms?\n');
  % Spectrograms:
  if showSpect == 1
     figure;
@@ -159,9 +170,9 @@ for i = 1:length(ii)
         [Ch3.MaxFFT{i,j}, Ch3.IndicesMaxFFT{i,j}] = max(Ch3.FFT{i,j});
             %%% --- POWER SPECTRAL DENSITY EST --- %%%
                 % Note: DOES NOT ACCEPT WINDOWS OF ODD LENGTH %
-            [Ch1.PSDData{i,j}, Ch1.fPSD{j}] = welch_estimator(Ch1.Windows{i,j}, Fs, hann(winL(j)));
-            [Ch2.PSDData{i,j}, Ch2.fPSD{j}] = welch_estimator(Ch2.Windows{i,j}, Fs, hann(winL(j)));
-            [Ch3.PSDData{i,j}, Ch3.fPSD{j}] = welch_estimator(Ch3.Windows{i,j}, Fs, hann(winL(j)));
+            [Ch1.PSDData{i,j}, Ch1.fPSD{j}] = welch_psd(Ch1.Windows{i,j}, Fs, hann(winL(j)));
+            [Ch2.PSDData{i,j}, Ch2.fPSD{j}] = welch_psd(Ch2.Windows{i,j}, Fs, hann(winL(j)));
+            [Ch3.PSDData{i,j}, Ch3.fPSD{j}] = welch_psd(Ch3.Windows{i,j}, Fs, hann(winL(j)));
                 % FIND MAX VALUE:
             [Ch1.PSDPeak{i,j}, Ch1.PSDi{i,j}] = max(Ch1.PSDData{i,j});
             [Ch2.PSDPeak{i,j}, Ch2.PSDi{i,j}] = max(Ch2.PSDData{i,j});
