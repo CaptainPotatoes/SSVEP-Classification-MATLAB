@@ -6,12 +6,15 @@
 clear;close all;clc;
     %Import Data:
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
-load('mssvep_16.6_3.mat');
+% load('mssvep_16.6_3.mat');
 % load('mssvep_15_1.mat');
+load('mssvep_10_2.mat');
+% load('mssvep_12.5_1.mat')
+
 %--- LOAD CLASS ---%
 %---
-remove = 500; % Remove final second of data.
-removeFromStart = 250;
+remove = 0; % Remove final second of data.
+removeFromStart = 0;
 
 Fs = SamplingRate;
 %Import as variables and scale all to one:
@@ -19,6 +22,7 @@ ch1 = Trial{1}(1+removeFromStart:end-remove,1);
 ch2 = Trial{2}(1+removeFromStart:end-remove,1);
 ch3 = Trial{3}(1+removeFromStart:end-remove,1);
 ln = min([length(ch1) length(ch2) length(ch3)]);
+
 ch1 = ch1(1:ln);
 ch2 = ch2(1:ln);
 ch3 = ch3(1:ln);
@@ -29,7 +33,8 @@ end
 
 seconds = length(ch1)/Fs
 flim   = [8.0 18];
-winLim = [7.5 20];
+winLim = [9 17.3];
+%
 N = 5;
     %Filter & Scale everything to '1'
 ch1_f = scaleAbs(customFilt(ch1, Fs, flim, N));
@@ -45,7 +50,7 @@ if size(Trial,2) > 3
     [f4, P4] = get_fft_data(ch4_f, Fs);
 end
     fH = figure(1); 
-    set(fH, 'Position', [100, 100, 1600, 1000]);
+    set(fH, 'Position', [100, 100, 1440, 820]);
     subplot(2,2,1);
 hold on;
 plot(f,  P1,'color','m'),xlim([1 35]);
@@ -63,7 +68,7 @@ xlabel('f (Hz)');
 subplot(2,2,3);
 % wind = [1024 512 256 128];
 hannWin = hann(1024);
-[S1 ,wfreqs] = welch_psd(ch1_f, 250, hannWin); 
+[S1,wfreqs] = welch_psd(ch1_f, 250, hannWin); 
 [S2,~    ] = welch_psd(ch2_f, 250, hannWin);
 [S3,~    ] = welch_psd(ch3_f, 250, hannWin);
 hold on;
@@ -75,56 +80,253 @@ hold off;
 subplot(2,2,4)
 plot(wfreqs, (S1+S2+S3)),xlim([1 35]);
 
-
 showSpect = 1;  
 %%     TODO: PLOT SPECTROGRAMS USING TWO METHODS, AND COMPARE.
-showSpect = input('Show Spectrograms?\n');
- % Spectrograms:
- if showSpect == 1
-    figure;
-[~, Fspect, T, P] = spectrogram(ch1_f, 5*Fs,4*Fs,10*Fs,Fs);
-imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
+f2 = figure(2);
+set(f2, 'Position', [100, 100, 1200, 675]);
+% Spectrograms:
+if showSpect == 1
+        subplot(2,2,1)
+    [~, Fspect, T, P] = spectrogram(ch1_f, 5*Fs,4*Fs,10*Fs,Fs);
+    imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
+    set(gca,'YDir','normal')
+    ylabel('Frequency (Hz)')
+    xlabel('Time (s)')
+    cb = colorbar;
+    ylabel(cb, 'Power (db)')
+    colormap(jet)
+    title('Channel 1', 'FontSize', 14)
+        subplot(2,2,2)
+    [~, Fspect, T, P2] = spectrogram(ch2_f, 5*Fs,4*Fs,10*Fs,Fs);
+    imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P2(Fspect<winLim(2) & Fspect>winLim(1),:)));
+    set(gca,'YDir','normal')
+    ylabel('Frequency (Hz)')
+    xlabel('Time (s)')
+    cb = colorbar;
+    ylabel(cb, 'Power (db)')
+    colormap(jet)
+    title('Channel 2', 'FontSize', 14)
+        subplot(2,2,3)
+    [~, Fspect, T, P3] = spectrogram(ch3_f, 5*Fs,4*Fs,10*Fs,Fs);
+    imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P3(Fspect<winLim(2) & Fspect>winLim(1),:)));
+    set(gca,'YDir','normal')
+    ylabel('Frequency (Hz)')
+    xlabel('Time (s)')
+    cb = colorbar;
+    ylabel(cb, 'Power (db)')
+    colormap(jet)
+    title('Channel 3', 'FontSize', 14)
+        subplot(2,2,4)
+        P1_3combined =  10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:))+10*log10(P2(Fspect<winLim(2) & Fspect>winLim(1),:))...
+            +10*log10(P3(Fspect<winLim(2) & Fspect>winLim(1),:));
+    imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)),P1_3combined);
+    set(gca,'YDir','normal')
+    ylabel('Frequency (Hz)')
+    xlabel('Time (s)')
+    cb = colorbar;
+    ylabel(cb, 'Power (db)')
+    colormap(jet)
+    title('Channel Sum(1-3)', 'FontSize', 14)
+end   
+
+f3 = figure(3);
+set(f3, 'Position', [100, 100, 1200, 675]);
+% wlen = 2^nextpow2(Fs);
+wlen = 4*Fs;
+h=256;
+nfft = 4096;
+K = sum(hamming(wlen, 'periodic'))/wlen;
+    subplot(2,2,1)
+[s1, f1, t1] = stftOrig( ch1_f, wlen, h, nfft, Fs );
+s1_1 = 20*log10(abs(s1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
+imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s1_1);
 set(gca,'YDir','normal')
-ylabel('Frequency (Hz)')
-xlabel('Time (s)')
-cb = colorbar;
-ylabel(cb, 'Power (db)')
-colormap(jet)
-title('Channel 1', 'FontSize', 14)
-    figure;
-[~, Fspect, T, P] = spectrogram(ch2_f, 5*Fs,4*Fs,10*Fs,Fs);
-imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
+xlabel('Time, s')
+ylabel('Frequency, Hz')
+title('Amplitude spectrogram of Ch1')
+handl = colorbar;
+colormap(bone)
+ylabel(handl, 'Magnitude, dB')
+    subplot(2,2,2)
+[s2, ~, ~] = stftOrig( ch2_f, wlen, h, nfft, Fs );
+s2_1 = 20*log10(abs(s2(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
+imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s2_1);
 set(gca,'YDir','normal')
-ylabel('Frequency (Hz)')
-xlabel('Time (s)')
-cb = colorbar;
-ylabel(cb, 'Power (db)')
-colormap(jet)
-title('Channel 2', 'FontSize', 14)
-    figure;
-[~, Fspect, T, P] = spectrogram(ch3_f, 5*Fs,4*Fs,10*Fs,Fs);
-imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
+xlabel('Time, s')
+ylabel('Frequency, Hz')
+title('Amplitude spectrogram of Ch2')
+handl = colorbar;
+colormap(bone)
+ylabel(handl, 'Magnitude, dB')
+    subplot(2,2,3)
+[s3, ~, ~] = stftOrig( ch3_f, wlen, h, nfft, Fs );
+s3_1 = 20*log10(abs(s3(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
+imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s3_1);
 set(gca,'YDir','normal')
-ylabel('Frequency (Hz)')
-xlabel('Time (s)')
-cb = colorbar;
-ylabel(cb, 'Power (db)')
+xlabel('Time, s')
+ylabel('Frequency, Hz')
+title('Amplitude spectrogram of Ch3')
+handl = colorbar;
+colormap(bone)
+ylabel(handl, 'Magnitude, dB')
+    subplot(2,2,4)
+s4_1 = 20*log10(abs(s1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6)+...
+    20*log10(abs(s2(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6)+...
+    20*log10(abs(s3(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6);
+imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s4_1);
+set(gca,'YDir','normal')
+xlabel('Time, s')
+ylabel('Frequency, Hz')
+title('Amplitude spectrogram of Sum(1-3)')
+handl = colorbar;
 colormap(jet)
-title('Channel 3', 'FontSize', 14)
- end   
-%% Analysis (New; Modified):
+ylabel(handl, 'Magnitude, dB')
+
+%% Analysis New
+close all;
+cont = [];
+signalDetected = false;
+wPlus = 125;        %-% Value by which to increase window length
+winJump = 250;      %-% Data points to skip after each iteration. 
+maxWinL = 1250;     %-% 5s max
+wL(1,:) = [8 12];   %-% windows around certain target frequencies
+wL(2,:) = [10.5 14.5];
+wL(3,:) = [13.5 16];
+wL(4,:) = [16 17.3];
+winLim = [9 17.6];
+xL = [9.0 17.2];    %-% Xlimit to use for plotting
+yL = [8 18];
+fL = [8.0 17.9];    %-% Frequency range to filter
+oN = 7;             %-% Filter Order (BW)
+mW = 1:winJump:(ln - maxWinL);   %-% Separate into moving Windows (mW)
+cWSize = 250;       %-% Current Window Size
+if isempty(cont)    %-% Set up plot
+    fH = figure(1); %-% Figure Handle
+    set(fH, 'Position', [0, 0, 1280, 1080]);
+    fH2 = figure(2);
+    set(fH2, 'Position', [1280, 0, 1280, 1080]);
+%     fH3 = figure(3);
+%     set(fH3, 'Position',[1280, 720, 1280, 720]);
+%     fH4 = figure(3);
+%     set(fH4, 'Position',[1280, 0, 1280, 720]);
+end
+nCh = 3;            %-% For now will use Fp1, Fp2 and Fpz
+chw = cell(nCh,1);
+fchw = cell(nCh,1);
+Ch = cell(nCh,1);
+f = cell(length(mW), 1);
+fPSD = cell(length(mW), 1);
+%-% STFT Variables:
+wlen = 256;  %-% Length of the hamming window
+h = 64;           %-% hop size
+% win = hamming(wlen, 'periodic'); %CAN BE CONVERTED TO C IF WLEN IS CONSTANT
+nfft = 2048;
+%%% TODO use: Ch{1} to collect data. 
+ %%% Create different boolean conditions that have to be enabled. 
+for i=1:length(mW)
+    cWSize = 250;           %-% Start with a window size of 1s
+    while cWSize<maxWinL %~signalDetected   %-% Continue iterating until signal has been detected. 
+        start = mW(i);      %-% Where to start window
+        fin   = mW(i)+cWSize;   %-% Signal ends at start+current Win Length
+        if mod(fin-start,2)==1
+            fin = fin+1;
+        end
+        chw{1} = ch1(start:fin);  %-% temporary window variable
+        chw{2} = ch2(start:fin);
+        chw{3} = ch3(start:fin);
+        %Filter Normally:
+        for ch=1:nCh        %-% Channels 1-3 or however many we use.
+            fchw{ch} = customFilt(chw{ch}, Fs, fL, oN);
+            % #1 Take FFT:
+            [f{i}, Ch{ch}.FFT{i}] = get_fft_data(fchw{ch}, Fs);
+            % #2 Take PSD Estimate: (Welch method)
+            [Ch{ch}.PSD{i}, fPSD{i}] = welch_psd(fchw{ch}, Fs, hann(fin-start));
+            if(cWSize >= 500)
+                % #3 Take STFT.
+                K = sum(hamming(wlen, 'periodic'))/wlen;
+                [Ch{ch}.sSTFT{i}, Ch{ch}.fSTFT{i}, Ch{ch}.tSTFT{i}] = stft(fchw{ch},h,nfft,Fs);
+                Ch{ch}.sSTFTlog{i} = 20*log10(abs(Ch{ch}.sSTFT{i})/wlen/K + 1E-6);
+                % Separate into windows (boxed around target frequencies).
+            end
+            if isempty(cont)
+                figure(1)
+                subplot(4,2,5)
+                hold on;
+                plot(f{i},Ch{ch}.FFT{i}),xlim(xL);
+                title('FFT');
+                subplot(4,2,6)
+                hold on;
+                plot(fPSD{i}, Ch{ch}.PSD{i}),xlim(xL);
+                title('PSD');
+                if(cWSize >= 500)
+                    subplot(4,2,ch)
+                    imagesc(Ch{ch}.tSTFT{i},Ch{ch}.fSTFT{i},Ch{ch}.sSTFTlog{i}),ylim(yL);
+                    set(gca,'YDir','normal')
+                    xlabel('Time, s')
+                    ylabel('Frequency, Hz')
+                    title('Amplitude spectrogram of the signal')
+                    handl = colorbar;
+                    colormap(jet);
+                    ylabel(handl, 'Magnitude, dB')
+                end
+            end
+        end
+        if isempty(cont)
+            figure(1)
+            hold off;
+            subplot(4,2,7);
+            plot(f{i},(Ch{1}.FFT{i}+Ch{2}.FFT{i}+Ch{3}.FFT{i})),xlim(xL);
+            title('FFT (P1+P2+P3)');
+            subplot(4,2,8);
+            plot(fPSD{i},(Ch{1}.PSD{i}+Ch{2}.PSD{i}+Ch{3}.PSD{i})),xlim(xL);
+            title('PSD (P1+P2+P3)');
+            hold off;
+            if(cWSize >= 500)
+                subplot(4,2,4);
+                ChCombined.sSTFT{i} = 20*log10(abs(Ch{1}.sSTFT{i}(Ch{1}.fSTFT{i}<winLim(2) & Ch{1}.fSTFT{i}>winLim(1),:))/wlen/K + 1E-6)+...
+                    20*log10(abs(Ch{2}.sSTFT{i}(Ch{2}.fSTFT{i}<winLim(2) & Ch{2}.fSTFT{i}>winLim(1),:))/wlen/K + 1E-6)+...
+                    20*log10(abs(Ch{3}.sSTFT{i}(Ch{3}.fSTFT{i}<winLim(2) & Ch{3}.fSTFT{i}>winLim(1),:))/wlen/K + 1E-6);
+                imagesc(Ch{1}.tSTFT{i},Ch{1}.fSTFT{i}(Ch{1}.fSTFT{i}<winLim(2) & Ch{1}.fSTFT{i}>winLim(1)),ChCombined.sSTFT{i}),ylim(winLim);
+                set(gca,'YDir','normal')
+                xlabel('Time, s')
+                ylabel('Frequency, Hz')
+                title('Amplitude spectrogram of combined signal')
+                handl = colorbar;
+%                 colormap(jet);
+                ylabel(handl, 'Magnitude, dB')
+            end
+            figure(2);
+        end
+        %%% TODO: analyse individual windows:
+        %%% SET CONDITIONAL STATEMENTS TO OUTPUT [10 12 15 16], if NOT
+        %%% DETECTABLE, SKIP AND INCREASE WIN SIZE
+%         for ii = 1:size(wL,1)
+%             subplot(2,2,ii)
+%         end
+        if isempty(cont)
+            cont = input('Approve/continue?\n');
+            clf(fH);
+            clf(fH2);
+        end
+        %%% TODO: Save final win length
+        % Cannot find match
+        if ~signalDetected % -- Temporary & Redundant
+            cWSize = cWSize + wPlus
+        end
+    end
+end
+%% Analysis (OLD)
 % start with smallest possible window:
 % TODO: EACH winL will result in a feature. USE: FFT, STFT, PSD, and ??
 % SEPARATE FEATURES BY 1s, 2s, and 4s elapsed and have separate classifiers
 % for each. 
+cccc = input('Run Next Section?? (Ctrl-C to cancel)\n');
 cont = [];
 close all;
 minlen = min([ length(ch1) length(ch2) length(ch3) ]);
 winL = [ 250 376 500 626 750 876 1000 ]; %0.5?4s
-% winL = [250]
 newWin = 250;
 ii = 1:newWin:(minlen-max(winL));
-ops = (length(winL)*length(ii));
 xl = [5 25];
 wlen = 2^nextpow2(Fs);
 h=wlen/4;
