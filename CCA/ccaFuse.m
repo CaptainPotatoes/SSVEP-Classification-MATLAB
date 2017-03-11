@@ -160,7 +160,7 @@ testY = testY * Wypca;
 
 % [Wxcca,Wycca] = canoncorr(trainX,trainY);
 % MODIFIED:
-[Wxcca,Wycca,~] = cca(trainX, trainY);
+[Wxcca,Wycca] = cca2(trainX, trainY);
 
 trainXcca = trainX * Wxcca;
 trainYcca = trainY * Wycca;

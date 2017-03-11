@@ -65,3 +65,13 @@ S = S(1, :);
 figure
 plot(wfreqs, S),xlim([1 35]);
 
+%% CCA Test: (using CCA2)
+close all;clc;clear all;
+load carbig;
+X = [Displacement Horsepower Weight Acceleration MPG];
+nans = sum(isnan(X),2) > 0;
+
+[A,B,r,U,V] = CCA2(X(~nans,1:3),X(~nans,4:5));
+plot(U(:,1),V(:,1),'.')
+xlabel('0.0025*Disp+0.020*HP-0.000025*Wgt')
+ylabel('-0.17*Accel-0.092*MPG')
