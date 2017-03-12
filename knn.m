@@ -25,9 +25,9 @@ yfit              = zeros(N,1);
 
 for i = 1:N,
     dist            = sum((tX - ones(L,1)*tsX(i,:)).^2,2);
-    [m, indices]    = sort(dist);  
+    [~, indices]    = sort(dist);  
     n               = hist(tY(indices(1:Knn)), Uc);
-    [m, best]       = max(n);
+    [~, best]       = max(n);
     yfit(i)         = Uc(best);
 end
 
