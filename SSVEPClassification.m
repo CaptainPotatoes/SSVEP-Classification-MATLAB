@@ -10,7 +10,7 @@ load('mssvep_16.6_3.mat');
 % load('mssvep_15_1.mat');
 % load('mssvep_10_2.mat');
 % load('mssvep_12.5_1.mat')
-
+% load('mssvep_t1_baseline');
 % load('mssvep_t2_16_1.mat');
 
 %--- LOAD CLASS ---%
@@ -205,24 +205,22 @@ cWSize = 250;       %-% Current Window Size
 if isempty(cont)    %-% Set up plot
     fH = figure(1); %-% Figure Handle
     set(fH, 'Position', [0, 0, 960, 920]);
-%     fH2 = figure(2);
-%     set(fH2, 'Position', [960, 0, 960, 920]);
+    fH2 = figure(2);
+    set(fH2, 'Position', [960, 0, 960, 920]);
 end
 nCh = 3;            %-% For now will use Fp1, Fp2 and Fpz
 chw = cell(nCh,1);
 fchw = cell(nCh,1);
 Ch = cell(nCh,1);
-f = cell(length(mW), 1);
+% f = cell(length(mW), 1);
+clear f;
+clear f2;
 fPSD = cell(length(mW), 1);
-%-% STFT Variables:
-wlen = 256;         %-% Length of the hamming window
-h = 64;             %-% hop size
-% win = hamming(wlen, 'periodic'); %CAN BE CONVERTED TO C IF WLEN IS CONSTANT
-nfft = 2048;
 str{1} = '^c';
 str{2} = '^r';
 str{3} = '^m';
  %%% Create different boolean conditions that have to be enabled. 
+ftr = 1;
 for i=1:length(mW)
     cWSize = 250;           %-% Start with a window size of 1s
     start = mW(i);          %-% Where to start window
@@ -237,51 +235,52 @@ for i=1:length(mW)
     for ch=1:nCh        %-% Channels 1-3 or however many we use.
         fchw{ch} = customFilt(chw{ch}, Fs, fL, oN);
         % #1 Take FFT:
-        [f{i}, Ch{ch}.FFT{i}] = get_fft_data(fchw{ch}, Fs);
+        [f, Ch{ch}.FFT{i}] = get_nfft_data(fchw{ch}, Fs, 512);
+%         [f2, Ch{ch}.FFT2{i}] = get_nfft_data(fchw{ch}, Fs, 2048);
             % #1.1 Find Peaks and M/I
-            [Ch{ch}.FFT_MAX{i}, Ch{ch}.FFT_I{i}] = max(Ch{ch}.FFT{i});
+%             [Ch{ch}.FFT_MAX{i}, Ch{ch}.FFT_I{i}] = max(Ch{ch}.FFT{i});
             [Ch{ch}.FFT_PKS{i}, Ch{ch}.FFT_L{i}] = findpeaks(Ch{ch}.FFT{i},'SortStr','descend');
+            if length(Ch{ch}.FFT_PKS{i})>1
+                %Peak max minus min
+                Ch{ch}.FFT_Ltop{i} = f(Ch{ch}.FFT_L{i}(1:2,1));
+%                 Ch{ch}.FFT_MMM{i} = 
+            end
         % #2 Take PSD Estimate: (Welch method)
         [Ch{ch}.PSD{i}, fPSD{i}] = welch_psd(fchw{ch}, Fs, hann(fin-start));
             % #2.2 Find Peaks and Max
-            [Ch{ch}.PSD_MAX{i}, Ch{ch}.PSD_I{i}] = max(Ch{ch}.PSD{i});
             [Ch{ch}.PSD_PKS{i}, Ch{ch}.PSD_L{i}] = findpeaks(Ch{ch}.PSD{i},'SortStr','descend');
-        if isempty(cont)
             figure(1)
             subplot(2,2,1)
             hold on;
-            plot(f{i},Ch{ch}.FFT{i}),xlim(xL);
+            plot(f,Ch{ch}.FFT{i}),xlim(xL);
             %Pks and max:
-            plot(f{i}(Ch{ch}.FFT_I{i}), Ch{ch}.FFT_MAX{i},'or');
-            plot(f{i}(Ch{ch}.FFT_L{i}), Ch{ch}.FFT_PKS{i},str{ch});
+            plot(f(Ch{ch}.FFT_L{i}), Ch{ch}.FFT_PKS{i},str{ch});
             title('FFT');
             subplot(2,2,2)
             hold on;
             plot(fPSD{i}, Ch{ch}.PSD{i}),xlim(xL);
-            plot(fPSD{i}(Ch{ch}.PSD_I{i}), Ch{ch}.PSD_MAX{i},'or');
             plot(fPSD{i}(Ch{ch}.PSD_L{i}), Ch{ch}.PSD_PKS{i},str{ch});
             title('PSD');
-        end
     end
+%         Ch{4}.FFT2{i} = Ch{1}.FFT2{i}+Ch{2}.FFT2{i}+Ch{3}.FFT2{i};
         Ch{4}.FFT{i} = (Ch{1}.FFT{i}+Ch{2}.FFT{i}+Ch{3}.FFT{i});
-        [Ch{4}.FFT_MAX{i}, Ch{4}.FFT_I{i}] = max(Ch{4}.FFT{i});
+%         [Ch{4}.FFT_MAX{i}, Ch{4}.FFT_I{i}] = max(Ch{4}.FFT{i});
         [Ch{4}.FFT_PKS{i}, Ch{4}.FFT_L{i}] = findpeaks(Ch{4}.FFT{i},'SortStr','descend');
         Ch{4}.PSD{i} = Ch{1}.PSD{i}+Ch{2}.PSD{i}+Ch{3}.PSD{i};
-        [Ch{4}.PSD_MAX{i}, Ch{4}.PSD_I{i}] = max(Ch{4}.PSD{i});
+%         [Ch{4}.PSD_MAX{i}, Ch{4}.PSD_I{i}] = max(Ch{4}.PSD{i});
         [Ch{4}.PSD_PKS{i}, Ch{4}.PSD_L{i}] = findpeaks(Ch{4}.PSD{i},'SortStr','descend');
-    if isempty(cont)
         figure(1)
         hold off;
         subplot(2,2,3);hold on;        
-        plot(f{i},Ch{4}.FFT{i}),xlim(xL);
-        plot(f{i}(Ch{4}.FFT_I{i}),Ch{4}.FFT_MAX{i},'or');
-        plot(f{i}(Ch{4}.FFT_L{i}),Ch{4}.FFT_PKS{i},'^r');
+        plot(f,Ch{4}.FFT{i}),xlim(xL);
+%         plot(f{i}(Ch{4}.FFT_I{i}),Ch{4}.FFT_MAX{i},'or');
+        plot(f(Ch{4}.FFT_L{i}),Ch{4}.FFT_PKS{i},'^r');
         hold off;
         title('FFT (P1+P2+P3)');
         subplot(2,2,4);hold on;
         plot(fPSD{i},Ch{4}.PSD{i}),xlim(xL);
-        plot(f{i}(Ch{4}.PSD_I{i}),Ch{4}.PSD_MAX{i},'or');
-        plot(f{i}(Ch{4}.PSD_L{i}),Ch{4}.PSD_PKS{i},'^r');
+%         plot(f{i}(Ch{4}.PSD_I{i}),Ch{4}.PSD_MAX{i},'or');
+        plot(f(Ch{4}.PSD_L{i}),Ch{4}.PSD_PKS{i},'^r');
         title('PSD (P1+P2+P3)');
         hold off;
         hold off;
@@ -295,14 +294,29 @@ for i=1:length(mW)
             handl = colorbar;
             ylabel(handl, 'Magnitude, dB')
         end
-    end
+    figure(2);
+    subplot(2,1,1);hold on;
+    plot(f,Ch{4}.FFT{i}),xlim(xL);
+%     plot(f{i}(Ch{4}.FFT_L{i}),Ch{4}.FFT_PKS{i},'^r');
+%     subplot(2,1,2);hold on;
+%     plot(fPSD{i},Ch{4}.PSD{i}),xlim(xL);
+%     plot(f{i}(Ch{4}.PSD_L{i}),Ch{4}.PSD_PKS{i},'^r');
     %%% TODO: analyse individual windows:
     %%% SET CONDITIONAL STATEMENTS TO OUTPUT [10 12 15 16], if NOT
     %%% DETECTABLE, SKIP AND INCREASE WIN SIZE
     if isempty(cont)
         cont = input('Approve/continue?\n');
         clf(fH);
+        clf(fH2)
     end
+    
+    if (cont==1)
+        %{N, 1(250samples)}
+        F{ftr,1} = [ftr];
+        ftr = ftr + 1;
+        cont = [];
+    end
+    
     %%% TODO: Save final win length
     % Cannot find match
     if ~signalDetected % -- Temporary & Redundant
@@ -310,6 +324,11 @@ for i=1:length(mW)
     end
 end
 %% Part 2: 500 & longer
+%-% STFT Variables:
+wlen = 256;         %-% Length of the hamming window
+h = 64;             %-% hop size
+% win = hamming(wlen, 'periodic'); %CAN BE CONVERTED TO C IF WLEN IS CONSTANT
+nfft = 2048;
 for i=1:length(mW)
     cWSize = 250;           %-% Start with a window size of 1s
     while cWSize<maxWinL %~signalDetected   %-% Continue iterating until signal has been detected. 
