@@ -1,4 +1,4 @@
-%% SSVEP Classification
+% %% SSVEP Classification
 % The puspose of this program is to differentiate between different SSVEP
 % signals including signal changes. This is accomplished using a variable
 % windows. 
@@ -192,11 +192,7 @@ signalDetected = false;
 wPlus = 250;        %-% Value by which to increase window length
 winJump = 250;      %-% Data points to skip after each iteration. 
 maxWinL = 1000;     %-% 5s max
-wL(1,:) = [8 12];   %-% windows around certain target frequencies
-wL(2,:) = [10.5 14.5];
-wL(3,:) = [13.5 16];
-wL(4,:) = [16 17.3];
-wLFFT(1,:) = [9.6 10.4];
+wLFFT(1,:) = [9.6 10.4];%-% windows around certain target frequencies
 wLFFT(2,:) = [11.9 12.7]; 
 wLFFT(3,:) = [14.6 15.5];
 wLFFT(4,:) = [16.2 16.7];
@@ -258,6 +254,8 @@ for i=1:length(mW)
                         Ch{ch}.wLFFT{i} = w;
                         break;
                     else
+                        Ch{ch}.FFT_MMM{i} = 0;
+                        Ch{ch}.FFT_PkRatio{i} = 0;
                         Ch{ch}.wLFFT{i} = 0;
                     end
                 end
@@ -271,11 +269,13 @@ for i=1:length(mW)
                 Ch{ch}.PSD_Ltop{i} = fPSD(Ch{ch}.PSD_L{i}(1:2,1));
                 for w = 1:4
                     if Ch{ch}.PSD_Ltop{i}(1,1)>=wLPSD(w,1) && Ch{ch}.PSD_Ltop{i}(1,1)<=wLPSD(w,2)
-                        Ch{ch}.PSD_MMM{i} = Ch{ch}.PSD_PKS{i}(1) - Ch{ch}.FFT_PKS{i}(2);
-                        Ch{ch}.FFT_PkRatio{i} = Ch{ch}.PSD_PKS{i}(1) / Ch{ch}.FFT_PKS{i}(2);
+                        Ch{ch}.PSD_MMM{i} = Ch{ch}.PSD_PKS{i}(1) - Ch{ch}.PSD_PKS{i}(2);
+                        Ch{ch}.PSD_PkRatio{i} = Ch{ch}.PSD_PKS{i}(1) / Ch{ch}.PSD_PKS{i}(2);
                         Ch{ch}.wLPSD{i} = w;
                         break;
                     else
+                        Ch{ch}.PSD_MMM{i} = 0;
+                        Ch{ch}.PSD_PkRatio{i} = 0;
                         Ch{ch}.wLPSD{i} = 0;
                     end
                 end
@@ -307,6 +307,8 @@ for i=1:length(mW)
                 Ch{4}.wLFFT{i} = w;
                 break;
             else
+                Ch{4}.FFT_MMM{i} = 0;
+                Ch{4}.FFT_PkRatio{i} = 0;
                 Ch{4}.wLFFT{i} = 0;
             end
         end
@@ -318,16 +320,35 @@ for i=1:length(mW)
         Ch{4}.PSD_Ltop{i} = fPSD(Ch{4}.PSD_L{i}(1:2,1));
         for w = 1:4
             if Ch{4}.PSD_Ltop{i}(1,1)>=wLPSD(w,1) && Ch{4}.PSD_Ltop{i}(1,1)<=wLPSD(w,2)
-                Ch{4}.PSD_MMM{i} = Ch{4}.PSD_PKS{i}(1) - Ch{4}.FFT_PKS{i}(2);
-                Ch{4}.FFT_PkRatio{i} = Ch{4}.PSD_PKS{i}(1) / Ch{4}.FFT_PKS{i}(2);
+                Ch{4}.PSD_MMM{i} = Ch{4}.PSD_PKS{i}(1) - Ch{4}.PSD_PKS{i}(2);
+                Ch{4}.PSD_PkRatio{i} = Ch{4}.PSD_PKS{i}(1) / Ch{4}.PSD_PKS{i}(2);
                 Ch{4}.wLPSD{i} = w;
                 break;
             else
+                Ch{4}.PSD_MMM{i} = 0;
+                Ch{4}.PSD_PkRatio{i} = 0;
                 Ch{4}.wLPSD{i} = 0;
             end
         end
     end
     %Alignment:
+    %averageFFTPeak is for KNN classification. 
+    % b1 = all maxfreqs (FFT) for this iteration triggered a known frequency. 
+    for chn = 1:4
+        FFTPeaks1(chn, i) = Ch{chn}.FFT_Ltop{1,i}(1);
+        FFTPeaks2(chn, i) = Ch{chn}.FFT_Ltop{1,i}(2);
+    end
+    averageFFTPeak{i} = mean([Ch{1}.FFT_Ltop{1,i}(1) Ch{2}.FFT_Ltop{1,i}(1) ...
+        Ch{3}.FFT_Ltop{1,i}(1) Ch{4}.FFT_Ltop{1,i}(1)]);
+    averageFFTPeak2{i} = mean([Ch{1}.FFT_Ltop{1,i}(2) Ch{2}.FFT_Ltop{1,i}(2) ...
+        Ch{3}.FFT_Ltop{1,i}(2) Ch{4}.FFT_Ltop{1,i}(2)]);
+    b1(i) = (Ch{1}.wLFFT{1,i}~=0) && (Ch{2}.wLFFT{1,i}~=0) && (Ch{3}.wLFFT{1,i}~=0) && (Ch{4}.wLFFT{1,i}~=0);
+    averagePSDPeak{i} = mean([Ch{1}.PSD_Ltop{1,i}(1) Ch{2}.PSD_Ltop{1,i}(1) ...
+        Ch{3}.PSD_Ltop{1,i}(1) Ch{4}.PSD_Ltop{1,i}(1)]);
+    b2(i) = (Ch{1}.wLPSD{1,i}~=0) && (Ch{2}.wLPSD{1,i}~=0) && (Ch{3}.wLPSD{1,i}~=0) && (Ch{4}.wLPSD{1,i}~=0);
+%     if ~b1{i}
+%         check for tolerance (either 1 or two
+%     end
     if(showGraphs)
         figure(1)
         hold off;

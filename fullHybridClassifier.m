@@ -1,4 +1,4 @@
-function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG)
+function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG, Fs )
 %Full hybrid EOG/EEG classifier
 % Ch1 = Fp1
 % Ch2 = Fp2
@@ -60,24 +60,28 @@ end
     % starts with 1/2 second analysis and moves up. 
     % Output can be one of the four SSVEP classes [10 12 15 16]
 
-if chLen>=124
+if chLen>=250
     if ~DB
         %If no double blink has been detected in final second of data. 
         % Use a decision tree.
         %Y = knn(tsX, tX, tY, 1); %Fine KNN
+        %limit size:
+        ln = min([length(ch1) length(ch2) length(ch3)]);
+        ch1 = ch1(1:ln);
+        ch2 = ch2(1:ln);
+        ch3 = ch3(1:ln);
+        %Filter:
         ch1f = eegcfilt(ch1);
         ch2f = eegcfilt(ch2);
         ch3f = eegcfilt(ch3);
-        ch4f = eegcfilt(ch4);
-        % Extract EEG Features
-        SSVEPfch1(i,:) = featureExtractionSSVEP(ch1f');
-        SSVEPfch2(i,:) = featureExtractionSSVEP(ch2f');
-        SSVEPfch3(i,:) = featureExtractionSSVEP(ch3f');
-        SSVEPfch4(i,:) = featureExtractionSSVEP(ch4f');
-        % Analysis:
-        samplesX = [SSVEPfch1 SSVEPfch2 SSVEPfch3 SSVEPfch4] ;
+        % Extract SSVEP Features (Part 1 from individual channels):
+        F = featureExtractionSSVEP(ch1f, ch2f, ch3f, Fs);
+        % Analysis: Use Tree-based classification or CCA-FKNN:
+        %%% ^ TODO: use self-programmed decision tree for l = 250;
+        %%% ^ Use CCA-FKNN for larger datasets (for l>=500);
+        numFeatures = length(F); 
         % Decisions
-        if ~SSVEP_PRESENT
+        if ~SSVEP_PRESENT %TEMP (obviously)
             Y = 0;
         end
     end

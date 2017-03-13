@@ -1,18 +1,18 @@
-function [ F ] = featureExtractionEOG( classifyingWindow )
+function [ F ] = featureExtractionEOG( samplesX )
 %featureExtraction Summary of this function goes here if I ever feel like
 %writing one up.
-% classifyingWindow = classifyingWindow(:);
-T_mean = Wmean(classifyingWindow);
-T_stdv = Wstd(classifyingWindow);
-T_max = Wmax(classifyingWindow);
-T_min = Wmin(classifyingWindow);
-T_countmin_1 = sum(classifyingWindow<-1*10^-5 & classifyingWindow>(-1*10^-4),2);
-T_countmin_2 = WCountMin(classifyingWindow,-1*10^-4);
-T_countmax = WCountMax(classifyingWindow,8.5*10^-5);
-T_Integrate = trapz(classifyingWindow);
+% samplesX = samplesX(:);
+T_mean = Wmean(samplesX);
+T_stdv = Wstd(samplesX);
+T_max = Wmax(samplesX);
+T_min = Wmin(samplesX);
+T_countmin_1 = sum(samplesX<-1*10^-5 & samplesX>(-1*10^-4),2);
+T_countmin_2 = WCountMin(samplesX,-1*10^-4);
+T_countmax = WCountMax(samplesX,8.5*10^-5);
+T_Integrate = trapz(samplesX);
 peaks = [];
 T_findpeaks_distX=[];
-[peaks, loc] = findpeaks(classifyingWindow, 'MinPeakHeight', 0.65E-4);
+[peaks, loc] = findpeaks(samplesX, 'MinPeakHeight', 0.65E-4);
 if isempty(peaks)
     T_count_findpeaks = 0;
     T_findpeaks_distX = 0;

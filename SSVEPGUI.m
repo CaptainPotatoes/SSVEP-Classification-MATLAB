@@ -380,7 +380,7 @@ while get(hObject,'Value') == 1
                         Window4(:,i) = eog4_data_unfilt(250*(i-1)+1:250*i);
 
                    end
-                   Y = fullHybridClassifier(Window1, Window2, Window3, Window4, tX, tY)'
+                   Y = fullHybridClassifier(Window1, Window2, Window3, Window4, tX, tY, sampleRate_BP)'
             end
 
             %% Todo: FFT and plot on axes #3

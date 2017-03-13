@@ -75,3 +75,6 @@ nans = sum(isnan(X),2) > 0;
 plot(U(:,1),V(:,1),'.')
 xlabel('0.0025*Disp+0.020*HP-0.000025*Wgt')
 ylabel('-0.17*Accel-0.092*MPG')
+
+
+%% 
