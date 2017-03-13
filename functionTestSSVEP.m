@@ -2,17 +2,18 @@
 clear;close all;clc;
     %Import Data:
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
-load('mssvep_16.6_3.mat');
+% load('mssvep_16.6_3.mat');
 % load('mssvep_15_1.mat');
-% load('mssvep_10_2.mat');
+load('mssvep_10_2.mat');
 % load('mssvep_12.5_1.mat')
 % load('mssvep_t1_baseline');
 % load('mssvep_t2_16_1.mat');
 %-SHOW SPECT:
 showSpect = 0;
 %--- LOAD CLASS ---%
-CLASS = 16;
-%---
+CLASS = '10';
+VERSION = 'v1';
+%--- START ANALYSIS (PART1) ---%
 remove = 0; % Remove final second of data.
 removeFromStart = 0;
 
@@ -79,11 +80,10 @@ hold off;
 
 subplot(2,2,4)
 plot(wfreqs, (S1+S2+S3)),xlim([1 35]);
-
-f2 = figure(2);
-set(f2, 'Position', [100, 100, 1200, 675]);
 % Spectrograms:
 if showSpect == 1
+    f2 = figure(2);
+    set(f2, 'Position', [100, 100, 1200, 675]);
         subplot(2,2,1)
     [~, Fspect, T, P] = spectrogram(ch1_f, 5*Fs,4*Fs,10*Fs,Fs);
     imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:)));
@@ -126,59 +126,58 @@ if showSpect == 1
     colormap(jet)
     title('Channel Sum(1-3)', 'FontSize', 14)
    
-
-f3 = figure(3);
-set(f3, 'Position', [100, 100, 1200, 675]);
-% wlen = 2^nextpow2(Fs);
-wlen = 4*Fs;
-h=256;
-nfft = 4096;
-K = sum(hamming(wlen, 'periodic'))/wlen;
-    subplot(2,2,1)
-[s1, f1, t1] = stftOrig( ch1_f, wlen, h, nfft, Fs );
-s1_1 = 20*log10(abs(s1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
-imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s1_1);
-set(gca,'YDir','normal')
-xlabel('Time, s')
-ylabel('Frequency, Hz')
-title('Amplitude spectrogram of Ch1')
-handl = colorbar;
-colormap(bone)
-ylabel(handl, 'Magnitude, dB')
-    subplot(2,2,2)
-[s2, ~, ~] = stftOrig( ch2_f, wlen, h, nfft, Fs );
-s2_1 = 20*log10(abs(s2(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
-imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s2_1);
-set(gca,'YDir','normal')
-xlabel('Time, s')
-ylabel('Frequency, Hz')
-title('Amplitude spectrogram of Ch2')
-handl = colorbar;
-colormap(bone)
-ylabel(handl, 'Magnitude, dB')
-    subplot(2,2,3)
-[s3, ~, ~] = stftOrig( ch3_f, wlen, h, nfft, Fs );
-s3_1 = 20*log10(abs(s3(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
-imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s3_1);
-set(gca,'YDir','normal')
-xlabel('Time, s')
-ylabel('Frequency, Hz')
-title('Amplitude spectrogram of Ch3')
-handl = colorbar;
-colormap(bone)
-ylabel(handl, 'Magnitude, dB')
-    subplot(2,2,4)
-s4_1 = 20*log10(abs(s1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6)+...
-    20*log10(abs(s2(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6)+...
-    20*log10(abs(s3(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6);
-imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s4_1);
-set(gca,'YDir','normal')
-xlabel('Time, s')
-ylabel('Frequency, Hz')
-title('Amplitude spectrogram of Sum(1-3)')
-handl = colorbar;
-colormap(jet)
-ylabel(handl, 'Magnitude, dB')
+    f3 = figure(3);
+    set(f3, 'Position', [100, 100, 1200, 675]);
+    % wlen = 2^nextpow2(Fs);
+    wlen = 4*Fs;
+    h=256;
+    nfft = 4096;
+    K = sum(hamming(wlen, 'periodic'))/wlen;
+        subplot(2,2,1)
+    [s1, f1, t1] = stftOrig( ch1_f, wlen, h, nfft, Fs );
+    s1_1 = 20*log10(abs(s1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
+    imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s1_1);
+    set(gca,'YDir','normal')
+    xlabel('Time, s')
+    ylabel('Frequency, Hz')
+    title('Amplitude spectrogram of Ch1')
+    handl = colorbar;
+    colormap(bone)
+    ylabel(handl, 'Magnitude, dB')
+        subplot(2,2,2)
+    [s2, ~, ~] = stftOrig( ch2_f, wlen, h, nfft, Fs );
+    s2_1 = 20*log10(abs(s2(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
+    imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s2_1);
+    set(gca,'YDir','normal')
+    xlabel('Time, s')
+    ylabel('Frequency, Hz')
+    title('Amplitude spectrogram of Ch2')
+    handl = colorbar;
+    colormap(bone)
+    ylabel(handl, 'Magnitude, dB')
+        subplot(2,2,3)
+    [s3, ~, ~] = stftOrig( ch3_f, wlen, h, nfft, Fs );
+    s3_1 = 20*log10(abs(s3(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
+    imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s3_1);
+    set(gca,'YDir','normal')
+    xlabel('Time, s')
+    ylabel('Frequency, Hz')
+    title('Amplitude spectrogram of Ch3')
+    handl = colorbar;
+    colormap(bone)
+    ylabel(handl, 'Magnitude, dB')
+        subplot(2,2,4)
+    s4_1 = 20*log10(abs(s1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6)+...
+        20*log10(abs(s2(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6)+...
+        20*log10(abs(s3(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6);
+    imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s4_1);
+    set(gca,'YDir','normal')
+    xlabel('Time, s')
+    ylabel('Frequency, Hz')
+    title('Amplitude spectrogram of Sum(1-3)')
+    handl = colorbar;
+    colormap(jet)
+    ylabel(handl, 'Magnitude, dB')
 end
 %% Feature Extraction for Classification:
 close all;
@@ -186,17 +185,16 @@ cont = [];
 showGraphs = true;
 signalDetected = false;
 wPlus = 250;        %-% Value by which to increase window length
-winJump = 250;      %-% Data points to skip after each iteration. 
-maxWinL = 1000;     %-% 5s max
+winJump = 125;      %-% Data points to skip after each iteration. 
+maxWinL = 250;     %-% 5s max
 mW = 1:winJump:(ln - maxWinL); 
+% mW = 4001:winJump:(ln-maxWinL); %TEMPORARY!!!!
 ftr=1;
 for i=1:length(mW)
     cWSize = 250;           %-% Start with a window size of 1s
     start = mW(i);          %-% Where to start window
     fin   = (mW(i)+(cWSize));   %-% Signal ends at start+current Win Length
-%     if mod(fin-start,2)==1
-%         fin = fin+1;
-%     end
+    fprintf('Current index = [%d to %d]\r\n',start, fin);
     chw{1} = ch1(start:fin);  %-% temporary window variable
     chw{2} = ch2(start:fin);
     chw{3} = ch3(start:fin);
@@ -206,18 +204,39 @@ for i=1:length(mW)
     F(i,:) = featureExtractionSSVEPtemp(fch(1,:), fch(2,:), fch(3,:), Fs, true);
     
     if isempty(cont)
+        commandwindow;
         cont = input('Approve/continue?\n');
         clf(1);
     end
-    % Feature selection: 
+    % Feature selection: 1=accept, 9=run entirely, anything else =
+    % continue/reject
     if (cont==1)
-        tXSSVEP(ftr,:) = F(i,:);
-        tY = CLASS
+        tXSSVEP(i,:) = F(i,:);
+        tY(i,1) = str2double(CLASS);
         ftr = ftr + 1;
+        cont = [];
+    else
+        tXSSVEP(i,:) = F(i,:);
+        tY(i,1) = 0; %REJECT CLASS
+    end
+    if ~isempty(cont) && cont~=9
         cont = [];
     end
 end
 
+filename = ['tXSSVEP_' CLASS VERSION];
+prompt = ['SAVE FILE: ' filename '?\n'];
+commandwindow;
+cont = input(prompt);
+if cont == 1
+    save(filename);
+end
+%% Training Data Control 
+% use this section to load all the tXSSVEP Data and Combine into a single
+% tXSSVEP and tYSSVEP. 
+
+% tXSSVEPALL = [;];
+% tYSSVEPALL = [;];
 %% CCA Test: (using CCA2)
 %{
 close all;clc;clear all;

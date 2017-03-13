@@ -3,6 +3,7 @@ clear;clc;close all;
 load('allEOGtD.mat');
 % LOAD TEST DATA:
 % load('meog_t1.mat');
+% load('mssvep_12.5_1.mat');
 load('mssvep_16.6_3.mat');
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
@@ -23,7 +24,7 @@ figNum = 2;
 % set(fH, 'Position', [100, 100, 1200, 900]);
 cont = [0];
 Y = zeros(seconds*winFraction*dataLimit,1);
-F = zeros(seconds*winFraction*dataLimit,53);
+% F = zeros(seconds*winFraction*dataLimit,53);
 nS = 2;
 for i = 1 : seconds*winFraction*dataLimit
     % TODO: Pass a 5s split window to fullHybridClassifier (similar to what

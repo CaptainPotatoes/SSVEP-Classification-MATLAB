@@ -34,7 +34,7 @@ fch4f = zeros(size(ch1,2),numFeatures);
 DB = false;
 SSVEP_PRESENT = false;
 %Temporary:
-F = zeros(1,53);
+% F = zeros(1,100);
 if chLen>=250
     for i = 1:size(ch1,2);
         % Filter using optimized EOG filter: 
@@ -77,12 +77,13 @@ if chLen>=250
         ch2f = eegcfilt(ch2);
         ch3f = eegcfilt(ch3);
         % Extract SSVEP Features (Part 1 from individual channels):
-        plotData = false;
         F = featureExtractionSSVEP(ch1f, ch2f, ch3f, Fs);
-%         numFeats = size(F,1);
-        %OR USE chLen<500; chLen>=500
+        %Different window lengths correspond to different classifiers.
         if chLen<500%numFeats <= 53
             % window length is less than 500 samples
+            % Verify # of features:
+            if size(F,1) == 53
+            end
 %             Y = knn(F,tXSSVEP,tYSSVEP,5);
         elseif chLen>=500%numFeats>53
             % Window length is 500 or more samples.
