@@ -8,11 +8,13 @@ function [ F ] = featureExtractionSSVEP( fch1, fch2, fch3, Fs )
 % Using 250-sample windows, feature extraction is obtained using FFT and
 % PSD
 %----FFT----%
+wLFFT = zeros(4,2);
 wLFFT(1,:) = [9.6 10.4];%-% windows around certain target frequencies
 wLFFT(2,:) = [11.9 12.7]; 
 wLFFT(3,:) = [14.6 15.5];
 wLFFT(4,:) = [16.2 16.7];
 %----PSD----%
+wLPSD = zeros(4,2);
 wLPSD(1,:) = [9.9 10.1];
 wLPSD(2,:) = [12 13]; 
 wLPSD(3,:) = [14.9 15.1];
