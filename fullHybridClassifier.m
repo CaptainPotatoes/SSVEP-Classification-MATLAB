@@ -78,8 +78,16 @@ if chLen>=250
         ch3f = eegcfilt(ch3);
         % Extract SSVEP Features (Part 1 from individual channels):
         plotData = false;
-        F = featureExtractionSSVEP(ch1f, ch2f, ch3f, Fs, plotData);
-%         Y = knn(F,tXSSVEP,tYSSVEP,5);
+        F = featureExtractionSSVEP(ch1f, ch2f, ch3f, Fs);
+%         numFeats = size(F,1);
+        %OR USE chLen<500; chLen>=500
+        if chLen<500%numFeats <= 53
+            % window length is less than 500 samples
+%             Y = knn(F,tXSSVEP,tYSSVEP,5);
+        elseif chLen>=500%numFeats>53
+            % Window length is 500 or more samples.
+%             Y = knn(F,tXSSVEPlong,tYSSVEPlong,5);
+        end
         % Analysis: Use Tree-based classification or CCA-FKNN:
         %%% ^ TODO: use self-programmed decision tree for l = 250;
         %%% ^ Use CCA-FKNN for larger datasets (for l>=500);

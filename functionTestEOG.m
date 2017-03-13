@@ -21,7 +21,7 @@ assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1);
 figNum = 2;
 % fH = figure(figNum); 
 % set(fH, 'Position', [100, 100, 1200, 900]);
-cont = [];
+cont = [0];
 Y = zeros(seconds*winFraction*dataLimit,1);
 F = zeros(seconds*winFraction*dataLimit,53);
 nS = 2;
