@@ -36,96 +36,96 @@ fchw(3,:) = fch3;
 if windowLength>=250 && windowLength<500
     for ch=1:nCh
     % #1 Take FFT:
-        [f, Ch.FFT(ch,:)] = get_nfft_data(fchw(ch,:), Fs, 2048);
+        [f, FFT(ch,:)] = get_nfft_data(fchw(ch,:), Fs, 2048);
         % #1.1 Find Peaks and M/I
-        [Ch.FFT_PKS(ch,:), Ch.FFT_L(ch,:)] = findpeaks(Ch.FFT(ch,:),'SortStr','descend');
-        if length(Ch.FFT_PKS(ch,:))>1
+        [FFT_PKS(ch,:), FFT_L(ch,:)] = findpeaks(FFT(ch,:),'SortStr','descend');
+        if length(FFT_PKS(ch,:))>1
             %Peak max minus min
-            Ch.FFT_Ltop(ch,:) = f(Ch.FFT_L(ch,1:2));
+            FFT_Ltop(ch,:) = f(FFT_L(ch,1:2));
             for w = 1:4
-                if Ch.FFT_Ltop(ch,1)>wLFFT(w,1) && Ch.FFT_Ltop(ch,1)<wLFFT(w,2) 
-                    Ch.FFT_MMM(ch,:) = Ch.FFT_PKS(ch,1) - Ch.FFT_PKS(ch,2);
-                    Ch.FFT_PkRatio(ch,:) = Ch.FFT_PKS(ch,1)/Ch.FFT_PKS(ch,2);
-                    Ch.wLFFT(ch,:) = w;
+                if FFT_Ltop(ch,1)>wLFFT(w,1) && FFT_Ltop(ch,1)<wLFFT(w,2) 
+                    FFT_MMM(ch,:) = FFT_PKS(ch,1) - FFT_PKS(ch,2);
+                    FFT_PkRatio(ch,:) = FFT_PKS(ch,1)/FFT_PKS(ch,2);
+                    wLFFT(ch,:) = w;
                     break;
                 else
-                    Ch.FFT_MMM(ch,:) = 0;
-                    Ch.FFT_PkRatio(ch,:) = 0;
-                    Ch.wLFFT(ch,:) = 0;
+                    FFT_MMM(ch,:) = 0;
+                    FFT_PkRatio(ch,:) = 0;
+                    wLFFT(ch,:) = 0;
                 end
             end
         end
         % #2 Take PSD Estimate: (Welch method)
         % Prepare static hann window: (may need to change to hann(250))
         hW = hann(windowLength);
-        [Ch.PSD(ch,:), fPSD] = welch_psd(fchw(ch,:), Fs, hW);%fin-start
+        [PSD(ch,:), fPSD] = welch_psd(fchw(ch,:), Fs, hW);%fin-start
         % #2.2 Find Peaks and Max
-        [Ch.PSD_PKS(ch,:), Ch.PSD_L(:,ch)] = findpeaks(Ch.PSD(ch,:),'SortStr','descend');
-        if length(Ch.PSD_PKS(ch,:))>1
-            Ch.PSD_Ltop(ch,:) = fPSD(Ch.PSD_L(1:2,ch));
+        [PSD_PKS(ch,:), PSD_L(ch,:)] = findpeaks(PSD(ch,:),'SortStr','descend');
+        if length(PSD_PKS(ch,:))>1
+            PSD_Ltop(ch,:) = fPSD(PSD_L(ch,1:2));
             for w = 1:4
-                if Ch.PSD_Ltop(ch,1)>=wLPSD(w,1) && Ch.PSD_Ltop(ch,1)<=wLPSD(w,2)
-                    Ch.PSD_MMM(ch,:) = Ch.PSD_PKS(ch,1) - Ch.PSD_PKS(ch,2);
-                    Ch.PSD_PkRatio(ch,:) = Ch.PSD_PKS(ch,1) / Ch.PSD_PKS(ch,2);
-                    Ch.wLPSD(ch,:) = w;
+                if PSD_Ltop(ch,1)>=wLPSD(w,1) && PSD_Ltop(ch,1)<=wLPSD(w,2)
+                    PSD_MMM(ch,:) = PSD_PKS(ch,1) - PSD_PKS(ch,2);
+                    PSD_PkRatio(ch,:) = PSD_PKS(ch,1) / PSD_PKS(ch,2);
+                    wLPSD(ch,:) = w;
                     break;
                 else
-                    Ch.PSD_MMM(ch,:) = 0;
-                    Ch.PSD_PkRatio(ch,:) = 0;
-                    Ch.wLPSD(ch,:) = 0;
+                    PSD_MMM(ch,:) = 0;
+                    PSD_PkRatio(ch,:) = 0;
+                    wLPSD(ch,:) = 0;
                 end
             end
         end
     end
     %Combine data into 'fourth' channel:
-    Ch.FFT(4,:) = (Ch.FFT(1,:)+Ch.FFT(2,:)+Ch.FFT(3,:));
-    [Ch.FFT_PKS(4,:), Ch.FFT_L(4,:)] = findpeaks(Ch{4}.FFT,'SortStr','descend');
-    if length(Ch.FFT_PKS(4,:))>1
-        Ch.FFT_Ltop(4,:) = f(Ch.FFT_L(4,1:2));
+    FFT(4,:) = (FFT(1,:)+FFT(2,:)+FFT(3,:));
+    [FFT_PKS(4,:), FFT_L(4,:)] = findpeaks(Ch{4}.FFT,'SortStr','descend');
+    if length(FFT_PKS(4,:))>1
+        FFT_Ltop(4,:) = f(FFT_L(4,1:2));
         for w = 1:4
-            if Ch.FFT_Ltop(4,1)>wLFFT(w,1) && Ch.FFT_Ltop(4,1)<wLFFT(w,2) 
-                Ch.FFT_MMM(4,:) = Ch.FFT_PKS(4,1) - Ch.FFT_PKS(4,2);
-                Ch.FFT_PkRatio(4,:) = Ch.FFT_PKS(4,1)/Ch.FFT_PKS(4,2);
-                Ch.wLFFT(4,:) = w;
+            if FFT_Ltop(4,1)>wLFFT(w,1) && FFT_Ltop(4,1)<wLFFT(w,2) 
+                FFT_MMM(4,:) = FFT_PKS(4,1) - FFT_PKS(4,2);
+                FFT_PkRatio(4,:) = FFT_PKS(4,1)/FFT_PKS(4,2);
+                wLFFT(4,:) = w;
                 break;
             else
-                Ch.FFT_MMM(4,:) = 0;
-                Ch.FFT_PkRatio(4,:) = 0;
-                Ch.wLFFT(4,:) = 0;
+                FFT_MMM(4,:) = 0;
+                FFT_PkRatio(4,:) = 0;
+                wLFFT(4,:) = 0;
             end
         end
     end
-    Ch.PSD(4,:) = Ch.PSD(1,:)+Ch.PSD(2,:)+Ch.PSD(3,:);
-    [Ch.PSD_PKS(4,:), Ch.PSD_L(4,:)] = findpeaks(Ch{4}.PSD,'SortStr','descend');
-    if length(Ch.PSD_PKS(4,:))>1
-%         Ch.PSD_L(4,:) = Ch.PSD_L(4,:)(:);
-        Ch.PSD_Ltop(4,:) = fPSD(Ch.PSD_L(4,1:2));
+    PSD(4,:) = PSD(1,:)+PSD(2,:)+PSD(3,:);
+    [PSD_PKS(4,:), PSD_L(4,:)] = findpeaks(Ch{4}.PSD,'SortStr','descend');
+    if length(PSD_PKS(4,:))>1
+%         PSD_L(4,:) = PSD_L(4,:)(:);
+        PSD_Ltop(4,:) = fPSD(PSD_L(4,1:2));
         for w = 1:4
-            if Ch.PSD_Ltop(4,1)>=wLPSD(w,1) && Ch.PSD_Ltop(4,1)<=wLPSD(w,2)
-                Ch.PSD_MMM(4,:) = Ch.PSD_PKS(4,1) - Ch.PSD_PKS(4,2);
-                Ch.PSD_PkRatio(4,:) = Ch.PSD_PKS(4,1) / Ch.PSD_PKS(4,2);
-                Ch.wLPSD(4,:) = w;
+            if PSD_Ltop(4,1)>=wLPSD(w,1) && PSD_Ltop(4,1)<=wLPSD(w,2)
+                PSD_MMM(4,:) = PSD_PKS(4,1) - PSD_PKS(4,2);
+                PSD_PkRatio(4,:) = PSD_PKS(4,1) / PSD_PKS(4,2);
+                wLPSD(4,:) = w;
                 break;
             else
-                Ch.PSD_MMM(4,:) = 0;
-                Ch.PSD_PkRatio(4,:) = 0;
-                Ch.wLPSD(4,:) = 0;
+                PSD_MMM(4,:) = 0;
+                PSD_PkRatio(4,:) = 0;
+                wLPSD(4,:) = 0;
             end
         end
     end
     for chn = 1:nCh+1
-        FFTPeaks1(1,chn) = Ch.FFT_Ltop(chn,1);
-        FFTPeaks2(1,chn) = Ch.FFT_Ltop(chn,2);
+        FFTPeaks1(1,chn) = FFT_Ltop(chn,1);
+        FFTPeaks2(1,chn) = FFT_Ltop(chn,2);
     end
-    averageFFTPeak = mean([Ch.FFT_Ltop(1,1) Ch.FFT_Ltop(2,1) ...
-        Ch.FFT_Ltop(3,1) Ch.FFT_Ltop(4,1)]);
-    averageFFTPeak2 = mean([Ch.FFT_Ltop(1,2) Ch.FFT_Ltop(2,2) ...
-        Ch.FFT_Ltop(3,2) Ch.FFT_Ltop(4,2)]);
-    b1 = (Ch.wLFFT(1,:)~=0) && (Ch.wLFFT(2,:)~=0) && ...
-        (Ch.wLFFT(3,:)~=0) && (Ch.wLFFT(4,:)~=0);
-    averagePSDPeak = mean([Ch.PSD_Ltop(1,1) Ch.PSD_Ltop(2,1) ...
-        Ch.PSD_Ltop(3,1) Ch.PSD_Ltop(4,1)]);
-    b2 = (Ch.wLPSD(1,:)~=0) && (Ch.wLPSD(2,:)~=0) && (Ch.wLPSD(3,:)~=0) && (Ch.wLPSD(4,:)~=0);
+    averageFFTPeak = mean([FFT_Ltop(1,1) FFT_Ltop(2,1) ...
+        FFT_Ltop(3,1) FFT_Ltop(4,1)]);
+    averageFFTPeak2 = mean([FFT_Ltop(1,2) FFT_Ltop(2,2) ...
+        FFT_Ltop(3,2) FFT_Ltop(4,2)]);
+    b1 = (wLFFT(1,:)~=0) && (wLFFT(2,:)~=0) && ...
+        (wLFFT(3,:)~=0) && (wLFFT(4,:)~=0);
+    averagePSDPeak = mean([PSD_Ltop(1,1) PSD_Ltop(2,1) ...
+        PSD_Ltop(3,1) PSD_Ltop(4,1)]);
+    b2 = (wLPSD(1,:)~=0) && (wLPSD(2,:)~=0) && (wLPSD(3,:)~=0) && (wLPSD(4,:)~=0);
 elseif windowLength>=500
     %Classification method #2 (w/ STFT):
     %TODO:
@@ -140,9 +140,9 @@ end %/windowLength>=250 && windowLength<500
 %         Ch{1}.PSD_Ltop(1) Ch{1}.PSD_Ltop(2) Ch{1}.PSD_MMM Ch{1}.PSD_PkRatio Ch{1}.wLPSD]; %10 features
     F = zeros(nCh+1, 10);
     for ch = 1:nCh+1
-        F(ch,:) = [Ch.FFT_Ltop(ch,1) Ch.FFT_Ltop(ch,2) Ch.FFT_MMM(ch,:) Ch.FFT_PkRatio(ch,:) ...
-            Ch.wLFFT(ch,:) Ch.PSD_Ltop(ch,1) Ch.PSD_Ltop(ch,2) Ch.PSD_MMM(ch,:) ...
-            Ch.PSD_PkRatio(ch,:) Ch.wLPSD(ch,:)];
+        F(ch,:) = [FFT_Ltop(ch,1) FFT_Ltop(ch,2) FFT_MMM(ch,:) FFT_PkRatio(ch,:) ...
+            wLFFT(ch,:) PSD_Ltop(ch,1) PSD_Ltop(ch,2) PSD_MMM(ch,:) ...
+            PSD_PkRatio(ch,:) wLPSD(ch,:)];
     end
     Extras = [FFTPeaks1 FFTPeaks2 averageFFTPeak averageFFTPeak2 averagePSDPeak b1 b2];
     F = [F(1,:) F(2,:) F(3,:) F(4,:) Extras];
