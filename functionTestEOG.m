@@ -1,6 +1,6 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-% load('allEOGtD.mat');
+load('allEOGtD.mat');
 % LOAD TEST DATA:
 % load('meog_t1.mat');
 load('mssvep_16.6_3.mat');
@@ -22,12 +22,15 @@ figNum = 2;
 % fH = figure(figNum); 
 % set(fH, 'Position', [100, 100, 1200, 900]);
 cont = [];
+Y = zeros(seconds*winFraction*dataLimit,1);
+F = zeros(seconds*winFraction*dataLimit,53);
+nS = 2;
 for i = 1 : seconds*winFraction*dataLimit
     % TODO: Pass a 5s split window to fullHybridClassifier (similar to what
     % I did with SSVEPGUI).
     start = 1 + winShift*(i-1);
     winEnd = start + winLen-1;
-    fprintf('Current index = [%d to %d]\r\n',start, winEnd);
+%     fprintf('Current index = [%d to %d]\r\n',start, winEnd);
     Window{i,1} = fp1( start : start + winLen-1 ); % set values:
     Window{i,2} = fp2( start : start + winLen-1 );
     Window{i,3} = fpz( start : start + winLen-1 );
@@ -45,8 +48,13 @@ for i = 1 : seconds*winFraction*dataLimit
 %     plot(fpzf),ylim([-2.5E-4 2.5E-4]);
 %     plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
 %     hold off;
-    F(i,:) = featureExtractionSSVEP(c1,c2,c3,Fs);
-%     Y = fullHybridClassifier(Window{i,1}, Window{i,2}, Window{i,3}, Window{i,4}, tX, tY)
+%     F(i,:) = featureExtractionSSVEP(c1,c2,c3,Fs);
+    [Y(i,:),F(i,:)] = fullHybridClassifier(Window{i,1}, Window{i,2}, Window{i,3}, Window{i,4}, tX, tY, Fs);
+    if i>nS
+        V1(((i-nS):i),:) = F(((i-nS):i),1:20);
+        V2(((i-nS):i),:) = F(((i-nS):i),21:40);
+        [A,B,r,U,V] = CCA(V1, V2);
+    end
     if isempty(cont)
         cont = input('Continue? \n');
     end

@@ -1,4 +1,4 @@
-function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG, Fs )
+function [ Y , F ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG, Fs )
 %Full hybrid EOG/EEG classifier
 % Ch1 = Fp1
 % Ch2 = Fp2
@@ -8,8 +8,8 @@ function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG, Fs )
 % tXEOG = Training Data for EOG
 % tYEOG = Classes for EOG
 % 
-% tX    = SSVEP Training Data (not sure if I will include just yet).
-% tY    = SSVEP Training Classes
+% tXSSVEP    = SSVEP Training Data (not sure if I will include just yet).
+% tYSSVEP    = SSVEP Training Classes
 % 
 % The first part of this classifier determines if an emergency stop is
 % requested in the form of a double-blink by the subject:
@@ -33,6 +33,8 @@ fch3f = zeros(size(ch1,2),numFeatures);
 fch4f = zeros(size(ch1,2),numFeatures);
 DB = false;
 SSVEP_PRESENT = false;
+%Temporary:
+F = zeros(1,53);
 if chLen>=250
     for i = 1:size(ch1,2);
         % Filter using optimized EOG filter: 
@@ -75,11 +77,13 @@ if chLen>=250
         ch2f = eegcfilt(ch2);
         ch3f = eegcfilt(ch3);
         % Extract SSVEP Features (Part 1 from individual channels):
-        F = featureExtractionSSVEP(ch1f, ch2f, ch3f, Fs);
+        plotData = false;
+        F = featureExtractionSSVEP(ch1f, ch2f, ch3f, Fs, plotData);
+%         Y = knn(F,tXSSVEP,tYSSVEP,5);
         % Analysis: Use Tree-based classification or CCA-FKNN:
         %%% ^ TODO: use self-programmed decision tree for l = 250;
         %%% ^ Use CCA-FKNN for larger datasets (for l>=500);
-        numFeatures = length(F); 
+%         numFeatures = length(F); 
         % Decisions
         if ~SSVEP_PRESENT %TEMP (obviously)
             Y = 0;

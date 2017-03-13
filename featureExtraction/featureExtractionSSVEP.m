@@ -1,4 +1,4 @@
-function [ F ] = featureExtractionSSVEP( fch1, fch2, fch3, Fs )
+function [ F ] = featureExtractionSSVEP( fch1, fch2, fch3, Fs, plotData )
 % Feature Extraction Function for Tri-channel SSVEP Feature Extraction:
 % ----- INPUTS -----
 % fch1, fch2, fch3: Tri-channel SSVEP Samples of certain window size
@@ -7,6 +7,8 @@ function [ F ] = featureExtractionSSVEP( fch1, fch2, fch3, Fs )
 % Fs - Sampling Rate. 
 % Using 250-sample windows, feature extraction is obtained using FFT and
 % PSD
+
+CLASSES = [10 12 15 16];
 %----FFT----%
 threshFFT = zeros(4,2);
 threshFFT(1,:) = [9.6 10.4];%-% windows around certain target frequencies
@@ -39,7 +41,18 @@ PSD = zeros(4,125);
 PSD_Ltop = zeros(4,2);
 PSD_MMM = zeros(4,1);
 PSD_PkRatio = zeros(4,1);
+averageFFTPeak = 0;
+averageFFTPeak2 = 0;
+averagePSDPeak = 0;
+b1 = false; %0?
+b2 = false;
 % Data is already filtered:
+if plotData
+    fH = figure(1); %-% Figure Handle
+    set(fH, 'Position', [1280, 0, 1280, 920]);
+    xL = [9.0 17.2];
+    fprintf('Important Data:\n');
+end
 %between 250?500dp
 if windowLength>=250 && windowLength<500
     % Preallocate for spd:
@@ -56,17 +69,25 @@ if windowLength>=250 && windowLength<500
                     FFT_MMM(ch,:) = FFT_PKS(1) - FFT_PKS(2);
                     FFT_PkRatio(ch,:) = FFT_PKS(1)/FFT_PKS(2);
                     wLFFT(ch,:) = w;
+                    fprintf('Matching Class?: %d\n',CLASSES(w));
+                    fprintf('Peak Ratio: %1.3f\n',FFT_PkRatio);
                     break;
                 else
                     FFT_MMM(ch,:) = 0;
                     FFT_PkRatio(ch,:) = 0;
                     wLFFT(ch,:) = 0;
+%                     fprintf
                 end
             end
         end
+        if plotData
+            subplot(2,2,1);hold on;
+            plot(f,FFT(ch,:)),xlim(xL);
+            plot(f(FFT_L), FFT_PKS, 'or');
+        end
         % #2 Take PSD Estimate: (Welch method)
         % Prepare static hann window: (may need to change to hann(250))
-        hW = hann(windowLength);
+        hW = hann(250);
         [PSD(ch,:), fPSD] = welch_psd(fchw(ch,:), Fs, hW);%fin-start
         % #2.2 Find Peaks and Max
         [PSD_PKS, PSD_L] = findpeaks(PSD(ch,:),'SortStr','descend');
@@ -85,7 +106,13 @@ if windowLength>=250 && windowLength<500
                 end
             end
         end
+        if plotData
+            subplot(2,2,2);hold on;
+            plot(fPSD,PSD(ch,:)),xlim(xL);
+            plot(fPSD(PSD_L), PSD_PKS, '^r');
+        end
     end
+    
     %Combine data into 'fourth' channel:
     FFT(4,:) = (FFT(1,:)+FFT(2,:)+FFT(3,:));
     [FFT_PKS, FFT_L] = findpeaks(FFT(4,:),'SortStr','descend');
@@ -122,6 +149,14 @@ if windowLength>=250 && windowLength<500
             end
         end
     end
+    if plotData
+        subplot(2,2,3); hold on;
+        plot(f, FFT(4,:)),xlim(xL);
+        plot(f(FFT_L), FFT_PKS, 'o');
+        subplot(2,2,4); hold on;
+        plot(fPSD, PSD(4,:)),xlim(xL);
+        plot(fPSD(PSD_L), PSD_PKS, '^');
+    end
     for chn = 1:nCh+1
         FFTPeaks1(1,chn) = FFT_Ltop(chn,1);
         FFTPeaks2(1,chn) = FFT_Ltop(chn,2);
@@ -137,6 +172,7 @@ if windowLength>=250 && windowLength<500
     b2 = (wLPSD(1)~=0) && (wLPSD(2)~=0) && (wLPSD(3)~=0) && (wLPSD(4)~=0);
 elseif windowLength>=500
     %Classification method #2 (w/ STFT):
+    % Use CCA with longer time periods.
     %TODO:
 else
     error('Not enough data!\n');

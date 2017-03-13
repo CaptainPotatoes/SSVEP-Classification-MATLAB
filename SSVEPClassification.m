@@ -14,6 +14,7 @@ load('mssvep_16.6_3.mat');
 % load('mssvep_t2_16_1.mat');
 
 %--- LOAD CLASS ---%
+CLASS = 16;
 %---
 remove = 0; % Remove final second of data.
 removeFromStart = 0;
@@ -184,7 +185,44 @@ handl = colorbar;
 colormap(jet)
 ylabel(handl, 'Magnitude, dB')
 
-%% Analysis New
+%% Feature Extraction for Classification:
+close all;
+cont = [];
+showGraphs = true;
+signalDetected = false;
+wPlus = 250;        %-% Value by which to increase window length
+winJump = 250;      %-% Data points to skip after each iteration. 
+maxWinL = 1000;     %-% 5s max
+mW = 1:winJump:(ln - maxWinL); 
+ftr=1;
+for i=1:length(mW)
+    cWSize = 250;           %-% Start with a window size of 1s
+    start = mW(i);          %-% Where to start window
+    fin   = mW(i)+cWSize;   %-% Signal ends at start+current Win Length
+    if mod(fin-start,2)==1
+        fin = fin+1;
+    end
+    chw{1} = ch1(start:fin);  %-% temporary window variable
+    chw{2} = ch2(start:fin);
+    chw{3} = ch3(start:fin);
+    for c = 1:3
+        fch(c,:) = eegcfilt(chw{c});
+    end
+    F1(i,:) = featureExtractionSSVEP(fch(1,:), fch(2,:), fch(3,:), Fs, true);
+    
+    if isempty(cont)
+        cont = input('Approve/continue?\n');
+        clf(1);
+    end
+    % Feature selection: 
+    if (cont==1)
+        F(ftr,:) = F1(i,:);
+        ftr = ftr + 1;
+        cont = [];
+    end
+end
+
+%% Analysis *(finished, converted to function).
 close all;
 cont = [];
 showGraphs = true;

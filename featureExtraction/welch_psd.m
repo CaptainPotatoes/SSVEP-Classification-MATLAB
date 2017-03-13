@@ -32,9 +32,10 @@
 % time series on a logarithmic frequency axis"
 % doi:10.1016/j.measurement.2005.10.010
 function [CSM,frequencies] = welch_psd(signals,fs,window)
-if size(signals,2) > size(signals,1)
-    signals = signals.';
-end
+% if size(signals,2) > size(signals,1)
+%     signals = signals.';
+% end
+signals = signals(:);
 window = window(:);
 sensors = size(signals,2);
 windowsize = length(window);
