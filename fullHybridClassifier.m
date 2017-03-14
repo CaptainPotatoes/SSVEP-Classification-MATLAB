@@ -66,6 +66,10 @@ if chLen>=250
         %Y = knn(tsX, tX, tY, 1); %Fine KNN
         %limit size:
         ln = min([length(ch1) length(ch2) length(ch3)]);
+        % Make sure len is even:
+        if mod(ln,2)~=0
+            ln=ln-1;
+        end
         ch1 = ch1(1:ln);
         ch2 = ch2(1:ln);
         ch3 = ch3(1:ln);
@@ -74,7 +78,7 @@ if chLen>=250
         ch2f = eegcfilt(ch2);
         ch3f = eegcfilt(ch3);
         % Extract SSVEP Features (Part 1 from individual channels):
-        F = featureExtractionSSVEP(ch1f, ch2f, ch3f, Fs);
+        F = featureExtractionSSVEP(ch1f, ch2f, ch3f, Fs, false);
         %Different window lengths correspond to different classifiers.
         if chLen<500%numFeats <= 53
             % window length is less than 500 samples
