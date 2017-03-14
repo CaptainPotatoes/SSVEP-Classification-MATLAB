@@ -1,10 +1,12 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
 load('allEOGtD.mat');
+load('tXtY_SSVEP.mat')
 % LOAD TEST DATA:
-% load('meog_t1.mat');
+load('meog_t1.mat');
 % load('mssvep_12.5_1.mat');
-load('mssvep_16.6_3.mat');
+% load('mssvep_t1_10_1');
+% load('mssvep_16.6_3.mat');
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
@@ -50,12 +52,13 @@ for i = 1 : seconds*winFraction*dataLimit
 %     plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
 %     hold off;
 %     F(i,:) = featureExtractionSSVEP(c1,c2,c3,Fs);
-    [Y(i,:),F(i,:)] = fullHybridClassifier(Window{i,1}, Window{i,2}, Window{i,3}, Window{i,4}, tX, tY, Fs);
-    if i>nS
-        V1(((i-nS):i),:) = F(((i-nS):i),1:20);
-        V2(((i-nS):i),:) = F(((i-nS):i),21:40);
-        [A,B,r,U,V] = CCA(V1, V2);
-    end
+    [Y(i,:)] = fullHybridClassifier(Window{i,1}, Window{i,2}, Window{i,3}, ...
+        Window{i,4}, tX, tY, tXSSVEPALL, tYSSVEPALL, Fs);
+%     if i>nS
+%         V1(((i-nS):i),:) = F(((i-nS):i),1:20);
+%         V2(((i-nS):i),:) = F(((i-nS):i),21:40);
+%         [A,B,r,U,V] = CCA(V1, V2);
+%     end
     if isempty(cont)
         cont = input('Continue? \n');
     end

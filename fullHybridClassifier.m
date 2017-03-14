@@ -1,4 +1,4 @@
-function [ Y , F ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG, Fs )
+function [ Y ] = fullHybridClassifier( ch1, ch2, ch3, ch4, tXEOG, tYEOG, tXSSVEP, tYSSVEP, Fs )
 %Full hybrid EOG/EEG classifier
 % Ch1 = Fp1
 % Ch2 = Fp2
@@ -56,13 +56,10 @@ if chLen>=250
     if Y==1
         DB = true;
     end
-end
 % SSVEP CLASSIFICATION: 
 % PRECONDITIONS: EOG must not have been triggered. 
     % starts with 1/2 second analysis and moves up. 
     % Output can be one of the four SSVEP classes [10 12 15 16]
-
-if chLen>=250
     if ~DB
         %If no double blink has been detected in final second of data. 
         % Use a decision tree.
@@ -82,21 +79,22 @@ if chLen>=250
         if chLen<500%numFeats <= 53
             % window length is less than 500 samples
             % Verify # of features:
-            if size(F,1) == 53
-            end
-%             Y = knn(F,tXSSVEP,tYSSVEP,1);
+%             if size(F,1) == 42
+%             end
+            Y = knn(F,tXSSVEP,tYSSVEP,5);
         elseif chLen>=500%numFeats>53
             % Window length is 500 or more samples.
 %             Y = knn(F,tXSSVEPlong,tYSSVEPlong,5);
         end
+        
         % Analysis: Use Tree-based classification or CCA-FKNN:
         %%% ^ TODO: use self-programmed decision tree for l = 250;
         %%% ^ Use CCA-FKNN for larger datasets (for l>=500);
 %         numFeatures = length(F); 
         % Decisions
-        if ~SSVEP_PRESENT %TEMP (obviously)
-            Y = 0;
-        end
+%         if ~SSVEP_PRESENT %TEMP (obviously)
+%             Y = 0;
+%         end
     end
 end
 

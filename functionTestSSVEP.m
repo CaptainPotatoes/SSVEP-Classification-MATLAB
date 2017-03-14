@@ -235,6 +235,7 @@ end
 % use this section to load all the tXSSVEP Data and Combine into a single
 % tXSSVEP and tYSSVEP. 
 clear;close all;clc
+%includes '0' class
 load('tXSSVEP_10v1');
 tX10 = tXSSVEP;
 tY10 = tY;
