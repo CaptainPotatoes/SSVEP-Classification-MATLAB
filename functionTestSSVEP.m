@@ -8,14 +8,15 @@ load('mssvep_10_2.mat');
 % load('mssvep_12.5_1.mat')
 % load('mssvep_t1_baseline');
 % load('mssvep_t2_16_1.mat');
-%-SHOW SPECT:
+% load('meog_t4')
+% -SHOW SPECT:
 showSpect = 0;
 %--- LOAD CLASS ---%
 CLASS = '10';
 VERSION = 'v1';
 %--- START ANALYSIS (PART1) ---%
-remove = 0; % Remove final second of data.
-removeFromStart = 0;
+remove = 500; % Remove final second of data.
+removeFromStart = 250;
 
 Fs = SamplingRate;
 %Import as variables and scale all to one:
@@ -180,20 +181,19 @@ if showSpect == 1
     ylabel(handl, 'Magnitude, dB')
 end
 %% Feature Extraction for Classification:
-close all;
+close all;clc;
 cont = [];
 showGraphs = true;
 signalDetected = false;
 wPlus = 250;        %-% Value by which to increase window length
 winJump = 125;      %-% Data points to skip after each iteration. 
 maxWinL = 250;     %-% 5s max
-mW = 1:winJump:(ln - maxWinL); 
-% mW = 4001:winJump:(ln-maxWinL); %TEMPORARY!!!!
+mW = 1:winJump:(ln - maxWinL);
 ftr=1;
 for i=1:length(mW)
     cWSize = 250;           %-% Start with a window size of 1s
     start = mW(i);          %-% Where to start window
-    fin   = (mW(i)+(cWSize));   %-% Signal ends at start+current Win Length
+    fin   = (mW(i)+(cWSize-1));   %-% Signal ends at start+current Win Length
     fprintf('Current index = [%d to %d]\r\n',start, fin);
     chw{1} = ch1(start:fin);  %-% temporary window variable
     chw{2} = ch2(start:fin);
@@ -234,9 +234,23 @@ end
 %% Training Data Control 
 % use this section to load all the tXSSVEP Data and Combine into a single
 % tXSSVEP and tYSSVEP. 
-
-% tXSSVEPALL = [;];
-% tYSSVEPALL = [;];
+clear;close all;clc
+load('tXSSVEP_10v1');
+tX10 = tXSSVEP;
+tY10 = tY;
+load('tXSSVEP_12v1');
+tX12 = tXSSVEP;
+tY12 = tY; 
+load('tXSSVEP_15v1');
+tX15 = tXSSVEP;
+tY15 = tY; 
+load('tXSSVEP_16v1');
+tX16 = tXSSVEP;
+tY16 = tY; 
+tXSSVEPALL = [tX10;tX12;tX15;tX16];
+tYSSVEPALL = [tY10;tY12;tY15;tY16];
+clearvars -except tXSSVEPALL tYSSVEPALL
+tXtYSSVEP = [tXSSVEPALL tYSSVEPALL];
 %% CCA Test: (using CCA2)
 %{
 close all;clc;clear all;

@@ -84,7 +84,7 @@ if chLen>=250
             % Verify # of features:
             if size(F,1) == 53
             end
-%             Y = knn(F,tXSSVEP,tYSSVEP,5);
+%             Y = knn(F,tXSSVEP,tYSSVEP,1);
         elseif chLen>=500%numFeats>53
             % Window length is 500 or more samples.
 %             Y = knn(F,tXSSVEPlong,tYSSVEPlong,5);
