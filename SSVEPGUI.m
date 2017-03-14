@@ -181,8 +181,10 @@ fp1_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
 fp2_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
 eog3_data_unfilt = zeros(plotWindow*sampleRate_BP,1); 
 eog4_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
-%LOAD tXtY::
-load('allEOGtD.mat');
+%LOAD tXtY:: (NOW EMBEDDED IN CODE AS STATIC VAR)
+% load('allEOGtD.mat');
+% SSVEP Training Data:
+% load('tXtY_SSVEP.mat');
 while get(hObject,'Value') == 1
     pause(0.08)
     for ch = 1:numEnabledBPChannels
@@ -380,7 +382,10 @@ while get(hObject,'Value') == 1
                         Window4(:,i) = eog4_data_unfilt(250*(i-1)+1:250*i);
 
                    end
-                   Y = fullHybridClassifier(Window1, Window2, Window3, Window4, tX, tY, sampleRate_BP)'
+                   Y = fullHybridClassifier(Window1, Window2, Window3, Window4, sampleRate_BP)'
+                   if isequal([0 0 0 0 1], Y)
+                    fprintf('DOUBLE BLINK DETECTED!\n');
+                   end
             end
 
             %% Todo: FFT and plot on axes #3
