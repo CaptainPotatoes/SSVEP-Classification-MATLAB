@@ -380,10 +380,10 @@ while get(hObject,'Value') == 1
                         Window2(:,i) = fp2_data_unfilt(250*(i-1)+1:250*i);
                         Window3(:,i) = eog3_data_unfilt(250*(i-1)+1:250*i);
                         Window4(:,i) = eog4_data_unfilt(250*(i-1)+1:250*i);
-
                    end
-                   Y = fullHybridClassifier(Window1, Window2, Window3, Window4, sampleRate_BP)'
-                   if isequal([0 0 0 0 1], Y)
+                   Y1 = fullHybridClassifier(Window1, Window2, Window3, Window4, sampleRate_BP)'
+                   Y250 = fullHybridClassifier2(Window1, Window2, Window3, Window4, sampleRate_BP)'
+                   if isequal([0 0 0 0 1], Y1)
                     fprintf('DOUBLE BLINK DETECTED!\n');
                    end
             end

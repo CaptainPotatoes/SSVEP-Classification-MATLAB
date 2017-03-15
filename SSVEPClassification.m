@@ -208,7 +208,7 @@ for i=1:length(mW)
     for c = 1:3
         fch(c,:) = eegcfilt(chw{c});
     end
-    F1(i,:) = featureExtractionSSVEP(fch(1,:), fch(2,:), fch(3,:), Fs, true);
+    F1(i,:) = featureExtractionSSVEP2(fch(1,:), fch(2,:), fch(3,:), Fs, true);
     
     if isempty(cont)
         cont = input('Approve/continue?\n');

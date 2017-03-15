@@ -167,6 +167,7 @@ if plotData
 end
 for chn = 1:nCh+1
     FFTPeaks1(1,chn) = FFT_Ltop(chn,1);
+    PSDPeaks1(1,chn) = PSD_Ltop(chn,1);
     FFTPeaks2(1,chn) = FFT_Ltop(chn,2);
 end
 averageFFTPeak = mean([FFT_Ltop(1,1) FFT_Ltop(2,1) ...
@@ -179,15 +180,15 @@ b1 = (wLFFT(1)~=0) && (wLFFT(2)~=0) && ...
 if b1 %if a signal was detected on each FFT
     %check that they are all the same;
     testVect = [ wLFFT(1) wLFFT(1) wLFFT(1) wLFFT(1) ];
-    b3 = isequal([wLFFT(1), wLFFT(2), wLFFT(3), wLFFT(4)], testVect);
+    b2 = isequal([wLFFT(1), wLFFT(2), wLFFT(3), wLFFT(4)], testVect);
 else
-    b3 = false;
+    b2 = false;
 end
 averagePSDPeak = mean([PSD_Ltop(1,1) PSD_Ltop(2,1) ...
     PSD_Ltop(3,1) PSD_Ltop(4,1)]);
 fprintf('Avg PSDL: %1.3f \n',averagePSDPeak);
-b2 = (wLPSD(1)~=0) && (wLPSD(2)~=0) && (wLPSD(3)~=0) && (wLPSD(4)~=0);
-if b2 %if a signal was detected for PSD on all channels:
+b3 = (wLPSD(1)~=0) && (wLPSD(2)~=0) && (wLPSD(3)~=0) && (wLPSD(4)~=0);
+if b3 %if a signal was detected for PSD on all channels:
     %check they are equivalent:
     testVect2 = [ wLPSD(1) wLPSD(1) wLPSD(1) wLPSD(1) ];
     b4 = isequal([wLPSD(1), wLPSD(2), wLPSD(3), wLPSD(4)], testVect2);
@@ -209,14 +210,14 @@ end %/windowLength>=500
     % Also remove FFTPeaks2 and averageFFTPeak2
 %     F_1 = [Ch{1}.FFT_Ltop(1) Ch{1}.FFT_Ltop(2) Ch{1}.FFT_MMM Ch{1}.FFT_PkRatio Ch{1}.wLFFT ...
 %         Ch{1}.PSD_Ltop(1) Ch{1}.PSD_Ltop(2) Ch{1}.PSD_MMM Ch{1}.PSD_PkRatio Ch{1}.wLPSD]; %10 features
-    F0 = zeros(nCh+1, 8);
-    for ch = 1:nCh+1
-        F0(ch,:) = [FFT_Ltop(ch,1) FFT_MMM(ch,:) FFT_PkRatio(ch,:) ...
-            wLFFT(ch,:) PSD_Ltop(ch,1) PSD_MMM(ch,:) ...
-            PSD_PkRatio(ch,:) wLPSD(ch,:)];
-    end
+%     F0 = zeros(nCh+1, 8);
+%     for ch = 1:nCh+1
+%         F0(ch,:) = [FFT_Ltop(ch,1) FFT_MMM(ch,:) FFT_PkRatio(ch,:) ...
+%             wLFFT(ch,:) PSD_Ltop(ch,1) PSD_MMM(ch,:) ...
+%             PSD_PkRatio(ch,:) wLPSD(ch,:)];
+%     end
 %     Extras = [FFTPeaks1 FFTPeaks2 averageFFTPeak averageFFTPeak2 averagePSDPeak b1 b2];
-        Extras = [FFTPeaks1 averageFFTPeak averagePSDPeak b1 b2 b3 b4];
-        F = [F0(1,:) F0(2,:) F0(3,:) F0(4,:) Extras];
+        Extras = [averageFFTPeak averagePSDPeak];
+        F = [wLFFT' b1 b2 FFTPeaks1 FFT_PkRatio' wLPSD' b3 b4 PSDPeaks1 PSD_PkRatio' Extras];
 end %END FUNCTION
 
