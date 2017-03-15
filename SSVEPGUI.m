@@ -185,8 +185,15 @@ eog4_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
 % load('allEOGtD.mat');
 % SSVEP Training Data:
 % load('tXtY_SSVEP.mat');
+ln = 250-1;
+for i = 1:numEnabledBPChannels
+    cIdx{i} = 1;
+end
+Y = cell(5,1);
+OUTPUT = cell(1,1);
+op=1;
 while get(hObject,'Value') == 1
-    pause(0.08)
+    pause(0.05)
     for ch = 1:numEnabledBPChannels
             BioPotentialSignals{ch} = [BioPotentialSignals{ch}; myDevice.BioPotentialSignals.Item(ch-1).GetScaledValueArray.double'];
             Idx{ch} = 1:length(BioPotentialSignals{ch});            
@@ -375,17 +382,63 @@ while get(hObject,'Value') == 1
 %                 CLASSIFY EOG DATA:
                    %take each ch unfilt (5s) & cut into 5 pieces, & pass
                    %thru fullHybridClassifier: Put in columns:
-                   for i=1:plotWindow
-                        Window1(:,i) = fp1_data_unfilt(250*(i-1)+1:250*i);
-                        Window2(:,i) = fp2_data_unfilt(250*(i-1)+1:250*i);
-                        Window3(:,i) = eog3_data_unfilt(250*(i-1)+1:250*i);
-                        Window4(:,i) = eog4_data_unfilt(250*(i-1)+1:250*i);
-                   end
-                   Y1 = fullHybridClassifier(Window1, Window2, Window3, Window4, sampleRate_BP)'
-                   Y250 = fullHybridClassifier2(Window1, Window2, Window3, Window4, sampleRate_BP)'
-                   if isequal([0 0 0 0 1], Y1)
-                    fprintf('DOUBLE BLINK DETECTED!\n');
-                   end
+                for i = 1:numEnabledBPChannels
+                    b1(i) = length(BioPotentialSignals{i}) > cIdx{i}+125;
+                end
+                
+                if sum(b1) == numEnabledBPChannels
+                    for i = 1:numEnabledBPChannels
+                        cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx
+                        W{i} = BioPotentialSignals{i}(end-ln:end);
+                    end
+
+                    if ln<499%ln==249
+                        Y{1} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
+                        disp(Y{1})
+                        ln = ln+250;
+                    elseif ln >= 499 && ln <749 %ln==499
+                        Y{2} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
+                        disp(Y{2})
+                        ln = ln+250;
+                    elseif ln>=740 && ln<999%ln == 749
+                        Y{3} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
+                        disp(Y{3})
+                        ln = ln+250;
+                    elseif ln >= 999 && ln <1249
+                        Y{4} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
+                        disp(Y{4})
+                        ln = ln+250;
+                    elseif ln >= 1249
+                        Y{5} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
+                        disp(Y{5})
+                        
+                        if (length(Y{5})==5)
+                            if(Y{5}(2) == Y{5}(3)) && (Y{5}(5) == 1)
+                                OUTPUT{1}(op) = Y{5}(2);
+                                ln=249;
+                            else
+                                OUTPUT{1}(op) = 0;
+                                ln=ln+250;
+                            end
+                        else
+                            OUTPUT{1}(op) = Y{5}(1);
+                            ln = ln+250;
+                        end
+                        fprintf('\n >>>>OUTPUT = %d\n',OUTPUT{1}(op));
+                        op=op+1; 
+                    end
+                    for y = 1:5
+                        if ~isempty(Y{y})
+                            if (Y{y}(1) == 1)
+                                %Double Blink Detected: Reset Command (Stop and
+                                %reset):
+                                Y = cell(5,1); %Reset cell
+                                ln = 249;
+                                fprintf('\n >>>>OUTPUT = DOUBLE BLINK :: RESET COMMAND \n \n');
+                            end
+                        end
+                    end
+                end
             end
 
             %% Todo: FFT and plot on axes #3
@@ -408,6 +461,7 @@ if get(hObject,'Value') == 0
     SamplingRate = sampleRate_BP;
     assignin('base','SamplingRate',SamplingRate);
     %% Change into button function.
+    OP_1 = OUTPUT{1};
     H_Notes = [handles.edit2 handles.edit_ChannelLocations, handles.editImpedanceValues, ...
         handles.editElectrodeType, handles.editStimulusSource, handles.editMiscInfo];
     RecordingNotes = cell(length(H_Notes)+1, 2);
@@ -423,13 +477,14 @@ if get(hObject,'Value') == 0
     RecordingNotes{length(H_Notes)+1,1} = 'Sampling Rate';
     RecordingNotes{length(H_Notes)+1,2} = num2str(SamplingRate);
     assignin('base','RecordingNotes',RecordingNotes);
+    assignin('base','OUTPUT',OP_1);
     %% Auto-save variables
     filename = get(handles.edit2,'String');
     if isempty(filename)
         c=clock;
         filename = ['RawBioRadioData_',num2str(c(2)),'-',num2str(c(3)),'-',num2str(c(1)),'_',num2str(c(4)),'.',num2str(c(5)),',',num2str(c(6)),'.mat'];
     end
-    save(filename,'Trial','SamplingRate','RecordingNotes','trainingData');
+    save(filename,'Trial','SamplingRate','RecordingNotes','trainingData','OUTPUT');
 end
 
 % --- Executes on button press in pushbuttonDoubleBlink.

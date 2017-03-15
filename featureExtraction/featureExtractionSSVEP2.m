@@ -53,9 +53,10 @@ b4 = false;
 % Data is already filtered:
 if plotData
     fH = figure(1); %-% Figure Handle
-    set(fH, 'Position', [1920, 0, 1280, 920]);
+    set(fH, 'Position', [2560, 0, 1280, 920]);
     xL = [9.0 17.2];
     fprintf('Important Data: [l = %d]\n',windowLength);
+    clf(fH)
 end
 %between 250?500dp
 
@@ -172,7 +173,7 @@ for chn = 1:nCh+1
 end
 averageFFTPeak = mean([FFT_Ltop(1,1) FFT_Ltop(2,1) ...
     FFT_Ltop(3,1) FFT_Ltop(4,1)]);
-% fprintf('Avg FFTL: %1.3f \n',averageFFTPeak);
+fprintf('Avg FFTL: %1.3f \n',averageFFTPeak);
 averageFFTPeak2 = mean([FFT_Ltop(1,2) FFT_Ltop(2,2) ...
     FFT_Ltop(3,2) FFT_Ltop(4,2)]);
 b1 = (wLFFT(1)~=0) && (wLFFT(2)~=0) && ...
@@ -196,15 +197,13 @@ else
     b4 = false;
 end
 fprintf('Booleans: [%d %d %d %d] \n',b1,b2,b3,b4);
-
 if windowLength>=500
     %Classification method #2 (w/ STFT):
     % Use CCA with longer time periods.
     %TODO:
-    
-    
 end %/windowLength>=500
-    %% Collect Feature data into 'F'
+    
+%% Collect Feature data into 'F'
     %First separate features by channel: (row vects)
     % first to remove: *FFT_Ltop(2) ... not sure how I will use this
     % Also remove FFTPeaks2 and averageFFTPeak2
@@ -217,7 +216,17 @@ end %/windowLength>=500
 %             PSD_PkRatio(ch,:) wLPSD(ch,:)];
 %     end
 %     Extras = [FFTPeaks1 FFTPeaks2 averageFFTPeak averageFFTPeak2 averagePSDPeak b1 b2];
-        Extras = [averageFFTPeak averagePSDPeak];
-        F = [wLFFT' b1 b2 FFTPeaks1 FFT_PkRatio' wLPSD' b3 b4 PSDPeaks1 PSD_PkRatio' Extras];
+%         Extras = [averageFFTPeak averagePSDPeak];
+%         F = [wLFFT' b1 b2 FFTPeaks1 FFT_PkRatio' wLPSD' b3 b4 PSDPeaks1 PSD_PkRatio' Extras];
+
+%WANT INFO TO PRINT IN ORDER:
+% if windowLength < 500
+    averagePkRatioFFT = mean(FFT_PkRatio);
+    averagePkRatioPSD = mean(PSD_PkRatio);
+    fprintf('Avg FFTPkRatio: %1.3f \n',averagePkRatioFFT);
+    fprintf('Avg PSDPkRatio: %1.3f \n',averagePkRatioPSD);
+    F = [wLFFT' wLPSD' FFT_PkRatio' PSD_PkRatio' averageFFTPeak averagePSDPeak FFTPeaks1 PSDPeaks1 b1 b2 b3 b4 ];
+% elseif windowLength>=500
+% end
 end %END FUNCTION
 
