@@ -1,4 +1,4 @@
-function [ Y, Y2 ] = fullHybridClassifier2( ch1, ch2, ch3, ch4, Fs )
+function [ Y ] = fullHybridClassifier2( ch1, ch2, ch3, ch4, Fs )
 %Full hybrid EOG/EEG classifier
 % Ch1 = Fp1
 % Ch2 = Fp2
@@ -88,7 +88,7 @@ if chLen>=250
             sch1f = eegcfilt(ch1(:,i));
             sch2f = eegcfilt(ch2(:,i));
             sch3f = eegcfilt(ch3(:,i));
-            F(i,:) = featureExtractionSSVEP2(sch1f, sch2f, sch3f, Fs, true);
+            F(i,:) = featureExtractionSSVEP2(sch1f, sch2f, sch3f, Fs, false);
         end
         % Extract SSVEP Features (Part 1 from individual channels):
         

@@ -17,11 +17,11 @@ function [s, f, t] = stft(x, wlen, h, nfft, fs)
 % t - time vector, s
 % s - STFT matrix (only unique points, time across columns, freq across rows)
 
-% represent x as column-vector if it is notx = x(:);
-if size(x, 2) > 1
-    x = x';
-end
-
+% represent x as column-vector if it is not x = x(:);
+% if size(x, 2) > 1
+%     x = x';
+% end
+x=x(:);
 % length of the signal
 xlen = length(x);
 % wlen = 2^nextpow2(fs);

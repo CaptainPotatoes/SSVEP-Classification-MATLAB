@@ -5,19 +5,26 @@ x=x+1;
 if ~rem(x,2)
     % Even length window
     half = x/2;
-    w = calc_window(half,x);
-    w = [w; w(end:-1:1)];
-    w(end) = [];
+%     w = calc_window(half,x);
+    c = (0:half-1)'/(x-1);
+    w = 0.54 - 0.46*cos(2*pi*c);
+    wt = [w; w(end:-1:1)];
+%     w = [w; w(end:-1:1)];
+    w = wt(1:end-1);
 else
     % Odd length window
     half = (x+1)/2;
-    w = calc_window(half,x);
-    w = [w; w(end-1:-1:1)];
-    w(end) = [];
-end
-function w = calc_window(m,x)
-    c = (0:m-1)'/(x-1);
+%     w = calc_window(half,x);
+    c = (0:half-1)'/(x-1);
     w = 0.54 - 0.46*cos(2*pi*c);
+    wt = [w; w(end-1:-1:1)];
+%     w = [w; w(end-1:-1:1)];
+%     w(end) = [];
+    w = wt(1:end-1);
 end
+% function w = calc_window(m,x)
+%     c = (0:m-1)'/(x-1);
+%     w = 0.54 - 0.46*cos(2*pi*c);
+% end
 end
 
