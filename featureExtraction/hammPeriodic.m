@@ -7,11 +7,13 @@ if ~rem(x,2)
     half = x/2;
     w = calc_window(half,x);
     w = [w; w(end:-1:1)];
+    w(end) = [];
 else
     % Odd length window
     half = (x+1)/2;
     w = calc_window(half,x);
     w = [w; w(end-1:-1:1)];
+    w(end) = [];
 end
 function w = calc_window(m,x)
     c = (0:m-1)'/(x-1);

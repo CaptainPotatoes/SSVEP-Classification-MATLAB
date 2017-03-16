@@ -25,7 +25,8 @@ figNum = 2;
 % fH = figure(figNum); 
 % set(fH, 'Position', [100, 100, 1200, 900]);
 cont = [0];
-Y = zeros(seconds*winFraction*dataLimit,1);
+Y = cell(seconds*winFraction*dataLimit,1);
+% Y = zeros(seconds*winFraction*dataLimit,5);
 % F = zeros(seconds*winFraction*dataLimit,53);
 nS = 2;
 for i = 1 : seconds*winFraction*dataLimit
@@ -52,7 +53,7 @@ for i = 1 : seconds*winFraction*dataLimit
 %     plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
 %     hold off;
 %     F(i,:) = featureExtractionSSVEP(c1,c2,c3,Fs);
-    [Y(i,:)] = fullHybridClassifier(Window{i,1}, Window{i,2}, Window{i,3}, ...
+    Y{i} = fullHybridClassifier2(Window{i,1}, Window{i,2}, Window{i,3}, ...
         Window{i,4}, Fs);
 %     if i>nS
 %         V1(((i-nS):i),:) = F(((i-nS):i),1:20);

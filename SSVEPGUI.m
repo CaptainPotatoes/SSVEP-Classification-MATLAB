@@ -394,44 +394,45 @@ while get(hObject,'Value') == 1
 
                     if ln<499%ln==249
                         Y{1} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        disp(Y{1})
+                        fprintf('Y: \n'); disp(Y{1})
                         ln = ln+250;
                     elseif ln >= 499 && ln <749 %ln==499
                         Y{2} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        disp(Y{2})
+                        fprintf('Y: \n'); disp(Y{2})
                         ln = ln+250;
-                    elseif ln>=740 && ln<999%ln == 749
+                    elseif ln>=740 && ln<999 %ln == 749
                         Y{3} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        disp(Y{3})
+                        fprintf('Y: \n'); disp(Y{3})
                         ln = ln+250;
                     elseif ln >= 999 && ln <1249
                         Y{4} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        disp(Y{4})
+                        fprintf('Y: \n'); disp(Y{4})
                         ln = ln+250;
-                    elseif ln >= 1249
+                    elseif ln >= 1249 && ln < 2500
                         Y{5} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        disp(Y{5})
-                        
+                        fprintf('Y: \n'); disp(Y{5})
                         if (length(Y{5})==5)
                             if(Y{5}(2) == Y{5}(3)) && (Y{5}(5) == 1)
                                 OUTPUT{1}(op) = Y{5}(2);
                                 ln=249;
                             else
                                 OUTPUT{1}(op) = 0;
-                                ln=ln+250;
+                                ln=ln+124;
                             end
                         else
                             OUTPUT{1}(op) = Y{5}(1);
-                            ln = ln+250;
+                            ln = ln+124;
                         end
                         fprintf('\n >>>>OUTPUT = %d\n',OUTPUT{1}(op));
                         op=op+1; 
+                    elseif ln >= 2500 % RESET:
+                        Y = cell(5,1);
+                        ln = 249;
+                        fprintf('\n >>>>Timer exceeded, RESETTING\n');
                     end
                     for y = 1:5
                         if ~isempty(Y{y})
-                            if (Y{y}(1) == 1)
-                                %Double Blink Detected: Reset Command (Stop and
-                                %reset):
+                            if (Y{y}(1) == 1)%Double Blink Detected: Reset Command (Stop and reset):
                                 Y = cell(5,1); %Reset cell
                                 ln = 249;
                                 fprintf('\n >>>>OUTPUT = DOUBLE BLINK :: RESET COMMAND \n \n');

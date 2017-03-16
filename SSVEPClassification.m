@@ -428,6 +428,7 @@ for i=1:length(mW)
 end
 %% Part 2: 500 & longer
 %{
+%}
 %-% STFT Variables:
 wlen = 256;         %-% Length of the hamming window
 h = 64;             %-% hop size
@@ -846,5 +847,5 @@ tXtY_1000 = [tXtY_C{7,1} tXtY_C{7,2}];
 
 
 
-%} 
+ 
 %- END

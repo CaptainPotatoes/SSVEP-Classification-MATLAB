@@ -25,7 +25,7 @@ wLPSD = zeros(4,1);
 nCh = 3;
 FFTPeaks1 = zeros(1,nCh+1);
 FFTPeaks2 = zeros(1,nCh+1);
-
+PSDPeaks1 = zeros(1,nCh+1);
 fch1 = fch1(:);
 fch2 = fch2(:);
 fch3 = fch3(:);
@@ -137,7 +137,6 @@ end
 PSD(4,:) = PSD(1,:)+PSD(2,:)+PSD(3,:);
 [PSD_PKS, PSD_L] = findpeaks(PSD(4,:),'SortStr','descend');
 if length(PSD_PKS)>1
-%         PSD_L(4,:) = PSD_L(4,:)(:);
     PSD_Ltop(4,:) = fPSD(PSD_L(1:2));
     for w = 1:4
         if PSD_Ltop(4,1)>=threshPSD(w,1) && PSD_Ltop(4,1)<=threshPSD(w,2)
@@ -162,9 +161,9 @@ if plotData
     subplot(2,2,3); hold on;
     plot(f, FFT(4,:)),xlim(xL);
     plot(f(FFT_L), FFT_PKS, 'o');
-    subplot(2,2,4); hold on;
-    plot(fPSD, PSD(4,:)),xlim(xL);
-    plot(fPSD(PSD_L), PSD_PKS, '^');
+%     subplot(2,2,4); hold on;
+%     plot(fPSD, PSD(4,:)),xlim(xL);
+%     plot(fPSD(PSD_L), PSD_PKS, '^');
 end
 for chn = 1:nCh+1
     FFTPeaks1(1,chn) = FFT_Ltop(chn,1);
@@ -199,34 +198,43 @@ end
 fprintf('Booleans: [%d %d %d %d] \n',b1,b2,b3,b4);
 if windowLength>=500
     %Classification method #2 (w/ STFT):
-    % Use CCA with longer time periods.
+    % Use CCA with longer time periods.(?)
     %TODO:
+    h=64;
+    wlen = 256;
+    nfft = 2048;
+    K = sum(hammPeriodic(wlen))/wlen;
+    [S1, F, T] = stft(fchw(1,:),wlen,h,nfft,Fs);
+    [S2, ~, ~] = stft(fchw(2,:),wlen,h,nfft,Fs);
+    [S3, ~, ~] = stft(fchw(3,:),wlen,h,nfft,Fs);
+    S1L = 20*log10(abs(S1)/wlen/K + 1E-6);
+    S2L = 20*log10(abs(S2)/wlen/K + 1E-6);
+    S3L = 20*log10(abs(S3)/wlen/K + 1E-6);
+    winLim = [9 17.6];
+    SC = 20*log10(abs(S1(F<winLim(2) & F>winLim(1),:))/wlen/K + 1E-6)+ ...
+        20*log10(abs(S2(F<winLim(2) & F>winLim(1),:))/wlen/K + 1E-6)+ ...
+        20*log10(abs(S3(F<winLim(2) & F>winLim(1),:))/wlen/K + 1E-6);
+    SummedRows = scaleAbs(sum(SC,2));
+    F2 = F(F<winLim(2) & F>winLim(1));
+    [M, I] = max(SummedRows);
+    if plotData
+    subplot(2,2,4);hold on;
+    plot(F2, SummedRows);
+    plot(F2(I), M, 'or');
+    end
+    %TODO: ADD TO FEATURES AND USE IN FINAL DECISION!
 end %/windowLength>=500
     
 %% Collect Feature data into 'F'
     %First separate features by channel: (row vects)
     % first to remove: *FFT_Ltop(2) ... not sure how I will use this
     % Also remove FFTPeaks2 and averageFFTPeak2
-%     F_1 = [Ch{1}.FFT_Ltop(1) Ch{1}.FFT_Ltop(2) Ch{1}.FFT_MMM Ch{1}.FFT_PkRatio Ch{1}.wLFFT ...
-%         Ch{1}.PSD_Ltop(1) Ch{1}.PSD_Ltop(2) Ch{1}.PSD_MMM Ch{1}.PSD_PkRatio Ch{1}.wLPSD]; %10 features
-%     F0 = zeros(nCh+1, 8);
-%     for ch = 1:nCh+1
-%         F0(ch,:) = [FFT_Ltop(ch,1) FFT_MMM(ch,:) FFT_PkRatio(ch,:) ...
-%             wLFFT(ch,:) PSD_Ltop(ch,1) PSD_MMM(ch,:) ...
-%             PSD_PkRatio(ch,:) wLPSD(ch,:)];
-%     end
-%     Extras = [FFTPeaks1 FFTPeaks2 averageFFTPeak averageFFTPeak2 averagePSDPeak b1 b2];
-%         Extras = [averageFFTPeak averagePSDPeak];
-%         F = [wLFFT' b1 b2 FFTPeaks1 FFT_PkRatio' wLPSD' b3 b4 PSDPeaks1 PSD_PkRatio' Extras];
-
 %WANT INFO TO PRINT IN ORDER:
-% if windowLength < 500
     averagePkRatioFFT = mean(FFT_PkRatio);
     averagePkRatioPSD = mean(PSD_PkRatio);
     fprintf('Avg FFTPkRatio: %1.3f \n',averagePkRatioFFT);
     fprintf('Avg PSDPkRatio: %1.3f \n',averagePkRatioPSD);
     F = [wLFFT' wLPSD' FFT_PkRatio' PSD_PkRatio' averageFFTPeak averagePSDPeak FFTPeaks1 PSDPeaks1 b1 b2 b3 b4 ];
-% elseif windowLength>=500
-% end
+
 end %END FUNCTION
 
