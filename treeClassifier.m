@@ -16,6 +16,11 @@ if length(F)==30 %short classifier
     averagePSDL = F(18);
     FFTPeaks1 = F(19:22);
     PSDPeaks1 = F(23:26);
+    
+    if chLen >= 500
+        % Extra features, else keep empty
+    end
+    
     b = F(27:30);
     if sum(b(1:2)) == 2 %FFTs match
         for i = 1:4

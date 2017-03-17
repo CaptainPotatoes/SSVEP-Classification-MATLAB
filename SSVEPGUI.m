@@ -78,15 +78,13 @@ function togglebutton1_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 global myDevice;
 global deviceName;
-global which_pc;
 count = 0;
 
 if get(hObject,'Value') && count == 0
-which_pc = input('WHICH PC? : 1=home, 0=work \n');
 % load the BioRadio API using a MATLAB's .NET interface
-if which_pc ==0
+if isequal(getenv('computername'),'EGR-YEO-12')
     [ deviceManager , flag ] = load_API('C:\Users\mahmoodms\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\BioRadioSDK.dll');
-elseif which_pc ==1
+elseif isequal(getenv('computername'),'MusaMahmood-PC')
     [ deviceManager , flag ] = load_API('C:\Users\Musa Mahmood\Dropbox\Public\_VCU\Yeo Lab\_SSVEP\_MATLAB-SSVEP-Classification\BioRadioSDK.dll');
 end
 % input = full path to api dll file
@@ -149,7 +147,7 @@ if numEnabledBPChannels == 0
     return
 end
 
-sampleRate_BP = double(myDevice.BioPotentialSignals.SamplesPerSecond);
+Fs = double(myDevice.BioPotentialSignals.SamplesPerSecond);
 %Preallocating and setting up which area in the SSVEPGUI the plot will go into
     % First two are raw data
     % Next two are data analysis features. 
@@ -168,8 +166,8 @@ myDevice.StartAcquisition;
 end
 plotWindow = 5;
 plotGain_BP = 1;
-fft_len = plotWindow*sampleRate_BP;
-% fft_len = 2^(nextpow2(plotWindow*sampleRate_BP)); 
+fft_len = plotWindow*Fs;
+% fft_len = 2^(nextpow2(plotWindow*Fs)); 
 % USE WITH fft(X,fft_len_pow2)
 f0 = [8.75 18.5];
 xl = [5 20];
@@ -177,10 +175,10 @@ N = 5;
 spect_1 = handles.axes5;
 spect_2 = handles.axes6;
 t = cell(numEnabledBPChannels, 1);
-fp1_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
-fp2_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
-eog3_data_unfilt = zeros(plotWindow*sampleRate_BP,1); 
-eog4_data_unfilt = zeros(plotWindow*sampleRate_BP,1);
+fp1_data_unfilt = zeros(plotWindow*Fs,1);
+fp2_data_unfilt = zeros(plotWindow*Fs,1);
+eog3_data_unfilt = zeros(plotWindow*Fs,1); 
+eog4_data_unfilt = zeros(plotWindow*Fs,1);
 %LOAD tXtY:: (NOW EMBEDDED IN CODE AS STATIC VAR)
 % load('allEOGtD.mat');
 % SSVEP Training Data:
@@ -189,84 +187,85 @@ ln = 250-1;
 for i = 1:numEnabledBPChannels
     cIdx{i} = 1;
 end
+YEOG = cell(1,1);
 Y = cell(5,1);
 OUTPUT = cell(1,1);
 op=1;
 while get(hObject,'Value') == 1
     pause(0.05)
     for ch = 1:numEnabledBPChannels
-            BioPotentialSignals{ch} = [BioPotentialSignals{ch}; myDevice.BioPotentialSignals.Item(ch-1).GetScaledValueArray.double'];
-            Idx{ch} = 1:length(BioPotentialSignals{ch});            
-            %Plot the Axes in the SSVEPGUI
-            if length(BioPotentialSignals{ch}) <= plotWindow*sampleRate_BP
-                t{ch} = (0:(length(BioPotentialSignals{ch})-1))*(1/sampleRate_BP);
-                if ch==1 || ch==2
-                    if length(BioPotentialSignals{ch}) >= 31
-                        filteredEEG{ch} = eeg_h_custom(plotGain_BP*BioPotentialSignals{ch}, sampleRate_BP, f0, N);
-                        plot(axis_handles(ch),t{ch},filteredEEG{ch});
-                    end
-                    set(handles.(['axes',num2str(ch)]),'XLim',[0 plotWindow]);
-                    set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
-                    set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
+        BioPotentialSignals{ch} = [BioPotentialSignals{ch}; myDevice.BioPotentialSignals.Item(ch-1).GetScaledValueArray.double'];
+        Idx{ch} = 1:length(BioPotentialSignals{ch});            
+        %Plot the Axes in the SSVEPGUI
+        if length(BioPotentialSignals{ch}) <= plotWindow*Fs
+            t{ch} = (0:(length(BioPotentialSignals{ch})-1))*(1/Fs);
+            if ch==1 || ch==2
+                if length(BioPotentialSignals{ch}) >= 31
+                    filteredEEG{ch} = eeg_h_custom(plotGain_BP*BioPotentialSignals{ch}, Fs, f0, N);
+                    plot(axis_handles(ch),t{ch},filteredEEG{ch});
                 end
-                if ch==1
-                    set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Channel 1 Data')
-                    if length(BioPotentialSignals{ch})>sampleRate_BP
-                        fp1_data_filtered = eeg_h_custom(BioPotentialSignals{ch}, sampleRate_BP, f0, N);
-                        [f, P1] = get_fft_data(fp1_data_filtered, sampleRate_BP);
-                        plot(axis_handles(3),f,P1);
-                        set(handles.(['axes',num2str(3)]),'XLim',xl);
-                        set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
-                        set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
-                        set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
-                    end
-                elseif ch==2
-                    set(get(handles.(['axes',num2str(ch)]),'Title'),'String','Channel 2 Data')
-                    if length(BioPotentialSignals{ch})>sampleRate_BP
-                        fp2_data_filtered = eeg_h_custom(BioPotentialSignals{ch}, sampleRate_BP, f0, N);
-                        [f, P1] = get_fft_data(fp2_data_filtered, sampleRate_BP);
-                        plot(axis_handles(4),f,P1);
-                        set(handles.(['axes',num2str(4)]),'XLim',xl);
-                        set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
-                        set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P1(f)|')
-                        set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
-                    end
-                end
-            else %once plot window is exceeded:
-                if ch==1
-                     t{1} = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
-                     filteredEEG{ch} = eeg_h_custom(plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end), sampleRate_BP, f0, N);
-                     plot(axis_handles(ch),t{1},filteredEEG{ch})
-                     set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Channel 1 Filtered')
-                elseif ch==2
-                     t{2} = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
-                     filteredEEG{ch} = eeg_h_custom(plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end), sampleRate_BP, f0, N);
-                     plot(axis_handles(ch),t{2},filteredEEG{ch})
-                     set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Channel 2 Filtered')
-                elseif ch==3
-                     t{3} = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
-                elseif ch==4
-                     t{4} = ((length(BioPotentialSignals{ch})-(plotWindow*sampleRate_BP-1)):length(BioPotentialSignals{ch}))*(1/sampleRate_BP);
-                end
-                if ch == 1 || ch == 2
-                    set(handles.(['axes',num2str(ch)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
-                    set(handles.(['axes',num2str(ch)]),'YLim',[-2E-4 2E-4]);
-                    set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
-                    set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
-                end
-                if ch==1
-                    % Window and Filter
-                    fp1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    fp1_data_filtered = eeg_h_custom(fp1_data_unfilt, sampleRate_BP, f0, N);
-                    [f, P1] = get_fft_data(fp1_data_filtered, sampleRate_BP);
+                set(handles.(['axes',num2str(ch)]),'XLim',[0 plotWindow]);
+                set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
+                set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
+            end
+            if ch==1
+                set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Channel 1 Data')
+                if length(BioPotentialSignals{ch})>Fs
+                    fp1_data_filtered = eeg_h_custom(BioPotentialSignals{ch}, Fs, f0, N);
+                    [f, P1] = get_fft_data(fp1_data_filtered, Fs);
                     plot(axis_handles(3),f,P1);
                     set(handles.(['axes',num2str(3)]),'XLim',xl);
                     set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
                     set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
                     set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
-                    % Spectrogram (STFT):
-                    if which_pc == 0
-%                         [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
+                end
+            elseif ch==2
+                set(get(handles.(['axes',num2str(ch)]),'Title'),'String','Channel 2 Data')
+                if length(BioPotentialSignals{ch})>Fs
+                    fp2_data_filtered = eeg_h_custom(BioPotentialSignals{ch}, Fs, f0, N);
+                    [f, P1] = get_fft_data(fp2_data_filtered, Fs);
+                    plot(axis_handles(4),f,P1);
+                    set(handles.(['axes',num2str(4)]),'XLim',xl);
+                    set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
+                    set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P1(f)|')
+                    set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
+                end
+            end
+        else %once plot window is exceeded:
+            if ch==1
+                 t{1} = ((length(BioPotentialSignals{ch})-(plotWindow*Fs-1)):length(BioPotentialSignals{ch}))*(1/Fs);
+                 filteredEEG{ch} = eeg_h_custom(plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*Fs+1:end), Fs, f0, N);
+                 plot(axis_handles(ch),t{1},filteredEEG{ch})
+                 set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Channel 1 Filtered')
+            elseif ch==2
+                 t{2} = ((length(BioPotentialSignals{ch})-(plotWindow*Fs-1)):length(BioPotentialSignals{ch}))*(1/Fs);
+                 filteredEEG{ch} = eeg_h_custom(plotGain_BP*BioPotentialSignals{ch}(end-plotWindow*Fs+1:end), Fs, f0, N);
+                 plot(axis_handles(ch),t{2},filteredEEG{ch})
+                 set(get(handles.(['axes',num2str(ch)]), 'Title'), 'String', 'Channel 2 Filtered')
+            elseif ch==3
+                 t{3} = ((length(BioPotentialSignals{ch})-(plotWindow*Fs-1)):length(BioPotentialSignals{ch}))*(1/Fs);
+            elseif ch==4
+                 t{4} = ((length(BioPotentialSignals{ch})-(plotWindow*Fs-1)):length(BioPotentialSignals{ch}))*(1/Fs);
+            end
+            if ch == 1 || ch == 2
+                set(handles.(['axes',num2str(ch)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
+                set(handles.(['axes',num2str(ch)]),'YLim',[-2E-4 2E-4]);
+                set(get(handles.(['axes',num2str(ch)]), 'XLabel'), 'String', 'Time(s)')
+                set(get(handles.(['axes',num2str(ch)]), 'YLabel'), 'String',  'mV')
+            end
+            if ch==1
+                % Window and Filter
+                fp1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*Fs+1:end);
+                fp1_data_filtered = eeg_h_custom(fp1_data_unfilt, Fs, f0, N);
+                [f, P1] = get_fft_data(fp1_data_filtered, Fs);
+                plot(axis_handles(3),f,P1);
+                set(handles.(['axes',num2str(3)]),'XLim',xl);
+                set(get(handles.(['axes',num2str(3)]), 'XLabel'), 'String', 'f (Hz)')
+                set(get(handles.(['axes',num2str(3)]), 'YLabel'), 'String', '|P1(f)|')
+                set(get(handles.(['axes',num2str(3)]), 'Title'), 'String', 'FFT(Fp1)')
+                % Spectrogram (STFT):
+                if which_pc == 0
+%                         [S, Fspect, T, P] = spectrogram(fp1_data_filtered, 5*Fs,4*Fs,10*Fs,Fs);
 %                         imagesc(spect_1, T, Fspect(Fspect<30 & Fspect>1), 10*log10(P(Fspect<30 & Fspect>1,:)));
 %                         set(spect_1,'YDir','normal')
 %                         cb = colorbar(spect_1);
@@ -275,35 +274,35 @@ while get(hObject,'Value') == 1
 %                         set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Time (s)')
 %                         set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Frequency (Hz)')
 %                         set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Spectrogram (Fp1)')
-                    end
-                    % Pwelch
-                    [Pxx, F] = pwelch(fp1_data_filtered,[],[],250);
-                    plot(axis_handles(5), Pxx); 
-                    set(handles.(['axes',num2str(5)]),'XLim',xl);
-                    set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Power (dB)')
-                    set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Pwelch (Fp1)')
-                    %EOG filt:
-%                     eog1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    eog_data_1 = eog_h_fcn(fp1_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(9),t{ch},eog_data_1);
-                    set(handles.(['axes',num2str(9)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
-                    set(handles.(['axes',num2str(9)]),'YLim',[-4E-4 4E-4]);
-                    set(get(handles.(['axes',num2str(9)]), 'XLabel'), 'String', 'Time (s)')
-                    set(get(handles.(['axes',num2str(9)]), 'YLabel'), 'String',  'mV')
-                    set(get(handles.(['axes',num2str(9)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
-                elseif ch==2
-                    fp2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    fp2_data_filtered = eeg_h_custom(fp2_data_unfilt, sampleRate_BP, f0, N);
-                    [f, P1] = get_fft_data(fp2_data_filtered, sampleRate_BP);
-                    plot(axis_handles(4),f,P1);
-                    set(handles.(['axes',num2str(4)]),'XLim',xl);
-                    set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
-                    set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P2(f)|')
-                    set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
-                    % Spect:
-                    if which_pc == 0
-%                         [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*sampleRate_BP,4*sampleRate_BP,10*sampleRate_BP,sampleRate_BP);
+                end
+                % Pwelch
+                [Pxx, F] = pwelch(fp1_data_filtered,[],[],250);
+                plot(axis_handles(5), Pxx); 
+                set(handles.(['axes',num2str(5)]),'XLim',xl);
+                set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Power (dB)')
+                set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Pwelch (Fp1)')
+                %EOG filt:
+%                     eog1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*Fs+1:end);
+                eog_data_1 = eog_h_fcn(fp1_data_unfilt, Fs);
+                plot(axis_handles(9),t{ch},eog_data_1);
+                set(handles.(['axes',num2str(9)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
+                set(handles.(['axes',num2str(9)]),'YLim',[-4E-4 4E-4]);
+                set(get(handles.(['axes',num2str(9)]), 'XLabel'), 'String', 'Time (s)')
+                set(get(handles.(['axes',num2str(9)]), 'YLabel'), 'String',  'mV')
+                set(get(handles.(['axes',num2str(9)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
+            elseif ch==2
+                fp2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*Fs+1:end);
+                fp2_data_filtered = eeg_h_custom(fp2_data_unfilt, Fs, f0, N);
+                [f, P1] = get_fft_data(fp2_data_filtered, Fs);
+                plot(axis_handles(4),f,P1);
+                set(handles.(['axes',num2str(4)]),'XLim',xl);
+                set(get(handles.(['axes',num2str(4)]), 'XLabel'), 'String', 'f (Hz)')
+                set(get(handles.(['axes',num2str(4)]), 'YLabel'), 'String', '|P2(f)|')
+                set(get(handles.(['axes',num2str(4)]), 'Title'), 'String', 'FFT(Fp2)')
+                % Spect:
+                if which_pc == 0
+%                         [S, Fspect, T, P] = spectrogram(fp2_data_filtered, 5*Fs,4*Fs,10*Fs,Fs);
 %                         imagesc(spect_2, T, Fspect(Fspect<30 & Fspect>1), 10*log10(P(Fspect<30 & Fspect>1,:)));
 %                         set(spect_2,'YDir','normal') %gca
 %                         cb2 = colorbar(spect_2);
@@ -312,141 +311,137 @@ while get(hObject,'Value') == 1
 %                         set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Time (s)')
 %                         set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Frequency (Hz)')
 %                         set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Spectrogram (Fp2)')
-                    end
-                    % P welch
-                    [Pxx, F] = pwelch(fp2_data_filtered,[],[],250);
-                    plot(axis_handles(6), Pxx); 
-                    set(handles.(['axes',num2str(6)]),'XLim',xl);
-                    set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Power (dB)')
-                    set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Pwelch (Fp2)')
-                    %EOG Filt
-%                     eog2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    eog_data_1 = eog_h_fcn(fp2_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(10),t{ch},eog_data_1);
-                    set(handles.(['axes',num2str(10)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
-                    set(handles.(['axes',num2str(10)]),'YLim',[-4E-4 4E-4]);
-                    set(get(handles.(['axes',num2str(10)]), 'XLabel'), 'String', 'Time (s)')
-                    set(get(handles.(['axes',num2str(10)]), 'YLabel'), 'String',  'mV')
-                    set(get(handles.(['axes',num2str(10)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
                 end
-                if ch==3
-                    eog3_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    eog_data_1 = eog_h_fcn(eog3_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(7),t{ch},eog_data_1);
-                    set(handles.(['axes',num2str(7)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
-                    set(handles.(['axes',num2str(7)]),'YLim',[-4E-4 4E-4]);
-                    set(get(handles.(['axes',num2str(7)]), 'XLabel'), 'String', 'Time (s)')
-                    set(get(handles.(['axes',num2str(7)]), 'YLabel'), 'String',  'mV')
-                    set(get(handles.(['axes',num2str(7)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
-                    %%FFT CH3:
-                    CH3_data_filtered = eeg_h_custom(eog3_data_unfilt, sampleRate_BP, f0, N);
-                    [f, P1] = get_fft_data(CH3_data_filtered, sampleRate_BP);
-                    plot(axis_handles(11),f,P1);
-                    set(handles.(['axes',num2str(11)]),'XLim',xl);
-                    set(get(handles.(['axes',num2str(11)]), 'XLabel'), 'String', 'f (Hz)')
-                    set(get(handles.(['axes',num2str(11)]), 'YLabel'), 'String', '|P1(f)|')
-                    set(get(handles.(['axes',num2str(11)]), 'Title'), 'String', 'FFT(Ch3, Fpz)')
-                    %PSD CH3:
-                    [Pxx, F] = pwelch(CH3_data_filtered,[],[],250);
-                    plot(axis_handles(12), Pxx); 
-                    set(handles.(['axes',num2str(12)]),'XLim',xl);
-                    set(get(handles.(['axes',num2str(12)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(12)]), 'YLabel'), 'String', 'Power (dB)')
-                    set(get(handles.(['axes',num2str(12)]), 'Title'), 'String', 'Pwelch (Ch3)')
-                elseif ch==4
-                    eog4_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*sampleRate_BP+1:end);
-                    eog_data_2 = eog_h_fcn(eog4_data_unfilt, sampleRate_BP);
-                    plot(axis_handles(8),t{ch},eog_data_2);
-                    set(handles.(['axes',num2str(8)]),'XLim',[t{2}(end)-plotWindow t{2}(end)]);
-                    set(handles.(['axes',num2str(8)]),'YLim',[-4E-4 4E-4]);
-                    set(get(handles.(['axes',num2str(8)]), 'XLabel'), 'String', 'Time (s)')
-                    set(get(handles.(['axes',num2str(8)]), 'YLabel'), 'String',  'mV')
-                    set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
-                    %ffT
-                    CH4_data_filtered = eeg_h_custom(eog4_data_unfilt, sampleRate_BP, f0, N);
-                    [f, P1] = get_fft_data(CH4_data_filtered, sampleRate_BP);
-                    plot(axis_handles(13),f,P1);
-                    set(handles.(['axes',num2str(13)]),'XLim',xl);
-                    set(get(handles.(['axes',num2str(13)]), 'XLabel'), 'String', 'f (Hz)')
-                    set(get(handles.(['axes',num2str(13)]), 'YLabel'), 'String', '|P1(f)|')
-                    set(get(handles.(['axes',num2str(13)]), 'Title'), 'String', 'FFT(Ch4, Fpz)')
-                    %PSD CH4:
-                    [Pxx, F] = pwelch(CH4_data_filtered,[],[],250); 
-                    plot(axis_handles(14), Pxx); 
-                    set(handles.(['axes',num2str(14)]),'XLim',xl);
-                    set(get(handles.(['axes',num2str(14)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                    set(get(handles.(['axes',num2str(14)]), 'YLabel'), 'String', 'Power (dB)')
-                    set(get(handles.(['axes',num2str(14)]), 'Title'), 'String', 'Pwelch (Ch4)')
-                end
+                % P welch
+                [Pxx, F] = pwelch(fp2_data_filtered,[],[],250);
+                plot(axis_handles(6), Pxx); 
+                set(handles.(['axes',num2str(6)]),'XLim',xl);
+                set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Power (dB)')
+                set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Pwelch (Fp2)')
+                %EOG Filt
+%                     eog2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*Fs+1:end);
+                eog_data_1 = eog_h_fcn(fp2_data_unfilt, Fs);
+                plot(axis_handles(10),t{ch},eog_data_1);
+                set(handles.(['axes',num2str(10)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
+                set(handles.(['axes',num2str(10)]),'YLim',[-4E-4 4E-4]);
+                set(get(handles.(['axes',num2str(10)]), 'XLabel'), 'String', 'Time (s)')
+                set(get(handles.(['axes',num2str(10)]), 'YLabel'), 'String',  'mV')
+                set(get(handles.(['axes',num2str(10)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
+            end
+            if ch==3
+                eog3_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*Fs+1:end);
+                eog_data_1 = eog_h_fcn(eog3_data_unfilt, Fs);
+                plot(axis_handles(7),t{ch},eog_data_1);
+                set(handles.(['axes',num2str(7)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
+                set(handles.(['axes',num2str(7)]),'YLim',[-4E-4 4E-4]);
+                set(get(handles.(['axes',num2str(7)]), 'XLabel'), 'String', 'Time (s)')
+                set(get(handles.(['axes',num2str(7)]), 'YLabel'), 'String',  'mV')
+                set(get(handles.(['axes',num2str(7)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
+                %%FFT CH3:
+                CH3_data_filtered = eeg_h_custom(eog3_data_unfilt, Fs, f0, N);
+                [f, P1] = get_fft_data(CH3_data_filtered, Fs);
+                plot(axis_handles(11),f,P1);
+                set(handles.(['axes',num2str(11)]),'XLim',xl);
+                set(get(handles.(['axes',num2str(11)]), 'XLabel'), 'String', 'f (Hz)')
+                set(get(handles.(['axes',num2str(11)]), 'YLabel'), 'String', '|P1(f)|')
+                set(get(handles.(['axes',num2str(11)]), 'Title'), 'String', 'FFT(Ch3, Fpz)')
+                %PSD CH3:
+                [Pxx, F] = pwelch(CH3_data_filtered,[],[],250);
+                plot(axis_handles(12), Pxx); 
+                set(handles.(['axes',num2str(12)]),'XLim',xl);
+                set(get(handles.(['axes',num2str(12)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                set(get(handles.(['axes',num2str(12)]), 'YLabel'), 'String', 'Power (dB)')
+                set(get(handles.(['axes',num2str(12)]), 'Title'), 'String', 'Pwelch (Ch3)')
+            elseif ch==4
+                eog4_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*Fs+1:end);
+                eog_data_2 = eog_h_fcn(eog4_data_unfilt, Fs);
+                plot(axis_handles(8),t{ch},eog_data_2);
+                set(handles.(['axes',num2str(8)]),'XLim',[t{2}(end)-plotWindow t{2}(end)]);
+                set(handles.(['axes',num2str(8)]),'YLim',[-4E-4 4E-4]);
+                set(get(handles.(['axes',num2str(8)]), 'XLabel'), 'String', 'Time (s)')
+                set(get(handles.(['axes',num2str(8)]), 'YLabel'), 'String',  'mV')
+                set(get(handles.(['axes',num2str(8)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
+                %ffT
+                CH4_data_filtered = eeg_h_custom(eog4_data_unfilt, Fs, f0, N);
+                [f, P1] = get_fft_data(CH4_data_filtered, Fs);
+                plot(axis_handles(13),f,P1);
+                set(handles.(['axes',num2str(13)]),'XLim',xl);
+                set(get(handles.(['axes',num2str(13)]), 'XLabel'), 'String', 'f (Hz)')
+                set(get(handles.(['axes',num2str(13)]), 'YLabel'), 'String', '|P1(f)|')
+                set(get(handles.(['axes',num2str(13)]), 'Title'), 'String', 'FFT(Ch4, Fpz)')
+                %PSD CH4:
+                [Pxx, F] = pwelch(CH4_data_filtered,[],[],250); 
+                plot(axis_handles(14), Pxx); 
+                set(handles.(['axes',num2str(14)]),'XLim',xl);
+                set(get(handles.(['axes',num2str(14)]), 'XLabel'), 'String', 'Frequency (Hz)')
+                set(get(handles.(['axes',num2str(14)]), 'YLabel'), 'String', 'Power (dB)')
+                set(get(handles.(['axes',num2str(14)]), 'Title'), 'String', 'Pwelch (Ch4)')
+            end
 %                 CLASSIFY EOG DATA:
-                   %take each ch unfilt (5s) & cut into 5 pieces, & pass
-                   %thru fullHybridClassifier: Put in columns:
-                for i = 1:numEnabledBPChannels
-                    b1(i) = length(BioPotentialSignals{i}) > cIdx{i}+125;
-                end
-                
-                if sum(b1) == numEnabledBPChannels
-                    for i = 1:numEnabledBPChannels
-                        cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx
-                        W{i} = BioPotentialSignals{i}(end-ln:end);
-                    end
+               %take each ch unfilt (5s) & cut into 5 pieces, & pass
+               %thru fullHybridClassifier: Put in columns:
 
-                    if ln<499%ln==249
-                        Y{1} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        fprintf('Y: \n'); disp(Y{1})
-                        ln = ln+250;
-                    elseif ln >= 499 && ln <749 %ln==499
-                        Y{2} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        fprintf('Y: \n'); disp(Y{2})
-                        ln = ln+250;
-                    elseif ln>=740 && ln<999 %ln == 749
-                        Y{3} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        fprintf('Y: \n'); disp(Y{3})
-                        ln = ln+250;
-                    elseif ln >= 999 && ln <1249
-                        Y{4} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        fprintf('Y: \n'); disp(Y{4})
-                        ln = ln+250;
-                    elseif ln >= 1249 && ln < 2500
-                        Y{5} = fullHybridClassifier2(W{1}, W{2}, W{3}, W{4}, sampleRate_BP)';
-                        fprintf('Y: \n'); disp(Y{5})
-                        if (length(Y{5})==5)
-                            if(Y{5}(2) == Y{5}(3)) && (Y{5}(5) == 1)
-                                OUTPUT{1}(op) = Y{5}(2);
-                                ln=249;
-                            else
-                                OUTPUT{1}(op) = 0;
-                                ln=ln+124;
-                            end
+
+            for i = 1:numEnabledBPChannels
+                W_EOG(i,:) = BioPotentialSignals{i}(end-249:end); %last second of data; always
+
+                b1(i) = length(BioPotentialSignals{i}) > cIdx{i}+250; % has 1 second passed?
+
+            end
+            YEOG{1} = fullHybridClassifier(W_EOG(1,:), W_EOG(2,:), W_EOG(3,:), W_EOG(4,:), Fs, true);
+%             EOG_ = Y{1}';
+            %{%}
+            if (YEOG{1}(1) == 1)%Double Blink Detected: Reset Command (Stop and reset):
+                Y = cell(5,1); %Reset cell (ON ANDROID, RESET ARRAYS TO ZERO).
+                ln = 249;
+                fprintf('\n >>>>OUTPUT = DOUBLE BLINK :: RESET COMMAND \n \n');
+            end
+            if sum(b1) == numEnabledBPChannels
+                for i = 1:numEnabledBPChannels
+                    cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx
+                    W{i} = BioPotentialSignals{i}(end-ln:end);
+                end
+                if ln<499%ln==249
+                    Y{1} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
+                    fprintf('Y: \n'); disp(Y{1})
+                    ln = ln+250;
+                elseif ln >= 499 && ln <749 %ln==499
+                    Y{2} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
+                    fprintf('Y: \n'); disp(Y{2})
+                    ln = ln+250;
+                elseif ln>=740 && ln<999 %ln == 749
+                    Y{3} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
+                    fprintf('Y: \n'); disp(Y{3})
+                    ln = ln+250;
+                elseif ln >= 999 && ln <1249
+                    Y{4} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
+                    fprintf('Y: \n'); disp(Y{4})
+                    ln = ln+250;
+                elseif ln >= 1249 && ln < 2500
+                    Y{5} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
+                    fprintf('Y: \n'); disp(Y{5})
+                    if (length(Y{5})==5)
+                        if(Y{5}(2) == Y{5}(3)) && (Y{5}(5) == 1)
+                            OUTPUT{1}(op) = Y{5}(2);
+                            ln=249;
                         else
-                            OUTPUT{1}(op) = Y{5}(1);
-                            ln = ln+124;
+                            OUTPUT{1}(op) = 0;
+                            ln=ln+250;
                         end
-                        fprintf('\n >>>>OUTPUT = %d\n',OUTPUT{1}(op));
-                        op=op+1; 
-                    elseif ln >= 2500 % RESET:
-                        Y = cell(5,1);
-                        ln = 249;
-                        fprintf('\n >>>>Timer exceeded, RESETTING\n');
+                    else
+                        OUTPUT{1}(op) = Y{5}(1);
+                        ln = ln+250;
                     end
-                    for y = 1:5
-                        if ~isempty(Y{y})
-                            if (Y{y}(1) == 1)%Double Blink Detected: Reset Command (Stop and reset):
-                                Y = cell(5,1); %Reset cell
-                                ln = 249;
-                                fprintf('\n >>>>OUTPUT = DOUBLE BLINK :: RESET COMMAND \n \n');
-                            end
-                        end
-                    end
+                    fprintf('\n >>>>OUTPUT = %d\n',OUTPUT{1}(op));
+                    op=op+1; 
+                elseif ln >= 2500 % RESET:
+                    Y = cell(5,1);
+                    ln = 249;
+                    fprintf('\n >>>>Timer exceeded, RESETTING\n');
                 end
             end
-
-            %% Todo: FFT and plot on axes #3
-%             if length(BioPotentialSignals{ch}) > 500
-%             plot(axis_handles(ch+1),lags{ch}(size(BufferFilt{1},2)-1,:)/sampleRate_BP,BPAutocorrelation{ch}(size(BufferFilt{1},2)-1,:))
-%             end
-            
+        end
     end     %/for ch = 1:numEnabledBPChannels
 end     %/while connected==1
 
@@ -459,7 +454,7 @@ if get(hObject,'Value') == 0
     end
     assignin('base','NumberOfChannels',numEnabledBPChannels);
     assignin('base','Trial',Trial)
-    SamplingRate = sampleRate_BP;
+    SamplingRate = Fs;
     assignin('base','SamplingRate',SamplingRate);
     %% Change into button function.
     OP_1 = OUTPUT{1};
