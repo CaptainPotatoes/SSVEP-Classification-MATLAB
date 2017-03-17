@@ -228,19 +228,21 @@ end %/windowLength>=500
     averagePkRatioFFT = mean(FFT_PkRatio);
     averagePkRatioPSD = mean(PSD_PkRatio);
     %% FPRINTFs:
-%     fprintf('Important Data: [l = %d]\n',windowLength);
-%     fprintf('FFT Matching Class %d %d %d %d \n',wLFFT(1),wLFFT(2)...
-%         ,wLFFT(3),wLFFT(4));
-%     fprintf('PSD Matching Class %d %d %d %d \n',wLPSD(1),wLPSD(2)...
-%         ,wLPSD(3),wLPSD(4));
-%     fprintf('FFT Peak Ratio: %1.3f\n',FFT_PkRatio);
-%     fprintf('PSD Peak Ratio: %1.3f\n',PSD_PkRatio);
-%     fprintf('Avg FFTL: %1.3f \n',averageFFTPeak);
-%     fprintf('Avg PSDL: %1.3f \n',averagePSDPeak);
-%     fprintf('Booleans: [%d %d %d %d] \n',b1,b2,b3,b4);
-%     fprintf('Avg FFTPkRatio: %1.3f \n',averagePkRatioFFT);
-%     fprintf('Avg PSDPkRatio: %1.3f \n',averagePkRatioPSD);
-    F = [wLFFT' wLPSD' FFT_PkRatio' PSD_PkRatio' averageFFTPeak averagePSDPeak FFTPeaks1 PSDPeaks1 b1 b2 b3 b4 ];
+if(plotData)
+    fprintf('Important Data: [l = %d]\n',windowLength);
+    fprintf('FFT Matching Class %d %d %d %d \n',wLFFT(1),wLFFT(2)...
+        ,wLFFT(3),wLFFT(4));
+    fprintf('PSD Matching Class %d %d %d %d \n',wLPSD(1),wLPSD(2)...
+        ,wLPSD(3),wLPSD(4));
+    fprintf('FFT Peak Ratio: %1.3f\n',FFT_PkRatio);
+    fprintf('PSD Peak Ratio: %1.3f\n',PSD_PkRatio);
+    fprintf('Avg FFTL: %1.3f \n',averageFFTPeak);
+    fprintf('Avg PSDL: %1.3f \n',averagePSDPeak);
+    fprintf('Booleans: [%d %d %d %d] \n',b1,b2,b3,b4);
+    fprintf('Avg FFTPkRatio: %1.3f \n',averagePkRatioFFT);
+    fprintf('Avg PSDPkRatio: %1.3f \n',averagePkRatioPSD);
+end
+F = [wLFFT' wLPSD' FFT_PkRatio' PSD_PkRatio' averageFFTPeak averagePSDPeak FFTPeaks1 PSDPeaks1 b1 b2 b3 b4 ];
 
 end %END FUNCTION
 

@@ -53,8 +53,8 @@ for i = 1 : seconds*winFraction*dataLimit
 %     plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
 %     hold off;
 %     F(i,:) = featureExtractionSSVEP(c1,c2,c3,Fs);
-    Y{i} = fullHybridClassifier2(Window{i,1}, Window{i,2}, Window{i,3}, ...
-        Window{i,4}, Fs);
+    Y{i} = fullHybridClassifier(Window{i,1}, Window{i,2}, Window{i,3}, ...
+        Window{i,4}, Fs, false); % boolean = EOGOnly
 %     if i>nS
 %         V1(((i-nS):i),:) = F(((i-nS):i),1:20);
 %         V2(((i-nS):i),:) = F(((i-nS):i),21:40);

@@ -201,7 +201,7 @@ for i=1:length(mW)
     for c = 1:3
         fch(c,:) = eegcfilt(chw{c});
     end
-    F(i,:) = featureExtractionSSVEPtemp(fch(1,:), fch(2,:), fch(3,:), Fs, true);
+    F(i,:) = featureExtractionSSVEP(fch(1,:), fch(2,:), fch(3,:), Fs, true);
     
     if isempty(cont)
         commandwindow;
