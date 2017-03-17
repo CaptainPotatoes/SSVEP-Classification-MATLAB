@@ -394,6 +394,9 @@ while get(hObject,'Value') == 1
             %{%}
             if (YEOG{1}(1) == 1)%Double Blink Detected: Reset Command (Stop and reset):
                 Y = cell(5,1); %Reset cell (ON ANDROID, RESET ARRAYS TO ZERO).
+                for i = 1:numEnabledBPChannels
+                    cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx, forced to wait 1s
+                end
                 ln = 249;
                 fprintf('\n >>>>OUTPUT = DOUBLE BLINK :: RESET COMMAND \n \n');
             end
