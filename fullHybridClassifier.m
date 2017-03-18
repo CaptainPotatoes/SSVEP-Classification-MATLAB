@@ -94,9 +94,9 @@ if chLen>=250
         
         %Different window lengths correspond to different classifiers.
         if chLen<500%numFeats <= 53
-            Y = treeClassifier(F, chLen);
+%             Y = treeClassifier(F, chLen);
         elseif chLen>=500 % Window length is 500 or more samples.
-            Y = treeClassifier(F, chLen);
+%             Y = treeClassifier(F, chLen);
         end
     end
 end

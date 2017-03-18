@@ -1,4 +1,4 @@
-function [ F ] = featureExtractionSSVEP( fch1, fch2, fch3, Fs, plotData )
+function [ F ] = fSSVEPnew( fch1, fch2, fch3, Fs, plotData )
 % Feature Extraction Function for Tri-channel SSVEP Feature Extraction:
 % ----- INPUTS -----
 % fch1, fch2, fch3: Tri-channel SSVEP Samples of certain window size
@@ -14,13 +14,26 @@ threshFFT(2,:) = [11.9 12.7];
 threshFFT(3,:) = [14.6 15.5];
 threshFFT(4,:) = [16.2 16.74];
 wLFFT = zeros(4,1);
+    %---FOR >= 500 DP ---%
+threshFFTL = zeros(4,2);
+threshFFTL(1,:) = [9.76  10.14];%-% windows around certain target frequencies
+threshFFTL(2,:) = [12.2  12.57]; 
+threshFFTL(3,:) = [14.76 15.27];
+threshFFTL(4,:) = [16.45 16.80];
+    %Also use wLFFT
 %----PSD----%
 threshPSD = zeros(4,2);
 threshPSD(1,:) = [9.5 10.5];
 threshPSD(2,:) = [12 13]; 
-threshPSD(3,:) = [14.9 15.1];
+threshPSD(3,:) = [14 15.1];
 threshPSD(4,:) = [16 17];
 wLPSD = zeros(4,1);
+    %---FOR >= 500 DP ---%
+threshPSDL = zeros(4,2);
+threshPSDL(1,:) = [9.99 10.01];
+threshPSDL(2,:) = [12.4 12.6]; 
+threshPSDL(3,:) = [14.9 15.22];
+threshPSDL(4,:) = [16 17];
 %----PREALLOCATE----%
 nCh = 3;
 FFTPeaks1 = zeros(1,nCh+1);
@@ -73,6 +86,7 @@ for ch=1:nCh
 % #1 Take FFT:
     [f, FFT(ch,:)] = get_nfft_data(fchw(ch,:), Fs, 2048);
     % #1.1 Find Peaks and M/I
+    %TODO NEW METHOD HERE:
     [FFT_PKS, FFT_L] = findpeaks(FFT(ch,:),'SortStr','descend');
     if length(FFT_PKS)>1
         %Peak max minus min

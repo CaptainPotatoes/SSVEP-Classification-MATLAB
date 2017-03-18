@@ -4,9 +4,11 @@ clear;clc;close all;
 % load('tXtY_SSVEP.mat')
 % LOAD TEST DATA:
 % load('meog_t1.mat');
+% load('mssvep_10_2.mat');
 % load('mssvep_12.5_1.mat');
-% load('mssvep_t1_10_1');
-load('mssvep_16.6_3.mat');
+load('mssvep_15_1.mat');
+% load('mssvep_16.6_2.mat');
+% load('mssvep_t2_16_1');
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
@@ -14,7 +16,7 @@ eyeR = Trial{4}(1:end-250,1);
 Fs = SamplingRate; 
 seconds = 1; %2 second window
 winLen = seconds*Fs; 
-winFraction = 4;%2.5; %1/4 of a second
+winFraction = 2;%2.5; %1/4 of a second
 winShift = floor(Fs/winFraction); 
 dataLimit = floor((length(fp1)-winLen)/winLen);
 start = 1;
