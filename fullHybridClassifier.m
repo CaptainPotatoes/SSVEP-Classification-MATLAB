@@ -88,7 +88,8 @@ if chLen>=250
             sch1f = eegcfilt(ch1(:,i));
             sch2f = eegcfilt(ch2(:,i));
             sch3f = eegcfilt(ch3(:,i));
-            F(i,:) = featureExtractionSSVEP(sch1f, sch2f, sch3f, Fs, true);
+            F(i,:) = featureExtractionSSVEP(sch1f, sch2f, sch3f, Fs, false);
+            F2(i,:) = fSSVEPnew(sch1f, sch2f, sch3f, Fs, true);
         end
         % Extract SSVEP Features (Part 1 from individual channels):
         

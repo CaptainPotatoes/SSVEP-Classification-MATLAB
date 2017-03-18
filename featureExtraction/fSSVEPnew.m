@@ -7,6 +7,8 @@ function [ F ] = fSSVEPnew( fch1, fch2, fch3, Fs, plotData )
 % Fs - Sampling Rate. 
 % Using 250-sample windows, feature extraction is obtained using FFT and
 % PSD
+
+    %%%%% - Thresholds: - %%%%%
 %----FFT----%
 threshFFT = zeros(4,2);
 threshFFT(1,:) = [9.5 10.63];%-% windows around certain target frequencies
@@ -34,6 +36,19 @@ threshPSDL(1,:) = [9.99 10.01];
 threshPSDL(2,:) = [12.4 12.6]; 
 threshPSDL(3,:) = [14.9 15.22];
 threshPSDL(4,:) = [16 17];
+%---STFT---%
+    %---FOR >= 500 DP ---%
+threshSTFT = zeros(4,2);
+threshSTFT(1,:) = [9.60 10.26];
+threshSTFT(2,:) = [12.2 12.71]; 
+threshSTFT(3,:) = [14.75 15.39];
+threshSTFT(4,:) = [16.11 16.98];
+    %---FOR >= 1250 DP ---%
+threshSTFT5 = zeros(4,2);
+threshSTFT5(1,:) = [9.76  10.03];
+threshSTFT5(2,:) = [12.3  12.5]; 
+threshSTFT5(3,:) = [14.85 15.25];
+threshSTFT5(4,:) = [16.33 16.7];
 %----PREALLOCATE----%
 nCh = 3;
 FFTPeaks1 = zeros(1,nCh+1);
@@ -43,18 +58,20 @@ fch1 = fch1(:);
 fch2 = fch2(:);
 fch3 = fch3(:);
 if plotData
-    figure(2);clf(2);
-    hold on;
-    plot(fch1);
-    plot(fch2);
-    plot(fch3);
-    hold off;
+%     figure(2);clf(2);
+%     hold on;
+%     plot(fch1);
+%     plot(fch2);
+%     plot(fch3);
+%     hold off;
 end
 windowLength = length(fch1);
 fchw = zeros(nCh,windowLength);
 fchw(1,1:windowLength) = fch1(1:windowLength);
 fchw(2,1:windowLength) = fch2(1:windowLength);
 fchw(3,1:windowLength) = fch3(1:windowLength);
+% TODO: PREALLOCATE F BASED ON WINDOWLENGTH: (IF NECESSARY):
+
 % all windows should be the same size:
 FFT = zeros(4,1025);
 FFT_Ltop = zeros(4,2);
@@ -71,22 +88,151 @@ b1 = false; %0?
 b2 = false;
 b3 = false;
 b4 = false;
+select = false(4,1025);
 % Data is already filtered:
 if plotData
     fH = figure(1); %-% Figure Handle
     set(fH, 'Position', [2560, 0, 1280, 920]);
     xL = [9.0 17.2];
-    
-%     clf(fH)
+    clf(fH)
 end
 %between 250?500dp
 
-% Preallocate for spd:
+% TODO: FILL IN LATER!!!
+%{%}
+if windowLength < 500
+    for ch=1:nCh
+    [f, FFT(ch,:)] = get_nfft_data(fchw(ch,:), Fs, 2048);
+        if plotData
+            subplot(2,2,1);hold on;
+            plot(f,FFT(ch,:)),xlim(xL);
+        end
+        for i=1:4
+            select(i,:) = f>threshFFT(i,1) & f<threshFFT(i,2);
+            fselect = f(select(i,:));
+            fftselect = FFT(ch,select(i,:));
+            [fftM(ch,i), fftL0(ch,i)] = max(fftselect);
+            fftL(ch,i) = fselect(fftL0(ch,i));
+    %         
+            [fft_sel_P, fft_sel_L] = findpeaks(fftselect,'SortStr','descend');
+            if ~isempty(fft_sel_P)
+                fft_sel_loc(ch,i) = fselect(fft_sel_L); %verifies that maxes are peaks. [peak must occur w/i range]
+                fft_sel_pks(ch,i) = fft_sel_P(1);
+            else
+                fft_sel_loc(ch,i) = 0;
+                fft_sel_pks(ch,i) = 0;
+            end
+    %         
+            if plotData
+                subplot(2,2,1);hold on;
+                plot(fselect, fftselect,'.b');
+                plot(fftL(ch,i), fftM(ch,i), '^c');
+                plot(fft_sel_loc(ch,i),fft_sel_pks(ch,i),'or');
+            end
+        end
+        len = windowLength;
+        hW = hannWin(len);
+        [PSD(ch,:), fPSD] = welch_psd(fchw(ch,:), Fs, hW);%fin-start
+        %TODO FIND PEAKS:
+    end
+    ch = 4;
+    FFT(4,:) = (FFT(1,:)+FFT(2,:)+FFT(3,:));
+    for i=1:4
+    %         select(i,:) = f>threshFFT(i,1) & f<threshFFT(i,2);
+            fselect = f(select(i,:));
+            fftselect = FFT(ch,select(i,:));
+            [fftM(ch,i), fftL0(ch,i)] = max(fftselect);
+            fftL(ch,i) = fselect(fftL0(ch,i));
+    %         
+            [fft_sel_P, fft_sel_L] = findpeaks(fftselect,'SortStr','descend');
+            if ~isempty(fft_sel_P)
+                fft_sel_loc(ch,i) = fselect(fft_sel_L); %verifies that maxes are peaks. [peak must occur w/i range]
+                fft_sel_pks(ch,i) = fft_sel_P(1);
+            else
+                fft_sel_loc(ch,i) = 0;
+                fft_sel_pks(ch,i) = 0;
+            end
+            if plotData
+                subplot(2,2,3); hold on;
+                plot(fft_sel_loc(ch,i),fft_sel_pks(ch,i),'or');
+            end
+    end
+    if plotData
+        subplot(2,2,3); hold on;
+        plot(f, FFT(4,:)),xlim(xL);
+    end
+else %--- Data >=500 dp ---% 
+    for ch=1:nCh
+    [f, FFT(ch,:)] = get_nfft_data(fchw(ch,:), Fs, 2048);
+        if plotData
+            subplot(2,2,1);hold on;
+            plot(f,FFT(ch,:)),xlim(xL);
+        end
+        for i=1:4
+            select(i,:) = f>threshFFTL(i,1) & f<threshFFTL(i,2);
+            fselect = f(select(i,:));
+            fftselect = FFT(ch,select(i,:));
+            [fftM(ch,i), fftL0(ch,i)] = max(fftselect);
+            fftL(ch,i) = fselect(fftL0(ch,i));
+    %         
+            [fft_sel_P, fft_sel_L] = findpeaks(fftselect,'SortStr','descend');
+            if ~isempty(fft_sel_P)
+                fft_sel_loc(ch,i) = fselect(fft_sel_L); %verifies that maxes are peaks. [peak must occur w/i range]
+                fft_sel_pks(ch,i) = fft_sel_P(1);
+            else
+                fft_sel_loc(ch,i) = 0;
+                fft_sel_pks(ch,i) = 0;
+            end
+    %         
+            if plotData
+                subplot(2,2,1);hold on;
+                plot(fselect, fftselect,'.b');
+                plot(fftL(ch,i), fftM(ch,i), '^c');
+                plot(fft_sel_loc(ch,i),fft_sel_pks(ch,i),'or');
+            end
+        end
+        len = windowLength;
+        hW = hannWin(len);
+        [PSD(ch,:), fPSD] = welch_psd(fchw(ch,:), Fs, hW);%fin-start
+        if plotData
+        	subplot(2,2,2);hold on;
+            plot(fPSD,PSD(ch,:)),xlim(xL);
+        end
+        %TODO FIND PEAKS FOR PSD:
+    end
+    ch = 4;
+    FFT(4,:) = (FFT(1,:)+FFT(2,:)+FFT(3,:));
+    for i=1:4
+    %         select(i,:) = f>threshFFT(i,1) & f<threshFFT(i,2);
+            fselect = f(select(i,:));
+            fftselect = FFT(ch,select(i,:));
+            [fftM(ch,i), fftL0(ch,i)] = max(fftselect);
+            fftL(ch,i) = fselect(fftL0(ch,i));
+    %         
+            [fft_sel_P, fft_sel_L] = findpeaks(fftselect,'SortStr','descend');
+            if ~isempty(fft_sel_P)
+                fft_sel_loc(ch,i) = fselect(fft_sel_L); %verifies that maxes are peaks. [peak must occur w/i range]
+                fft_sel_pks(ch,i) = fft_sel_P(1);
+            else
+                fft_sel_loc(ch,i) = 0;
+                fft_sel_pks(ch,i) = 0;
+            end
+            if plotData
+                subplot(2,2,3); hold on;
+                plot(fft_sel_loc(ch,i),fft_sel_pks(ch,i),'or');
+            end
+    end
+    if plotData
+        subplot(2,2,3); hold on;
+        plot(f, FFT(4,:)),xlim(xL);
+    end
+end
+%{
 for ch=1:nCh
 % #1 Take FFT:
-    [f, FFT(ch,:)] = get_nfft_data(fchw(ch,:), Fs, 2048);
     % #1.1 Find Peaks and M/I
     %TODO NEW METHOD HERE:
+ 
     [FFT_PKS, FFT_L] = findpeaks(FFT(ch,:),'SortStr','descend');
     if length(FFT_PKS)>1
         %Peak max minus min
@@ -104,11 +250,7 @@ for ch=1:nCh
             end
         end
     end
-    if plotData
-        subplot(2,2,1);hold on;
-        plot(f,FFT(ch,:)),xlim(xL);
-        plot(f(FFT_L), FFT_PKS, 'or');
-    end
+    
     % #2 Take PSD Estimate: (Welch method)
     % Prepare hanning window:
     len = windowLength;
@@ -137,9 +279,30 @@ for ch=1:nCh
         plot(fPSD(PSD_L), PSD_PKS, '^r');
     end
 end
-
+ch = 4;
 %Combine data into 'fourth' channel:
 FFT(4,:) = (FFT(1,:)+FFT(2,:)+FFT(3,:));
+for i=1:4
+%         select(i,:) = f>threshFFT(i,1) & f<threshFFT(i,2);
+        fselect = f(select(i,:));
+        fftselect = FFT(ch,select(i,:));
+        [fftM(ch,i), fftL0(ch,i)] = max(fftselect);
+        fftL(ch,i) = fselect(fftL0(ch,i));
+%         
+        [fft_sel_P, fft_sel_L] = findpeaks(fftselect,'SortStr','descend');
+        if ~isempty(fft_sel_P)
+            fft_sel_loc(ch,i) = fselect(fft_sel_L); %verifies that maxes are peaks. [peak must occur w/i range]
+            fft_sel_pks(ch,i) = fft_sel_P(1);
+        else
+            fft_sel_loc(ch,i) = 0;
+            fft_sel_pks(ch,i) = 0;
+        end
+        if plotData
+            subplot(2,2,3); hold on;
+            plot(fft_sel_loc(ch,i),fft_sel_pks(ch,i),'or');
+        end
+end
+
 [FFT_PKS, FFT_L] = findpeaks(FFT(4,:),'SortStr','descend');
 if length(FFT_PKS)>1
     FFT_Ltop(4,:) = f(FFT_L(1:2));
@@ -177,7 +340,7 @@ end
 if plotData
     subplot(2,2,3); hold on;
     plot(f, FFT(4,:)),xlim(xL);
-    plot(f(FFT_L), FFT_PKS, 'o');
+%     plot(f(FFT_L), FFT_PKS, 'o');
 %     subplot(2,2,4); hold on;
 %     plot(fPSD, PSD(4,:)),xlim(xL);
 %     plot(fPSD(PSD_L), PSD_PKS, '^');
@@ -241,10 +404,11 @@ if windowLength>=500
     end
     %TODO: ADD TO FEATURES AND USE IN FINAL DECISION!
 end %/windowLength>=500
-    
+%}
+%     NEWFEATURES = ;
 %% Collect Feature data into 'F'
     %First separate features by channel: (row vects)
-    % first to remove: *FFT_Ltop(2) ... not sure how I will use this
+    % first to remsove: *FFT_Ltop(2) ... not sure how I will use this
     % Also remove FFTPeaks2 and averageFFTPeak2
 %WANT INFO TO PRINT IN ORDER:
     averagePkRatioFFT = mean(FFT_PkRatio);
@@ -264,7 +428,7 @@ if(plotData)
     fprintf('Avg FFTPkRatio: %1.3f \n',averagePkRatioFFT);
     fprintf('Avg PSDPkRatio: %1.3f \n',averagePkRatioPSD);
 end
-F = [wLFFT' wLPSD' FFT_PkRatio' PSD_PkRatio' averageFFTPeak averagePSDPeak FFTPeaks1 PSDPeaks1 b1 b2 b3 b4 ];
-
+% F = [wLFFT' wLPSD' FFT_PkRatio' PSD_PkRatio' averageFFTPeak averagePSDPeak FFTPeaks1 PSDPeaks1 b1 b2 b3 b4 ];
+F = [1,2];
 end %END FUNCTION
 

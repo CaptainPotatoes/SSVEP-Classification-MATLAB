@@ -30,12 +30,12 @@ fch1 = fch1(:);
 fch2 = fch2(:);
 fch3 = fch3(:);
 if plotData
-    figure(2);clf(2);
-    hold on;
-    plot(fch1);
-    plot(fch2);
-    plot(fch3);
-    hold off;
+%     figure(2);clf(2);
+%     hold on;
+%     plot(fch1);
+%     plot(fch2);
+%     plot(fch3);
+%     hold off;
 end
 windowLength = length(fch1);
 fchw = zeros(nCh,windowLength);
