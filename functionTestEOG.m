@@ -7,8 +7,8 @@ clear;clc;close all;
 % load('mssvep_10_2.mat');
 % load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
-% load('mssvep_16.6_3.mat');
-load('mssvep_t2_16_2');
+load('mssvep_16.6_3.mat');
+% load('mssvep_t2_16_2');
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
@@ -49,10 +49,10 @@ for i = 1 : seconds*winFraction*dataLimit
     c2 = eegcfilt(Window{i,2});
     c3 = eegcfilt(Window{i,3});
 %     hold on;
-%     plot(fp1f),ylim([-2.5E-4 2.5E-4]);    % Plot filtered Data. 
-%     plot(fp2f),ylim([-2.5E-4 2.5E-4]);
-%     plot(fpzf),ylim([-2.5E-4 2.5E-4]);
-%     plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
+%         plot(fp1f),ylim([-2.5E-4 2.5E-4]);    % Plot filtered Data. 
+%         plot(fp2f),ylim([-2.5E-4 2.5E-4]);
+%         plot(fpzf),ylim([-2.5E-4 2.5E-4]);
+%         plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
 %     hold off;
 %     F(i,:) = featureExtractionSSVEP(c1,c2,c3,Fs);
     Y{i} = fullHybridClassifier(Window{i,1}, Window{i,2}, Window{i,3}, ...

@@ -198,35 +198,6 @@ if b3 %if a signal was detected for PSD on all channels:
 else
     b4 = false;
 end
-
-if windowLength>=500
-    %Classification method #2 (w/ STFT):
-    % Use CCA with longer time periods.(?)
-    %TODO:
-    h=64;
-    wlen = 256;
-    nfft = 2048;
-    K = sum(hammPeriodic(wlen))/wlen;
-    [S1, F, T] = stft(fchw(1,:),wlen,h,nfft,Fs);
-    [S2, ~, ~] = stft(fchw(2,:),wlen,h,nfft,Fs);
-    [S3, ~, ~] = stft(fchw(3,:),wlen,h,nfft,Fs);
-    S1L = 20*log10(abs(S1)/wlen/K + 1E-6);
-    S2L = 20*log10(abs(S2)/wlen/K + 1E-6);
-    S3L = 20*log10(abs(S3)/wlen/K + 1E-6);
-    winLim = [9 17.6];
-    SC = 20*log10(abs(S1(F<winLim(2) & F>winLim(1),:))/wlen/K + 1E-6)+ ...
-        20*log10(abs(S2(F<winLim(2) & F>winLim(1),:))/wlen/K + 1E-6)+ ...
-        20*log10(abs(S3(F<winLim(2) & F>winLim(1),:))/wlen/K + 1E-6);
-    SummedRows = scaleAbs(sum(SC,2));
-    F2 = F(F<winLim(2) & F>winLim(1));
-    [M, I] = max(SummedRows);
-    if plotData
-    subplot(2,2,4);hold on;
-    plot(F2, SummedRows);
-    plot(F2(I), M, 'or');
-    end
-    %TODO: ADD TO FEATURES AND USE IN FINAL DECISION!
-end %/windowLength>=500
     
 %% Collect Feature data into 'F'
     %First separate features by channel: (row vects)

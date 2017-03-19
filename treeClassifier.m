@@ -12,16 +12,12 @@ if length(F)==30 %short classifier
     averagePkRatioFFT = mean(FFT_PkRatio);
     PSD_PkRatio = F(13:16);
     averagePkRatioPSD = mean(PSD_PkRatio);
-    averageFFTL = F(17);
-    averagePSDL = F(18);
-    FFTPeaks1 = F(19:22);
+%     averageFFTL = F(17); %May not be very useful. 
+%     averagePSDL = F(18);
+    FFTPeaks1 = F(19:22); % Locations of major peaks
     PSDPeaks1 = F(23:26);
-    
-    if chLen >= 500
-        % Extra features, else keep empty
-    end
-    
     b = F(27:30);
+    
     if sum(b(1:2)) == 2 %FFTs match
         for i = 1:4
             if isequal(wLFFT, [i i i i])
