@@ -14,25 +14,25 @@ threshFFT = zeros(4,2);
 threshFFT(1,:) = [9.5 10.63];%-% windows around certain target frequencies
 threshFFT(2,:) = [11.9 12.7]; 
 threshFFT(3,:) = [14.6 15.5];
-threshFFT(4,:) = [16.2 16.74];
+threshFFT(4,:) = [16.1 16.8];
     %---FOR >= 500 DP ---%
 threshFFTL = zeros(4,2);
 threshFFTL(1,:) = [9.76  10.14];%-% windows around certain target frequencies
 threshFFTL(2,:) = [12.2  12.6]; 
 threshFFTL(3,:) = [14.76 15.27];
-threshFFTL(4,:) = [16.45 16.80];
+threshFFTL(4,:) = [16.1 16.80];
     %Also use wLFFT
 %----PSD----%
 threshPSD = zeros(4,2);
 threshPSD(1,:) = [9.0 11.0];
 threshPSD(2,:) = [11 13]; 
-threshPSD(3,:) = [14 15.1];
-threshPSD(4,:) = [16 17];
+threshPSD(3,:) = [14 15.5];
+threshPSD(4,:) = [15.5 17.5];
     %---FOR >= 500 DP ---%
 threshPSDL = zeros(4,2);
 threshPSDL(1,:) = [9.79 10.25];
 threshPSDL(2,:) = [12.2 12.8]; 
-threshPSDL(3,:) = [14.75 15.22];
+threshPSDL(3,:) = [14.75 15.5];
 threshPSDL(4,:) = [16 17];
 %---STFT---%
     %---FOR >= 500 DP ---%
@@ -42,11 +42,11 @@ threshSTFT(2,:) = [12.2 12.71];
 threshSTFT(3,:) = [14.75 15.39];
 threshSTFT(4,:) = [16.11 16.98];
     %---FOR >= 1250 DP ---%
-threshSTFT5 = zeros(4,2);
-threshSTFT5(1,:) = [9.76  10.14];
-threshSTFT5(2,:) = [12.3  12.58]; 
-threshSTFT5(3,:) = [14.85 15.25];
-threshSTFT5(4,:) = [16.33 16.87];
+% threshSTFT5 = zeros(4,2);
+% threshSTFT5(1,:) = [9.76  10.14];
+% threshSTFT5(2,:) = [12.3  12.58]; 
+% threshSTFT5(3,:) = [14.85 15.25];
+% threshSTFT5(4,:) = [16.33 16.87];
 %----PREALLOCATE----%
 nCh = 3;
 fch1 = fch1(:);
@@ -215,7 +215,7 @@ else            %---------------- Data >=500 dp -----------------------%
             plot(f,FFT(ch,:)),xlim(xL);
         end
         for i=1:4
-            select(i,:) = f>threshFFTL(i,1) & f<threshFFTL(i,2);
+            select(i,:) = f>threshFFT(i,1) & f<threshFFT(i,2);
             fselect = f(select(i,:));
             fftselect = FFT(ch,select(i,:));
             [fftM(ch,i), fftL0(ch,i)] = max(fftselect);
@@ -245,11 +245,12 @@ else            %---------------- Data >=500 dp -----------------------%
             plot(fPSD,PSD(ch,:)),xlim(xL);
         end
         for i=1:4
-            if len<1000
-                selectPSD(i,:) = fPSD>=threshPSD(i,1) & fPSD<=threshPSD(i,2);
-            else
-                selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
-            end
+%             if len<1000
+%                 selectPSD(i,:) = fPSD>=threshPSD(i,1) & fPSD<=threshPSD(i,2);
+%             else
+%                 selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
+%             end
+            selectPSD(i,:) = fPSD>=threshPSD(i,1) & fPSD<=threshPSD(i,2);
             fPSDselect = fPSD(selectPSD(i,:));
             PSDselect = PSD(ch,selectPSD(i,:));
             if ~isempty(PSDselect)
@@ -310,11 +311,12 @@ else            %---------------- Data >=500 dp -----------------------%
     end
     PSD(4,:) = PSD(1,:)+PSD(2,:)+PSD(3,:);
     for i=1:4
-        if len<1000
-            selectPSD(i,:) = fPSD>=threshPSD(i,1) & fPSD<=threshPSD(i,2);
-        else
-            selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
-        end
+        selectPSD(i,:) = fPSD>=threshPSD(i,1) & fPSD<=threshPSD(i,2);
+%         if len<1000
+%             selectPSD(i,:) = fPSD>=threshPSD(i,1) & fPSD<=threshPSD(i,2);
+%         else
+%             selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
+%         end
         fPSDselect = fPSD(selectPSD(i,:));
         PSDselect = PSD(ch,selectPSD(i,:));
         [PSDM(ch,i), PSDL0(ch,i)] = max(PSDselect);

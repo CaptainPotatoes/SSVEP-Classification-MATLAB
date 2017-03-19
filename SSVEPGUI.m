@@ -421,26 +421,38 @@ while get(hObject,'Value') == 1
                     Y{4} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
                     fprintf('Y: \n'); disp(Y{4})
                     ln = ln+250;
-                elseif ln >= 1249 && ln < 2500
+                elseif ln >= 1249 && ln < 2000
                     Y{5} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
                     fprintf('Y: \n'); disp(Y{5})
-                    if (length(Y{5})==5)
-                        if(Y{5}(4)) && (Y{5}(5) == 1)
-                            OUTPUT{1}(op) = Y{5}(2);
-                            ln=249;
+                    B1 = Y{5}(1) == 1; %6==7
+                    B2 = (Y{5}(4)) && (Y{5}(5) == 1);
+                    if B1 && B2
+                        if Y{5}(6) == Y{5}(2)
+                            %Almost certainly correct:
+                            OUTPUT{1}(op) = Y{5}(6);
+                            ln = 249;
                         else
                             OUTPUT{1}(op) = 0;
-                            ln=ln+250;
+                            ln = ln+250;
                         end
                     else
-                        OUTPUT{1}(op) = Y{5}(1);
-                        ln = ln+250;
+                        if B1
+                            OUTPUT{1}(op) = Y{5}(6);
+                            ln=249;
+                        elseif B2
+                            OUTPUT{1}(op) = Y{5}(2);
+                            ln=249;
+                        end
                     end
-                    if Y(1)
+                    if ~B1 && ~B2
+                        OUTPUT{1}(op) = 0;
+                        ln=ln+250;
+                    end
+                    if Y{5}(1)
                         fprintf('\n >>>>OUTPUT = %d\n',OUTPUT{1}(op));
                     end
                     op=op+1; 
-                elseif ln >= 2500 % RESET:
+                elseif ln >= 2000 % RESET:
                     Y = cell(5,1);
                     ln = 249;
                     fprintf('\n >>>>Timer exceeded, RESETTING\n');

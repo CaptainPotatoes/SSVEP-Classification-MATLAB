@@ -17,7 +17,8 @@ averagePkRatioPSD = mean(PSD_PkRatio);
 FFTPeaks1 = F(19:22); % Locations of major peaks
 PSDPeaks1 = F(23:26);
 b = F(27:30);
-
+A1 = 0;
+A2 = 0;
 if sum(b(1:2)) == 2 %FFTs match
     for i = 1:4
         if isequal(wLFFT, [i i i i])
@@ -51,7 +52,7 @@ fft_sel_loc = zeros(4,4);
 fft_sel_pks = zeros(4,4);
 psd_sel_loc = zeros(4,4);
 psd_sel_pks = zeros(4,4);
-stft_sel_loc = zeros(1,4);
+stft_sel_pks = zeros(1,4);
 stft_sel_loc = zeros(1,4);
 
 %COMPARE PEAKS
@@ -74,13 +75,13 @@ else %numFeatures = 72
     
 end
 %% Analysis F2
-B1 = fft_sel_loc~=0;
+B1 = fft_sel_loc~=0
 sumB1 = sum(B1,2);
-B2 = psd_sel_loc~=0;
+B2 = psd_sel_loc~=0
 sumB2 = sum(B2,2);
-B1_1 = (sumB1 == 4)
-B2_1 = (sumB2 == 4)
-B_Short = B1_1 & B2_1 %IF ROWS IN FFT AND PSD ARE COMPLETE
+B1_1 = (sumB1 == 4);
+B2_1 = (sumB2 == 4);
+B_Short = B1_1 & B2_1; %IF ROWS IN FFT AND PSD ARE COMPLETE
 if sum(B_Short) > 1
     %COMPARE PEAKS (SUM)
 %     PkValuesToCompare = sum(fft_sel_pks(B_Short,:),2);
@@ -89,33 +90,47 @@ if sum(B_Short) > 1
     [~,I1] = max(PkVFFT);
     [~,I2] = max(PkVPSD);
     if(I1 == I2)
-        A1 = CLASS(I1)
+        A1 = CLASS(I1);
     else
         A1 = 0;
     end
+elseif sum(B_Short) == 1
+    A1 = CLASS(B_Short);
 else
-    A1 = CLASS(B_Short)
+    A1 = 0;
 end
 
-if A1 == Y(2) && Y(4) == 1
-    Y(1) = 1;
+if ~isempty(A1)
+    if (A1 == Y(2)) && (Y(4) == 1)
+        Y(1) = 1;
+    end
+else
+    Y(1) = 0;
 end
 
 if numFeatures == 72
     B_L = (B_Short & ((stft_sel_loc')~=0));
-    if sum(B_L~=0)
+    if sum(B_L)==1
         A2 = CLASS(B_L);
     else
         A2 = 0;
     end
-    if A1 == A2 && Y(4)==1 && A1 == Y(2)
+    if isempty(A1) 
+        A1 = 0;
+    end
+    if isempty(A2)
+        A2 = 0;
+    end
+%     if (A1 == A2) && (Y(4)==1) && (A1 == Y(2))
+    if (A1 == A2) && (A1 ~= 0)
         Y(1) = 1;
     else
         Y(1) = 0;
     end
 end
-
-Y = [Y;A1;A2];
+Y(6) = A1;
+Y(7) = A2; 
+% Y = [Y];
 
 end %TreeClassifier Function
 
