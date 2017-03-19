@@ -206,7 +206,7 @@ end
     averagePkRatioFFT = mean(FFT_PkRatio);
     averagePkRatioPSD = mean(PSD_PkRatio);
     %% FPRINTFs:
-if(plotData)
+% if(plotData)
     fprintf('Important Data: [l = %d]\n',windowLength);
     fprintf('FFT Matching Class %d %d %d %d \n',wLFFT(1),wLFFT(2)...
         ,wLFFT(3),wLFFT(4));
@@ -219,7 +219,7 @@ if(plotData)
     fprintf('Booleans: [%d %d %d %d] \n',b1,b2,b3,b4);
     fprintf('Avg FFTPkRatio: %1.3f \n',averagePkRatioFFT);
     fprintf('Avg PSDPkRatio: %1.3f \n',averagePkRatioPSD);
-end
+% end
 F = [wLFFT' wLPSD' FFT_PkRatio' PSD_PkRatio' averageFFTPeak averagePSDPeak FFTPeaks1 PSDPeaks1 b1 b2 b3 b4 ];
 
 end %END FUNCTION

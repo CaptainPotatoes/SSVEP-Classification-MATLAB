@@ -425,7 +425,7 @@ while get(hObject,'Value') == 1
                     Y{5} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
                     fprintf('Y: \n'); disp(Y{5})
                     if (length(Y{5})==5)
-                        if(Y{5}(2) == Y{5}(3)) && (Y{5}(5) == 1)
+                        if(Y{5}(4)) && (Y{5}(5) == 1)
                             OUTPUT{1}(op) = Y{5}(2);
                             ln=249;
                         else
@@ -436,7 +436,9 @@ while get(hObject,'Value') == 1
                         OUTPUT{1}(op) = Y{5}(1);
                         ln = ln+250;
                     end
-                    fprintf('\n >>>>OUTPUT = %d\n',OUTPUT{1}(op));
+                    if Y(1)
+                        fprintf('\n >>>>OUTPUT = %d\n',OUTPUT{1}(op));
+                    end
                     op=op+1; 
                 elseif ln >= 2500 % RESET:
                     Y = cell(5,1);

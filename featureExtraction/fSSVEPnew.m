@@ -24,14 +24,14 @@ threshFFTL(4,:) = [16.45 16.80];
     %Also use wLFFT
 %----PSD----%
 threshPSD = zeros(4,2);
-threshPSD(1,:) = [9.5 10.5];
-threshPSD(2,:) = [12 13]; 
+threshPSD(1,:) = [9.0 11.0];
+threshPSD(2,:) = [11 13]; 
 threshPSD(3,:) = [14 15.1];
 threshPSD(4,:) = [16 17];
     %---FOR >= 500 DP ---%
 threshPSDL = zeros(4,2);
 threshPSDL(1,:) = [9.79 10.25];
-threshPSDL(2,:) = [12.2 12.70]; 
+threshPSDL(2,:) = [12.2 12.8]; 
 threshPSDL(3,:) = [14.75 15.22];
 threshPSDL(4,:) = [16 17];
 %---STFT---%
@@ -245,7 +245,11 @@ else            %---------------- Data >=500 dp -----------------------%
             plot(fPSD,PSD(ch,:)),xlim(xL);
         end
         for i=1:4
-            selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
+            if len<1000
+                selectPSD(i,:) = fPSD>=threshPSD(i,1) & fPSD<=threshPSD(i,2);
+            else
+                selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
+            end
             fPSDselect = fPSD(selectPSD(i,:));
             PSDselect = PSD(ch,selectPSD(i,:));
             if ~isempty(PSDselect)
@@ -306,7 +310,11 @@ else            %---------------- Data >=500 dp -----------------------%
     end
     PSD(4,:) = PSD(1,:)+PSD(2,:)+PSD(3,:);
     for i=1:4
-        selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
+        if len<1000
+            selectPSD(i,:) = fPSD>=threshPSD(i,1) & fPSD<=threshPSD(i,2);
+        else
+            selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
+        end
         fPSDselect = fPSD(selectPSD(i,:));
         PSDselect = PSD(ch,selectPSD(i,:));
         [PSDM(ch,i), PSDL0(ch,i)] = max(PSDselect);
@@ -422,10 +430,22 @@ end
 
 if(plotData)
 %     fprintf('Important Data (p2): [l = %d]\n',windowLength);
-
 end
 %% Analysis & Collection:
+if windowLength < 500 && windowLength >= 250
+    ft_ch = zeros(4,16);
+       %[ LOCATION    , MAGNITUDE
+    for i = 1:4
+        ft_ch(i,:) = [fft_sel_loc(:,i)' psd_sel_loc(:,i)' fft_sel_pks(:,i)' psd_sel_pks(:,i)'];
+    end
+    F = [ft_ch(1,:) ft_ch(2,:) ft_ch(3,:) ft_ch(4,:)]; %[1x64]
+else
+    ft_ch = zeros(4,18);
+    for i = 1:4
+        ft_ch(i,:) = [fft_sel_loc(:,i)' psd_sel_loc(:,i)' fft_sel_pks(:,i)' psd_sel_pks(:,i)' stft_sel_loc(i) stft_sel_pks(i)];
+    end
+    F = [ft_ch(1,:) ft_ch(2,:) ft_ch(3,:) ft_ch(4,:)]; %[1x72]
+end
 
-F = [1,2];
 end %END FUNCTION
 

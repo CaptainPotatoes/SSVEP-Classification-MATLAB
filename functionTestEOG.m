@@ -4,8 +4,8 @@ clear;clc;close all;
 % load('tXtY_SSVEP.mat')
 % LOAD TEST DATA:
 % load('meog_t1.mat');
-load('mssvep_10_2.mat');
-% load('mssvep_12.5_1.mat');
+% load('mssvep_10_2.mat');
+load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
 % load('mssvep_16.6_3.mat');
 % load('mssvep_t2_16_2');
@@ -58,11 +58,6 @@ for i = 1 : seconds*winFraction*dataLimit
     Y{i} = fullHybridClassifier(Window{i,1}, Window{i,2}, Window{i,3}, ...
         Window{i,4}, Fs, false); % boolean = EOGOnly
     OUTPUT = Y{i}'
-%     if i>nS
-%         V1(((i-nS):i),:) = F(((i-nS):i),1:20);
-%         V2(((i-nS):i),:) = F(((i-nS):i),21:40);
-%         [A,B,r,U,V] = CCA(V1, V2);
-%     end
     if isempty(cont)
         commandwindow;
         cont = input('Continue? \n');
