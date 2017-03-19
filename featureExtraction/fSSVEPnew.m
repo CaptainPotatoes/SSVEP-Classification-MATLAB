@@ -18,7 +18,7 @@ threshFFT(4,:) = [16.2 16.74];
     %---FOR >= 500 DP ---%
 threshFFTL = zeros(4,2);
 threshFFTL(1,:) = [9.76  10.14];%-% windows around certain target frequencies
-threshFFTL(2,:) = [12.2  12.57]; 
+threshFFTL(2,:) = [12.2  12.6]; 
 threshFFTL(3,:) = [14.76 15.27];
 threshFFTL(4,:) = [16.45 16.80];
     %Also use wLFFT
@@ -30,9 +30,9 @@ threshPSD(3,:) = [14 15.1];
 threshPSD(4,:) = [16 17];
     %---FOR >= 500 DP ---%
 threshPSDL = zeros(4,2);
-threshPSDL(1,:) = [9.99 10.01];
-threshPSDL(2,:) = [12.4 12.70]; 
-threshPSDL(3,:) = [14.9 15.22];
+threshPSDL(1,:) = [9.79 10.25];
+threshPSDL(2,:) = [12.2 12.70]; 
+threshPSDL(3,:) = [14.75 15.22];
 threshPSDL(4,:) = [16 17];
 %---STFT---%
     %---FOR >= 500 DP ---%
@@ -43,10 +43,10 @@ threshSTFT(3,:) = [14.75 15.39];
 threshSTFT(4,:) = [16.11 16.98];
     %---FOR >= 1250 DP ---%
 threshSTFT5 = zeros(4,2);
-threshSTFT5(1,:) = [9.76  10.03];
-threshSTFT5(2,:) = [12.3  12.5]; 
+threshSTFT5(1,:) = [9.76  10.14];
+threshSTFT5(2,:) = [12.3  12.58]; 
 threshSTFT5(3,:) = [14.85 15.25];
-threshSTFT5(4,:) = [16.33 16.7];
+threshSTFT5(4,:) = [16.33 16.87];
 %----PREALLOCATE----%
 nCh = 3;
 fch1 = fch1(:);
@@ -62,10 +62,23 @@ fchw(3,1:windowLength) = fch3(1:windowLength);
 % all windows should be the same size:
 FFT = zeros(4,1025);
 select = false(4,1025);
-
-wLFFT = zeros(4,1);
-wLPSD = zeros(4,1);
-
+fftM = zeros(4,4);
+fftL0 = zeros(4,4);
+fftL = zeros(4,4);
+fft_sel_loc = zeros(4,4);
+fft_sel_pks = zeros(4,4);
+PSD = zeros(4,windowLength/2);
+selectPSD = false(size(PSD));
+PSDM = zeros(4,4);
+PSDL0 = zeros(4,4);
+PSDL = zeros(4,4);
+psd_sel_loc = zeros(4,4);
+psd_sel_pks = zeros(4,4);
+STFTMax = zeros(4,1);
+STFTL0  = zeros(4,1);
+STFTL   = zeros(4,1);
+stft_sel_loc = zeros(4,1);
+stft_sel_pks = zeros(4,1);
 % Data is already filtered:
 if plotData
     fH = figure(1); %-% Figure Handle
@@ -102,7 +115,7 @@ if windowLength < 500 && windowLength >= 250
             if plotData
                 subplot(2,2,1);hold on;
                 plot(fselect, fftselect,'.b');
-                plot(fftL(ch,i), fftM(ch,i), '^k');
+%                 plot(fftL(ch,i), fftM(ch,i), '^k');
                 plot(fft_sel_loc(ch,i),fft_sel_pks(ch,i),'or');
             end
         end
@@ -119,10 +132,10 @@ if windowLength < 500 && windowLength >= 250
             PSDselect = PSD(ch,selectPSD(i,:));
             [PSDM(ch,i), PSDL0(ch,i)] = max(PSDselect);
             PSDL(ch,i) = fPSDselect(PSDL0(ch,i));
-            if length(PSDselect) > 3
+            if length(PSDselect) >= 3
                 [psd_sel_P, psd_sel_L] = findpeaks(PSDselect,'SortStr','descend');
                 if ~isempty(psd_sel_P)
-                    psd_sel_loc(ch,i) = fPSD(psd_sel_L(1));
+                    psd_sel_loc(ch,i) = fPSDselect(psd_sel_L(1));
                     psd_sel_pks(ch,i) = psd_sel_P(1);
                 else
                     psd_sel_loc(ch,i) = 0;
@@ -135,7 +148,7 @@ if windowLength < 500 && windowLength >= 250
             if plotData
                 subplot(2,2,2);hold on;
                 plot(fPSDselect, PSDselect,'.b');
-                plot(PSDL(ch,i), PSDM(ch,i), '^m');
+%                 plot(PSDL(ch,i), PSDM(ch,i), '^m');
                 plot(psd_sel_loc(ch,i),psd_sel_pks(ch,i),'or');
             end
         end
@@ -173,10 +186,10 @@ if windowLength < 500 && windowLength >= 250
         PSDselect = PSD(ch,selectPSD(i,:));
         [PSDM(ch,i), PSDL0(ch,i)] = max(PSDselect);
         PSDL(ch,i) = fPSDselect(PSDL0(ch,i));
-        if length(PSDselect) > 3
+        if length(PSDselect) >= 3
             [psd_sel_P, psd_sel_L] = findpeaks(PSDselect,'SortStr','descend');
             if ~isempty(psd_sel_P)
-                psd_sel_loc(ch,i) = fPSD(psd_sel_L(1));
+                psd_sel_loc(ch,i) = fPSDselect(psd_sel_L(1));
                 psd_sel_pks(ch,i) = psd_sel_P(1);
             else
                 psd_sel_loc(ch,i) = 0;
@@ -190,11 +203,11 @@ if windowLength < 500 && windowLength >= 250
             subplot(2,2,2);hold on;
             plot(fPSD,PSD(ch,:)),xlim(xL);
             plot(fPSDselect, PSDselect,'.b');
-            plot(PSDL(ch,i), PSDM(ch,i), '^m');
+%             plot(PSDL(ch,i), PSDM(ch,i), '^m');
             plot(psd_sel_loc(ch,i),psd_sel_pks(ch,i),'or');
         end
     end
-else %--- Data >=500 dp ---%
+else            %---------------- Data >=500 dp -----------------------%
     for ch=1:nCh
     [f, FFT(ch,:)] = get_nfft_data(fchw(ch,:), Fs, 2048);
         if plotData
@@ -220,7 +233,7 @@ else %--- Data >=500 dp ---%
             if plotData
                 subplot(2,2,1);hold on;
                 plot(fselect, fftselect,'.b');
-                plot(fftL(ch,i), fftM(ch,i), '^k');
+%                 plot(fftL(ch,i), fftM(ch,i), '^k');
                 plot(fft_sel_loc(ch,i),fft_sel_pks(ch,i),'or');
             end
         end
@@ -243,10 +256,10 @@ else %--- Data >=500 dp ---%
                 PSDL0(ch,i) = 0;
                 PSDL(ch,i) = 0;
             end
-            if length(PSDselect) > 3
+            if length(PSDselect) >= 3
                 [psd_sel_P, psd_sel_L] = findpeaks(PSDselect,'SortStr','descend');
                 if ~isempty(psd_sel_P)
-                    psd_sel_loc(ch,i) = fPSD(psd_sel_L(1));
+                    psd_sel_loc(ch,i) = fPSDselect(psd_sel_L(1));
                     psd_sel_pks(ch,i) = psd_sel_P(1);
                 else
                     psd_sel_loc(ch,i) = 0;
@@ -259,7 +272,7 @@ else %--- Data >=500 dp ---%
             if plotData
                 subplot(2,2,2);hold on;
                 plot(fPSDselect, PSDselect,'.b');
-                plot(PSDL(ch,i), PSDM(ch,i), '^m');
+%                 plot(PSDL(ch,i), PSDM(ch,i), '^m');
                 plot(psd_sel_loc(ch,i),psd_sel_pks(ch,i),'or');
             end
         end
@@ -268,6 +281,7 @@ else %--- Data >=500 dp ---%
     ch = 4;
     FFT(4,:) = (FFT(1,:)+FFT(2,:)+FFT(3,:));
     for i=1:4
+            select(i,:) = f>threshFFTL(i,1) & f<threshFFTL(i,2);
             fselect = f(select(i,:));
             fftselect = FFT(ch,select(i,:));
             [fftM(ch,i), fftL0(ch,i)] = max(fftselect);
@@ -292,15 +306,15 @@ else %--- Data >=500 dp ---%
     end
     PSD(4,:) = PSD(1,:)+PSD(2,:)+PSD(3,:);
     for i=1:4
-%         selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
+        selectPSD(i,:) = fPSD>=threshPSDL(i,1) & fPSD<=threshPSDL(i,2);
         fPSDselect = fPSD(selectPSD(i,:));
         PSDselect = PSD(ch,selectPSD(i,:));
         [PSDM(ch,i), PSDL0(ch,i)] = max(PSDselect);
         PSDL(ch,i) = fPSDselect(PSDL0(ch,i));
-        if length(PSDselect) > 3
+        if length(PSDselect) >= 3
             [psd_sel_P, psd_sel_L] = findpeaks(PSDselect,'SortStr','descend');
             if ~isempty(psd_sel_P)
-                psd_sel_loc(ch,i) = fPSD(psd_sel_L(1));
+                psd_sel_loc(ch,i) = fPSDselect(psd_sel_L(1));
                 psd_sel_pks(ch,i) = psd_sel_P(1);
             else
                 psd_sel_loc(ch,i) = 0;
@@ -313,13 +327,12 @@ else %--- Data >=500 dp ---%
         if plotData
             subplot(2,2,2);hold on;
             plot(fPSD,PSD(ch,:)),xlim(xL);
+%             plot(PSDL(ch,i), PSDM(ch,i), '^m');
             plot(fPSDselect, PSDselect,'.b');
-            plot(PSDL(ch,i), PSDM(ch,i), '^m');
             plot(psd_sel_loc(ch,i),psd_sel_pks(ch,i),'or');
         end
     end
     %Classification method #2 (w/ STFT):
-
     %TODO:
     h=64;
     wlen = 256;
@@ -329,38 +342,90 @@ else %--- Data >=500 dp ---%
     [S1, F, T] = stft(fchw(1,:),wlen,h,nfft,Fs);
     [S2, ~, ~] = stft(fchw(2,:),wlen,h,nfft,Fs);
     [S3, ~, ~] = stft(fchw(3,:),wlen,h,nfft,Fs);
-%     S1L = 20*log10(abs(S1)/wlen/K + 1E-6);
-%     S2L = 20*log10(abs(S2)/wlen/K + 1E-6);
-%     S3L = 20*log10(abs(S3)/wlen/K + 1E-6);
     SC = 20*log10(abs(S1(F<winLim(2) & F>winLim(1),:))/wlen/K + 1E-6)+ ...
         20*log10(abs(S2(F<winLim(2) & F>winLim(1),:))/wlen/K + 1E-6)+ ...
         20*log10(abs(S3(F<winLim(2) & F>winLim(1),:))/wlen/K + 1E-6);
     SummedRows = scaleAbs(sum(SC,2));
     F2 = F(F<winLim(2) & F>winLim(1));
-    [M, I] = max(SummedRows);
-    if plotData
-        subplot(2,2,3)
-        STFTlims = F<winLim(2) & F>winLim(1);
-        imagesc(T,F2,SC),ylim(winLim);
-        set(gca,'YDir','normal')
-        handl = colorbar;
-        colormap(jet);
+    if(plotData)
         subplot(2,2,4);hold on;
         plot(F2, SummedRows);
-        plot(F2(I), M, 'or');
+    end
+    if windowLength < 1250
+        for i=1:4
+            selectSTFT = F2>=threshSTFT(i,1) & F2<=threshSTFT(i,2);
+            FstftSelect = F2(selectSTFT);
+            STFTselect = SummedRows(selectSTFT);
+            [STFTMax(i),STFTL0(i)] = max(STFTselect);
+            STFTL(i) = FstftSelect(STFTL0(i));
+            if length(STFTselect) > 3
+                [stft_sel_P, stft_sel_L] = findpeaks(STFTselect,'SortStr','descend');
+                if ~isempty(stft_sel_P)
+                    stft_sel_loc(i) = FstftSelect(stft_sel_L(1));
+                    stft_sel_pks(i) = stft_sel_P(1);
+                else
+                    stft_sel_loc(i) = 0;
+                    stft_sel_pks(i) = 0;
+                end
+            else
+                stft_sel_loc(i) = 0;
+                stft_sel_pks(i) = 0;
+            end
+            if plotData
+                subplot(2,2,4);hold on;
+                plot(STFTL(i),STFTMax(i),'ok');
+                plot(FstftSelect, STFTselect,'.b');
+                if(stft_sel_loc(i)~=0)
+                    plot(stft_sel_loc(i),stft_sel_pks(i),'or');
+                end
+            end
+        end
+    else %(>=1250).
+        for i=1:4
+            selectSTFT = F2>=threshSTFT(i,1) & F2<=threshSTFT(i,2);
+            FstftSelect = F2(selectSTFT);
+            STFTselect = SummedRows(selectSTFT);
+            [STFTMax(i),STFTL0(i)] = max(STFTselect);
+            STFTL(i) = FstftSelect(STFTL0(i));
+            if length(STFTselect) >= 3
+                [stft_sel_P, stft_sel_L] = findpeaks(STFTselect,'SortStr','descend');
+                if ~isempty(stft_sel_P)
+                    stft_sel_loc(i) = FstftSelect(stft_sel_L(1));
+                    stft_sel_pks(i) = stft_sel_P(1);
+                else
+                    stft_sel_loc(i) = 0;
+                    stft_sel_pks(i) = 0;
+                end
+            else
+                stft_sel_loc(i) = 0;
+                stft_sel_pks(i) = 0;
+            end
+            if plotData
+                subplot(2,2,4);hold on;
+                plot(STFTL(i),STFTMax(i),'ok');
+                plot(FstftSelect, STFTselect,'.b');
+                if(stft_sel_loc(i)~=0)
+                    plot(stft_sel_loc(i),stft_sel_pks(i),'or');
+                end
+            end
+        end
+    end
+
+    if plotData
+        subplot(2,2,3)
+        imagesc(T,F2,SC),ylim(winLim);
+        set(gca,'YDir','normal')
+        colorbar;
+        colormap(jet);
     end
 end
-%     NEWFEATURES = ;
-%% Collect Feature data into 'F'
-    %First separate features by channel: (row vects)
-    % first to remsove: *FFT_Ltop(2) ... not sure how I will use this
-    % Also remove FFTPeaks2 and averageFFTPeak2
-%WANT INFO TO PRINT IN ORDER:
-    %% FPRINTFs:
+
 if(plotData)
 %     fprintf('Important Data (p2): [l = %d]\n',windowLength);
 
 end
+%% Analysis & Collection:
+
 F = [1,2];
 end %END FUNCTION
 

@@ -6,12 +6,12 @@
 clear;close all;clc;
     %Import Data:
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
-load('mssvep_16.6_3.mat');
+% load('mssvep_16.6_3.mat');
 % load('mssvep_15_1.mat');
 % load('mssvep_10_2.mat');
 % load('mssvep_12.5_1.mat')
 % load('mssvep_t1_baseline');
-% load('mssvep_t2_16_1.mat');
+load('mssvep_t2_16_1.mat');
 
 %--- LOAD CLASS ---%
 CLASS = 16;
