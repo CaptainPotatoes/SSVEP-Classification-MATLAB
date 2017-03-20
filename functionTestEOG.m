@@ -7,14 +7,14 @@ clear;clc;close all;
 % load('mssvep_10_2.mat');
 % load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
-load('mssvep_16.6_3.mat');
-% load('mssvep_t2_16_2');
+% load('mssvep_16.6_3.mat');
+load('mssvep_t2_16_2');
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
 eyeR = Trial{4}(1:end-250,1);
 Fs = SamplingRate; 
-seconds = 5; %2 second window
+seconds = 8; %2 second window
 winLen = seconds*Fs; 
 winFraction = 2;%2.5; %1/4 of a second
 winShift = floor(Fs/winFraction); 
@@ -26,7 +26,7 @@ assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1);
 figNum = 2;
 % fH = figure(figNum); 
 % set(fH, 'Position', [100, 100, 1200, 900]);
-cont = [];
+cont = [0];
 Y = cell(seconds*winFraction*dataLimit,1);
 % Y = zeros(seconds*winFraction*dataLimit,5);
 
@@ -62,5 +62,4 @@ for i = 1 : seconds*winFraction*dataLimit
         commandwindow;
         cont = input('Continue? \n');
     end
-%     clf(2);
 end

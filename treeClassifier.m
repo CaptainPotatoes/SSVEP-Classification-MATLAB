@@ -100,8 +100,12 @@ else
     A1 = 0;
 end
 
+if sum(A1)==1
+    A1 = CLASS(A1);
+end
+
 if ~isempty(A1)
-    if (A1 == Y(2)) && (Y(4) == 1)
+    if (A1(1) == Y(2)) && (Y(4) == 1)
         Y(1) = 1;
     end
 else
@@ -122,7 +126,7 @@ if numFeatures == 72
         A2 = 0;
     end
 %     if (A1 == A2) && (Y(4)==1) && (A1 == Y(2))
-    if (A1 == A2) && (A1 ~= 0)
+    if (A1(1) == A2(1)) && (A1(1) ~= 0)
         Y(1) = 1;
     else
         Y(1) = 0;
