@@ -188,9 +188,10 @@ for i = 1:numEnabledBPChannels
     cIdx{i} = 1;
 end
 YEOG = cell(1,1);
-Y = cell(5,1);
 OUTPUT = cell(1,1);
+W = cell(4,1); % # channels = # windows
 op=1;
+wait = 250;
 while get(hObject,'Value') == 1
     pause(0.05)
     for ch = 1:numEnabledBPChannels
@@ -381,23 +382,18 @@ while get(hObject,'Value') == 1
 %                 CLASSIFY EOG DATA:
                %take each ch unfilt (5s) & cut into 5 pieces, & pass
                %thru fullHybridClassifier: Put in columns:
-
-
             for i = 1:numEnabledBPChannels
                 W_EOG(i,:) = BioPotentialSignals{i}(end-249:end); %last second of data; always
-
-                b1(i) = length(BioPotentialSignals{i}) > cIdx{i}+250; % has 1 second passed?
-
+                b1(i) = length(BioPotentialSignals{i}) > cIdx{i}+wait; % has 1 second passed?
             end
             YEOG{1} = fullHybridClassifier(W_EOG(1,:), W_EOG(2,:), W_EOG(3,:), W_EOG(4,:), Fs, true);
-%             EOG_ = Y{1}';
-            %{%}
             if (YEOG{1}(1) == 1)%Double Blink Detected: Reset Command (Stop and reset):
-                Y = cell(5,1); %Reset cell (ON ANDROID, RESET ARRAYS TO ZERO).
+                Y = cell(7,1); %Reset cell (ON ANDROID, RESET ARRAYS TO ZERO).
                 for i = 1:numEnabledBPChannels
                     cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx, forced to wait 1s
                 end
                 ln = 249;
+                wait = 500;
                 fprintf('\n >>>>OUTPUT = DOUBLE BLINK :: RESET COMMAND \n \n');
             end
             if sum(b1) == numEnabledBPChannels
@@ -405,60 +401,61 @@ while get(hObject,'Value') == 1
                     cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx
                     W{i} = BioPotentialSignals{i}(end-ln:end);
                 end
-                if ln<499%ln==249
+                %% TODO: Build new function: Classification Handler that does the below operation, accepting windows
+                % 
+                if ln<500%ln==249
                     Y{1} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
                     fprintf('Y: \n'); disp(Y{1})
                     ln = ln+250;
-                elseif ln >= 499 && ln <749 %ln==499
+                    wait = 250;
+                elseif ln >= 500 && ln < 2000
                     Y{2} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
                     fprintf('Y: \n'); disp(Y{2})
-                    ln = ln+250;
-                elseif ln>=740 && ln<999 %ln == 749
-                    Y{3} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
-                    fprintf('Y: \n'); disp(Y{3})
-                    ln = ln+250;
-                elseif ln >= 999 && ln <1249
-                    Y{4} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
-                    fprintf('Y: \n'); disp(Y{4})
-                    ln = ln+250;
-                elseif ln >= 1249 && ln < 2000
-                    Y{5} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
-                    fprintf('Y: \n'); disp(Y{5})
-                    B1 = Y{5}(1) == 1; %6==7
-                    B2 = (Y{5}(4)) && (Y{5}(5) == 1);
+                    B1 = Y{2}(1) == 1; %6==7
+                    B2 = (Y{2}(4)) && (Y{2}(5) == 1);
                     if B1 && B2
-                        if Y{5}(6) == Y{5}(2)
-                            %Almost certainly correct:
-                            OUTPUT{1}(op) = Y{5}(6);
+                        if Y{2}(6) == Y{2}(2)
+                            %Almost certainly correct: (for any time window
+                            %> 500samples (2s)
+                            OUTPUT{1}(op) = Y{2}(6);        %%% ACCEPT %%% 
                             ln = 249;
                         else
-                            OUTPUT{1}(op) = 0;
+                            OUTPUT{1}(op) = 0;              %%% REJECT %%%
                             ln = ln+250;
                         end
                     else
-                        if B1
-                            OUTPUT{1}(op) = Y{5}(6);
-                            ln=249;
-                        elseif B2
-                            OUTPUT{1}(op) = Y{5}(2);
-                            ln=249;
+                        if ln > 1000 %TODO: NOT SURE ABOUT THIS?!
+                            if B1
+                                OUTPUT{1}(op) = Y{2}(6);    %%% ACCEPT %%%
+                                ln=249;
+                            elseif B2
+                                OUTPUT{1}(op) = Y{2}(2);    %%% ACCEPT %%%
+                                ln=249;
+                            else
+                                OUTPUT{1}(op) = 0;          %%% REJECT %%%
+                                ln=ln+250;
+                            end
+                        else
+                            OUTPUT{1}(op) = 0;              %%% REJECT %%%
+                            ln=ln+250;
                         end
                     end
-                    if ~B1 && ~B2
-                        OUTPUT{1}(op) = 0;
-                        ln=ln+250;
-                    end
-                    if Y{5}(1)
+%                     if ~B1 && ~B2
+%                         OUTPUT{1}(op) = 0;
+%                         ln=ln+250;
+%                     end
+                    if OUTPUT{1}(op) ~= 0
                         fprintf('\n >>>>OUTPUT = %d\n',OUTPUT{1}(op));
                     end
-                    op=op+1; 
+                    op=op+1;
+                    wait = 250;
                 elseif ln >= 2000 % RESET:
-                    Y = cell(5,1);
+                    Y = cell(2,1);
                     ln = 249;
                     fprintf('\n >>>>Timer exceeded, RESETTING\n');
-                end
-            end
-        end
+                end     %/if ln<499
+            end     %/if sum(b1) == numEnabledBPChannels
+        end     %/if length(BioPotentialSignals{ch}) <= plotWindow*Fs
     end     %/for ch = 1:numEnabledBPChannels
 end     %/while connected==1
 
