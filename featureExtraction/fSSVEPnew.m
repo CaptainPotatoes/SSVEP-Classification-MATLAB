@@ -67,7 +67,12 @@ fftL0 = zeros(4,4);
 fftL = zeros(4,4);
 fft_sel_loc = zeros(4,4);
 fft_sel_pks = zeros(4,4);
-PSD = zeros(4,windowLength/2);
+if mod(windowLength,2) == 1;
+    PSD = zeros(4,(windowLength-1)/2);
+else
+    PSD = zeros(4,windowLength/2);
+end
+% PSD = zeros(4,windowLength/2);
 selectPSD = false(size(PSD));
 PSDM = zeros(4,4);
 PSDL0 = zeros(4,4);

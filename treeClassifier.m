@@ -76,9 +76,9 @@ else %numFeatures = 72
 end
 %% Analysis F2
 B1 = fft_sel_loc~=0;
-sumB1 = sum(B1,2)
+sumB1 = sum(B1,2);
 B2 = psd_sel_loc~=0;
-sumB2 = sum(B2,2)
+sumB2 = sum(B2,2);
 B1_1 = (sumB1 == 4);
 B2_1 = (sumB2 == 4);
 B_Short = B1_1 & B2_1; %B1_1 & B2_1; %IF ROWS IN FFT AND PSD ARE COMPLETE
