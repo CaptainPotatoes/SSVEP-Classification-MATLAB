@@ -1,7 +1,8 @@
 %% Shifting Window Method
 clear;clc;close all;
 % load('Trial_DB1');
-load('meog_t4.mat')
+% load('meog_t4.mat')
+load('meog_t3');
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
@@ -93,6 +94,7 @@ for i = 1 : iterations
     [p, l] = findpeaks(fp1f, 'MinPeakHeight',minPeakProm);
     [p1, l1] = findpeaks(fp2f, 'MinPeakHeight',minPeakProm);
     [p2, l2] = findpeaks(fpzf, 'MinPeakHeight',minPeakProm);
+    figure(2)
     hold on;
     plot(fp1f),ylim([-2.5E-4 2.5E-4]); 
     plot(fp2f),ylim([-2.5E-4 2.5E-4]);
@@ -102,8 +104,11 @@ for i = 1 : iterations
     plot(l1,p1,'-*c');
     plot(l2,p2,'-*y');
     hold off;
+    figure(3)
+    plot(eegcfilt(Window{i,1})),ylim([-2.5E-4 2.5E-4]);
     getClass = [];
     while isempty(getClass)
+        commandwindow;
         getClass = input('Enter an integer value!\n');
     end
     tY(i,1) = getClass;

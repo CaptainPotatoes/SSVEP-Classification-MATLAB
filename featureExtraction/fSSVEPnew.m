@@ -86,6 +86,9 @@ stft_sel_loc = zeros(4,1);
 stft_sel_pks = zeros(4,1);
 % Data is already filtered:
 if plotData
+    figure(2);hold on;
+    clf(2);
+    plot(fch1),ylim([-2.5E-4 2.5E-4]);
     fH = figure(1); %-% Figure Handle
     set(fH, 'Position', [2560, 0, 1280, 920]);
     xL = [9.0 17.2];
