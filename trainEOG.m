@@ -110,6 +110,9 @@ for i = 1 : iterations
     while isempty(getClass)
         commandwindow;
         getClass = input('Enter an integer value!\n');
+        if isempty(getClass)
+            getClass = 0; 
+        end
     end
     tY(i,1) = getClass;
     F_fp1(i,:) = featureExtractionEOG( fp1f' );
