@@ -379,13 +379,17 @@ while get(hObject,'Value') == 1
                 set(get(handles.(['axes',num2str(14)]), 'YLabel'), 'String', 'Power (dB)')
                 set(get(handles.(['axes',num2str(14)]), 'Title'), 'String', 'Pwelch (Ch4)')
             end
-%                 CLASSIFY EOG DATA:
+            %% %%%%%% FULL HYBRID CLASSIFIER FUNCTION CALLS: %%%%%% %%
+            %CLASSIFY EOG DATA:
                %take each ch unfilt (5s) & cut into 5 pieces, & pass
                %thru fullHybridClassifier: Put in columns:
+            
             for i = 1:numEnabledBPChannels
                 W_EOG(i,:) = BioPotentialSignals{i}(end-249:end); %last second of data; always
                 b1(i) = length(BioPotentialSignals{i}) > cIdx{i}+wait; % has 1 second passed?
             end
+            YEOG{1} = fHC(W_EOG(1,:), W_EOG(2,:), W_EOG(3,:), W_EOG(4,:), Fs)
+            %{
             YEOG{1} = fullHybridClassifier(W_EOG(1,:), W_EOG(2,:), W_EOG(3,:), W_EOG(4,:), Fs, true);
             if (YEOG{1}(1) == 1)%Double Blink Detected: Reset Command (Stop and reset):
                 Y = cell(7,1); %Reset cell (ON ANDROID, RESET ARRAYS TO ZERO).
@@ -401,8 +405,6 @@ while get(hObject,'Value') == 1
                     cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx
                     W{i} = BioPotentialSignals{i}(end-ln:end);
                 end
-                %% TODO: Build new function: Classification Handler that does the below operation, accepting windows
-                % 
                 if ln<500%ln==249
                     Y{1} = fullHybridClassifier(W{1}, W{2}, W{3}, W{4}, Fs, YEOG{1}(1)==1)';
                     fprintf('Y: \n'); disp(Y{1})
@@ -455,6 +457,8 @@ while get(hObject,'Value') == 1
                     fprintf('\n >>>>Timer exceeded, RESETTING\n');
                 end     %/if ln<499
             end     %/if sum(b1) == numEnabledBPChannels
+            %}
+            %% %%%%%% NEW HYBRID CLASSIFIER FUNCTION CALLS: %%%%%% %%
         end     %/if length(BioPotentialSignals{ch}) <= plotWindow*Fs
     end     %/for ch = 1:numEnabledBPChannels
 end     %/while connected==1

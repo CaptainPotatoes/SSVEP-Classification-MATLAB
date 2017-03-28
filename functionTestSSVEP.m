@@ -10,13 +10,13 @@ load('mssvep_10_2.mat');
 % load('mssvep_t2_16_1.mat');
 % load('meog_t4')
 % -SHOW SPECT:
-showSpect = 0;
+showSpect = 1;
 %--- LOAD CLASS ---%
 CLASS = '10';
 VERSION = 'v1';
 %--- START ANALYSIS (PART1) ---%
-remove = 500; % Remove final second of data.
-removeFromStart = 250;
+remove = 500; % Remove final 2 second of data.
+removeFromStart = 500;
 
 Fs = SamplingRate;
 %Import as variables and scale all to one:
@@ -135,7 +135,7 @@ if showSpect == 1
     nfft = 4096;
     K = sum(hamming(wlen, 'periodic'))/wlen;
         subplot(2,2,1)
-    [s1, f1, t1] = stftOrig( ch1_f, wlen, h, nfft, Fs );
+    [s1, f1, t1] = stft( ch1_f, wlen, h, nfft, Fs );
     s1_1 = 20*log10(abs(s1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
     imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s1_1);
     set(gca,'YDir','normal')
@@ -146,7 +146,7 @@ if showSpect == 1
     colormap(bone)
     ylabel(handl, 'Magnitude, dB')
         subplot(2,2,2)
-    [s2, ~, ~] = stftOrig( ch2_f, wlen, h, nfft, Fs );
+    [s2, ~, ~] = stft( ch2_f, wlen, h, nfft, Fs );
     s2_1 = 20*log10(abs(s2(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
     imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s2_1);
     set(gca,'YDir','normal')
@@ -157,7 +157,7 @@ if showSpect == 1
     colormap(bone)
     ylabel(handl, 'Magnitude, dB')
         subplot(2,2,3)
-    [s3, ~, ~] = stftOrig( ch3_f, wlen, h, nfft, Fs );
+    [s3, ~, ~] = stft( ch3_f, wlen, h, nfft, Fs );
     s3_1 = 20*log10(abs(s3(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
     imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),s3_1);
     set(gca,'YDir','normal')

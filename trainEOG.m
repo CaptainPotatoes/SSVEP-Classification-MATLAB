@@ -1,8 +1,8 @@
 %% Shifting Window Method
 clear;clc;close all;
 % load('Trial_DB1');
-% load('meog_t4.mat')
-load('meog_t3');
+load('meog_t4.mat')
+% load('meog_t3');
 fp1 = Trial{1}(1:end-250,1); %ignore last second
 fp2 = Trial{2}(1:end-250,1);
 fpz = Trial{3}(1:end-250,1);
@@ -106,6 +106,7 @@ for i = 1 : iterations
     hold off;
     figure(3)
     plot(eegcfilt(Window{i,1})),ylim([-2.5E-4 2.5E-4]);
+    Y(i,:) = fullHybridClassifier(fp1f, fp2f, fpzf, eyeRf, Fs, false);
     getClass = [];
     while isempty(getClass)
         commandwindow;

@@ -67,7 +67,6 @@ if plotData
     fH = figure(1); %-% Figure Handle
     set(fH, 'Position', [2560, 0, 1280, 920]);
     xL = [9.0 17.2];
-    
 %     clf(fH)
 end
 %between 250?500dp
