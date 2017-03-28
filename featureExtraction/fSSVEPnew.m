@@ -123,7 +123,6 @@ if windowLength < 500 && windowLength >= 250
             if plotData
                 subplot(2,2,1);hold on;
                 plot(fselect, fftselect,'.b');
-%                 plot(fftL(ch,i), fftM(ch,i), '^k');
                 plot(fft_sel_loc(ch,i),fft_sel_pks(ch,i),'or');
             end
         end

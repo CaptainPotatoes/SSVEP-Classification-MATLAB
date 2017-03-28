@@ -47,15 +47,13 @@ while indx + wlen <= xlen
     col = col + 1;
 end
 %}
-%Other perform of STFT
-
+%Correct way to perform STFT:
 indx = 0:h:(xlen-wlen);
 for c = 1:size(indx,2)
     xw = x(indx(c)+1:indx(c)+wlen).*win;
     X = fft(xw, nfft);
     S(:, c) = X(1:rown);
 end
-% sz = [rown,c]
 % calculate the time and frequency vectors
 T = (wlen/2:h:wlen/2+(coln-1)*h)/fs;
 F = (0:rown-1)*fs/nfft;

@@ -4,10 +4,12 @@ clear;clc;close all;
 % load('tXtY_SSVEP.mat')
 % LOAD TEST DATA:
 % load('meog_t1.mat');
-% load('mssvep_10_2.mat');
+load('mssvep_10_2.mat');
 % load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
-load('mssvep_16.6_3.mat');
+% load('mssvep_16.6_3.mat');
+% load('mssvep_10_5');
+% load('Marc_TEST_15.mat');
 % load('meog_t3')
 removeStart=500;
 ch1 = Trial{1}(1+removeStart:end-250,1); %ignore last second
@@ -15,7 +17,8 @@ ch2 = Trial{2}(1+removeStart:end-250,1);
 ch3 = Trial{3}(1+removeStart:end-250,1);
 ch4 = Trial{4}(1+removeStart:end-250,1);
 Fs = SamplingRate; 
-range = 500:60:2500;
+range = 250:60:2500;
+% range = 730:60:2500;
 Window = cell(size(range,2),4);
 Y = cell(size(range,2),1);
 cont = [];
@@ -24,6 +27,7 @@ for i = 1:size(range,2)
     start = 1;
     winEnd = start + (range(i)-1);
     fprintf('Current index = [%d to %d]\r\n',start, winEnd);
+    fprintf('Seconds Elapsed = [%1.2f]\r\n',winEnd/250);
     Window{i,1} = ch1( start : winEnd ); % set values:
     Window{i,2} = ch2( start : winEnd );
     Window{i,3} = ch3( start : winEnd );
