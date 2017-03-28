@@ -2,8 +2,8 @@ function [ Y1, F ] = fHC( ch1, ch2, ch3, ch4, Fs )
 %Full hybrid EOG/EEG classifier New Version: 3/27
 % Y1 = EOG Classification Result
 
-% plotData = true;
-plotData = false;
+plotData = true;
+% plotData = false;
 
 ch1 = ch1(:);
 ch2 = ch2(:);
@@ -54,7 +54,7 @@ if chLen >= 250
             end
             %%TODO:
             F = fESSVEP(sch1f,sch2f,sch3f,sch4f,Fs,plotData);
-            RecycleData = [1,0];
+%             RecycleData = [1,0];
         end
     end
 end
