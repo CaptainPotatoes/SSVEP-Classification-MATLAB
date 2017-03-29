@@ -27,7 +27,7 @@ fch(4,1:wL) = fch4(1:wL);
 selc = ['.m';'.b';'.m';'.k']; %select dot color; 
 if plotData
     fH = figure(12); %-% Figure Handle
-    set(fH, 'Position', [2560, 0, 1280, 1440]);
+    set(fH, 'Position', [1920, 0, 960, 600]);
     xL = [9.0 17.2];
     clf(fH)
 end
@@ -80,6 +80,8 @@ S2 = zeros(sum(select),c);
 S3 = zeros(sum(select),c);
 S4 = zeros(sum(select),c);
 K = sum(hammPeriodic(wlen))/wlen;
+M = zeros(nCh,4);
+I = zeros(nCh,4);
 if wL>=250
     %STFT Variables
     F1=F(select);

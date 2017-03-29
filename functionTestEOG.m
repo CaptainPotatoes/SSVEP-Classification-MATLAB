@@ -4,8 +4,8 @@ clear;clc;close all;
 % load('tXtY_SSVEP.mat')
 % LOAD TEST DATA:
 % load('meog_t1.mat');
-load('mssvep_10_2.mat');
-% load('mssvep_12.5_1.mat');
+% load('mssvep_10_2.mat');
+load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
 % load('mssvep_16.6_3.mat');
 % load('mssvep_10_5');
