@@ -27,7 +27,7 @@ fch(4,1:wL) = fch4(1:wL);
 selc = ['.m';'.b';'.m';'.k']; %select dot color; 
 if plotData
     fH = figure(12); %-% Figure Handle
-    set(fH, 'Position', [1920, 0, 960, 600]);
+    set(fH, 'Position', [2560, 0, 1440, 960]);
     xL = [9.0 17.2];
     clf(fH)
 end
@@ -119,6 +119,7 @@ if wL>=250
     end
 end
 %% Features:
-FEATURES = [Lfft(:) scaleMin(Pfft(:)) Lpsd(:) scaleMin(Ppsd(:)) Lstft(:) scaleMax(Pstft(:))];
+% FEATURES = [Lfft(:) scaleMin(Pfft(:)) Lpsd(:) scaleMin(Ppsd(:)) Lstft(:) scaleMax(Pstft(:))];
+FEATURES = [Lfft(:) scaleMin(Pfft(:)) Lpsd(:) Ppsd(:) Lstft(:) scaleMax(Pstft(:))];
 end %/function fESSVEP
 

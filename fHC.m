@@ -1,13 +1,6 @@
-function [ Y1, F ] = fHC( ch1, ch2, ch3, ch4, Fs, EOGONLY )
+function [ Y1, F ] = fHC( ch1, ch2, ch3, ch4, Fs, EOGONLY, plotData )
 %Full hybrid EOG/EEG classifier New Version: 3/27
 % Y1 = EOG Classification Result
-
-% plotData = true;
-if(EOGONLY)
-    plotData = false;
-else 
-    plotData = true;
-end
 ch1 = ch1(:);
 ch2 = ch2(:);
 ch3 = ch3(:);
@@ -49,12 +42,6 @@ if chLen >= 250
             sch2f = eegcfilt(ch2(:,i));
             sch3f = eegcfilt(ch3(:,i));
             sch4f = eegcfilt(ch4(:,i));
-            if plotData
-%                 fH = figure(1);
-%                 set(fH, 'Position', [250, 50, 960, 540]);clf(fH);
-%                 hold on;plot(sch1f);plot(sch2f);plot(sch3f);plot(sch4f),ylim([-2E-4, 2E-4]),xlim([0,chLen]);
-            end
-            %%TODO:
             F = fESSVEP(sch1f,sch2f,sch3f,sch4f,Fs,plotData);
         end
     end

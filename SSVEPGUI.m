@@ -184,16 +184,25 @@ eog4_data_unfilt = zeros(plotWindow*Fs,1);
 % SSVEP Training Data:
 % load('tXtY_SSVEP.mat');
 ln = 250-1;
+cIdx = cell(numEnabledBPChannels, 1);
+cIdx1 = cell(numEnabledBPChannels, 1);
+cIdx2 = cell(numEnabledBPChannels, 1);
 for i = 1:numEnabledBPChannels
     cIdx{i} = 1;
     cIdx1{i} = 1;
+    cIdx2{i} = 1;
 end
 YEOG = cell(1,1);
 OUTPUT = cell(1,1);
 W = cell(4,1); % # channels = # windows
 op=1;
+waitPlot = 250;
 waitEOG = 60;
-wait = 250;
+WAITDEFAULT = 64;
+wait = WAITDEFAULT;
+cnt = 1;
+% HISTORY = zeros(1,10);
+plotData = true;
 while get(hObject,'Value') == 1
     pause(0.05)
     for ch = 1:numEnabledBPChannels
@@ -279,14 +288,18 @@ while get(hObject,'Value') == 1
 %                         set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Spectrogram (Fp1)')
                 end
                 % Pwelch
-                [Pxx, F] = pwelch(fp1_data_filtered,[],[],250);
-                plot(axis_handles(5), Pxx); 
-                set(handles.(['axes',num2str(5)]),'XLim',xl);
-                set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Power (dB)')
-                set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Pwelch (Fp1)')
+%                 if mod(length(BioPotentialSignals{ch}),2) == 0
+%                     hW = hannWin(length(BioPotentialSignals{ch}));
+%                     temp25926 = eegcfilt(fp1_data_unfilt);
+%                     [PSD, fPSD] = welch_psd(temp25926,Fs,hW);
+%                     plot(axis_handles(5), fPSD, PSD); 
+%                     set(handles.(['axes',num2str(5)]),'XLim',xl);
+%                     set(get(handles.(['axes',num2str(5)]), 'XLabel'), 'String', 'Frequency (Hz)')
+%                     set(get(handles.(['axes',num2str(5)]), 'YLabel'), 'String', 'Power (dB)')
+%                     set(get(handles.(['axes',num2str(5)]), 'Title'), 'String', 'Pwelch (Fp1)')
+%                 end
+%                 [Pxx, F] = pwelch(fp1_data_filtered,[],[],250);
                 %EOG filt:
-%                     eog1_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*Fs+1:end);
                 eog_data_1 = eog_h_fcn(fp1_data_unfilt, Fs);
                 plot(axis_handles(9),t{ch},eog_data_1);
                 set(handles.(['axes',num2str(9)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
@@ -316,14 +329,17 @@ while get(hObject,'Value') == 1
 %                         set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Spectrogram (Fp2)')
                 end
                 % P welch
-                [Pxx, F] = pwelch(fp2_data_filtered,[],[],250);
-                plot(axis_handles(6), Pxx); 
-                set(handles.(['axes',num2str(6)]),'XLim',xl);
-                set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Power (dB)')
-                set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Pwelch (Fp2)')
+%                 if mod(length(BioPotentialSignals{ch}),2) == 0
+%                     hW = hannWin(length(BioPotentialSignals{ch}));
+%                     [PSD, fPSD] = welch_psd(eegcfilt(fp1_data_unfilt),Fs,hW);
+%                     plot(axis_handles(6), fPSD, PSD); 
+%                     set(handles.(['axes',num2str(6)]),'XLim',xl);
+%                     set(get(handles.(['axes',num2str(6)]), 'XLabel'), 'String', 'Frequency (Hz)')
+%                     set(get(handles.(['axes',num2str(6)]), 'YLabel'), 'String', 'Power (dB)')
+%                     set(get(handles.(['axes',num2str(6)]), 'Title'), 'String', 'Pwelch (Fp2)')
+%                 end
+%                 [Pxx, F] = pwelch(fp2_data_filtered,[],[],250);
                 %EOG Filt
-%                     eog2_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*Fs+1:end);
                 eog_data_1 = eog_h_fcn(fp2_data_unfilt, Fs);
                 plot(axis_handles(10),t{ch},eog_data_1);
                 set(handles.(['axes',num2str(10)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
@@ -350,12 +366,12 @@ while get(hObject,'Value') == 1
                 set(get(handles.(['axes',num2str(11)]), 'YLabel'), 'String', '|P1(f)|')
                 set(get(handles.(['axes',num2str(11)]), 'Title'), 'String', 'FFT(Ch3, Fpz)')
                 %PSD CH3:
-                [Pxx, F] = pwelch(CH3_data_filtered,[],[],250);
-                plot(axis_handles(12), Pxx); 
-                set(handles.(['axes',num2str(12)]),'XLim',xl);
-                set(get(handles.(['axes',num2str(12)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                set(get(handles.(['axes',num2str(12)]), 'YLabel'), 'String', 'Power (dB)')
-                set(get(handles.(['axes',num2str(12)]), 'Title'), 'String', 'Pwelch (Ch3)')
+%                 [Pxx, F] = pwelch(CH3_data_filtered,[],[],250);
+%                 plot(axis_handles(12), Pxx); 
+%                 set(handles.(['axes',num2str(12)]),'XLim',xl);
+%                 set(get(handles.(['axes',num2str(12)]), 'XLabel'), 'String', 'Frequency (Hz)')
+%                 set(get(handles.(['axes',num2str(12)]), 'YLabel'), 'String', 'Power (dB)')
+%                 set(get(handles.(['axes',num2str(12)]), 'Title'), 'String', 'Pwelch (Ch3)')
             elseif ch==4
                 eog4_data_unfilt = BioPotentialSignals{ch}(end-plotWindow*Fs+1:end);
                 eog_data_2 = eog_h_fcn(eog4_data_unfilt, Fs);
@@ -374,22 +390,22 @@ while get(hObject,'Value') == 1
                 set(get(handles.(['axes',num2str(13)]), 'YLabel'), 'String', '|P1(f)|')
                 set(get(handles.(['axes',num2str(13)]), 'Title'), 'String', 'FFT(Ch4, Fpz)')
                 %PSD CH4:
-                [Pxx, F] = pwelch(CH4_data_filtered,[],[],250); 
-                plot(axis_handles(14), Pxx); 
-                set(handles.(['axes',num2str(14)]),'XLim',xl);
-                set(get(handles.(['axes',num2str(14)]), 'XLabel'), 'String', 'Frequency (Hz)')
-                set(get(handles.(['axes',num2str(14)]), 'YLabel'), 'String', 'Power (dB)')
-                set(get(handles.(['axes',num2str(14)]), 'Title'), 'String', 'Pwelch (Ch4)')
+%                 [Pxx, F] = pwelch(CH4_data_filtered,[],[],250); 
+%                 plot(axis_handles(14), Pxx); 
+%                 set(handles.(['axes',num2str(14)]),'XLim',xl);
+%                 set(get(handles.(['axes',num2str(14)]), 'XLabel'), 'String', 'Frequency (Hz)')
+%                 set(get(handles.(['axes',num2str(14)]), 'YLabel'), 'String', 'Power (dB)')
+%                 set(get(handles.(['axes',num2str(14)]), 'Title'), 'String', 'Pwelch (Ch4)')
             end
             %% %%%%%% FULL HYBRID CLASSIFIER FUNCTION CALLS: %%%%%% %%
             %CLASSIFY EOG DATA:
                %take each ch unfilt (5s) & cut into 5 pieces, & pass
                %thru fullHybridClassifier: Put in columns:
-            
             for i = 1:numEnabledBPChannels
                 W_EOG(i,:) = BioPotentialSignals{i}(end-249:end); %last second of data; always
                 b1(i) = length(BioPotentialSignals{i}) > cIdx{i}+wait; % has 1 second passed?
                 b2(i) = length(BioPotentialSignals{i}) > cIdx1{i}+waitEOG;
+                b3(i) = length(BioPotentialSignals{i}) > cIdx2{i}+waitPlot;
             end
             if sum(b2) == numEnabledBPChannels
                 [YEOG{1}] = fHC(W_EOG(1,:), W_EOG(2,:), W_EOG(3,:), W_EOG(4,:), Fs, true);
@@ -406,7 +422,8 @@ while get(hObject,'Value') == 1
                     cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx, forced to wait 1s
                 end
                 ln = 249;
-                wait = 360; % changed from
+                cnt = 1;
+                wait = 360; % changed from 250
             end
             if sum(b1) == numEnabledBPChannels
                 fprintf('len = %d\r\n',ln);
@@ -415,23 +432,35 @@ while get(hObject,'Value') == 1
                         cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx
                         W{i} = BioPotentialSignals{i}(end-ln:end);
                     end
-                    [~, FEA0] = fHC(W{1}, W{2}, W{3}, W{4}, Fs, false);
-                    if sum(FEA0(:,3))~=0
-                        FEA0(:,4) = scaleAbs(FEA0(:,4));
+                    if sum(b3)==numEnabledBPChannels
+                        plotData = true;
+                        for i = 1:numEnabledBPChannels
+                            cIdx2{i} = length(BioPotentialSignals{i});       %Assign new current indx
+                        end
+                    else 
+                        plotData = false;
                     end
-                    % PSD
-                    FEA0
+                    [~, FEA0] = fHC(W{1}, W{2}, W{3}, W{4}, Fs, false, plotData);
+                    [History(cnt,:), OUT(cnt)] = featureAnalysis(FEA0,ln);
+                    meanH = mean(History(1:cnt,:))
+                    if OUT(cnt)~=0
+                        countH(cnt) = countOccurrences(OUT(:,1:cnt), OUT(cnt));
+                    else
+                        countH(cnt) = 0;
+                    end
+                    if (max(meanH)>7) && countH(cnt)>=4
+                        OUTPROPER(cnt) = OUT(cnt); %This is the command.
+                    else
+                        OUTPROPER(cnt) = 0;
+                    end
                     % Mean of 4 ch:
-                    for i = 1:4
-                        mnFreq(i,1) = mean(FEA0(1+(4*(i-1)):4*i,3));
-                        mnMag(i,1) = mean(FEA0(1+(4*(i-1)):4*i,4));
-                    end
-                    AAAPSD = [mnFreq, mnMag]
-                    ln = ln+250;
-                    wait = 250;
+                    ln = ln+WAITDEFAULT;
+                    cnt = cnt+1;
+                    wait = WAITDEFAULT;
                 else
                     ln = 249;
-                    wait = 250;
+                    cnt = 1;
+                    wait = WAITDEFAULT;
                 end
             end
             %{
