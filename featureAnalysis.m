@@ -21,10 +21,12 @@ PSD16 = FEA0(13:16,3:4);
 S2 = [sum(PSD10(:)==0) sum(PSD12(:)==0) sum(PSD15(:)==0) sum(PSD16(:)==0)];
 P2 = 8-S2;
 varFreqs = [var(PSD10(:,1)) var(PSD12(:,1)) var(PSD15(:,1)) var(PSD16(:,1)) ]
-AvgMax = [mean(PSD10(:,2)) mean(PSD12(:,2)) mean(PSD15(:,2)) mean(PSD16(:,2))];
+AvgMax = [mean(PSD10(:,2)) mean(PSD12(:,2)) mean(PSD15(:,2)) mean(PSD16(:,2))]
 minAvgMax = min(AvgMax(AvgMax~=0));
 if ~isempty(minAvgMax)
     compare = AvgMax./minAvgMax
+else
+    compare = zeros(1,4)
 end
 % TREE:
 for i=1:4
@@ -37,16 +39,15 @@ SortTP = sort(TP,'descend');
 [M, I] = max(TP);
 Dif = M - SortTP(2) %Difference between first and second place
 % TODO: CONDITIONS FOR TRACKING HISTORY?
-if len < 900
-    threshold = 5.5;
-else
-    threshold = 3.0;
-end
+threshold = 1;
 if Dif > threshold
     % select possible signal.
-    if varFreqs(I) < 0.05
+    if varFreqs(I) < 0.1
         OUT = FREQ(I)
     end
 end
+% if varFreqs(I) < 0.1
+%     OUT = FREQ(I)
+% end
 end
 

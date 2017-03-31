@@ -132,7 +132,7 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global myDevice Idx 
-global trainingData totalCount which_pc
+global trainingData totalCount which_pc OUTPUT
 
 totalCount = cell(2);
 totalCount{1} = 0;
@@ -183,7 +183,9 @@ eog4_data_unfilt = zeros(plotWindow*Fs,1);
 % load('allEOGtD.mat');
 % SSVEP Training Data:
 % load('tXtY_SSVEP.mat');
-ln = 250-1;
+
+startLen = 499;
+ln = startLen;
 cIdx = cell(numEnabledBPChannels, 1);
 cIdx1 = cell(numEnabledBPChannels, 1);
 cIdx2 = cell(numEnabledBPChannels, 1);
@@ -192,17 +194,23 @@ for i = 1:numEnabledBPChannels
     cIdx1{i} = 1;
     cIdx2{i} = 1;
 end
+
 YEOG = cell(1,1);
-OUTPUT = cell(1,1);
+% OUTPUT = cell(1,1);
 W = cell(4,1); % # channels = # windows
 op=1;
 waitPlot = 250;
 waitEOG = 60;
-WAITDEFAULT = 64;
+WAITDEFAULT = 60;
 wait = WAITDEFAULT;
 cnt = 1;
+ocnt = 1;
+maxTimeout = 1750;
+r = startLen:WAITDEFAULT:maxTimeout;
 % HISTORY = zeros(1,10);
 plotData = true;
+OUTPUT = zeros(1,50);
+OUT = zeros(1,size(r,2));
 while get(hObject,'Value') == 1
     pause(0.05)
     for ch = 1:numEnabledBPChannels
@@ -421,13 +429,14 @@ while get(hObject,'Value') == 1
                 for i = 1:numEnabledBPChannels
                     cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx, forced to wait 1s
                 end
-                ln = 249;
+                OUT = zeros(1,size(r,2));
+                ln = startLen;
                 cnt = 1;
-                wait = 360; % changed from 250
+                wait = 750; % changed from 250
             end
             if sum(b1) == numEnabledBPChannels
                 fprintf('len = %d\r\n',ln);
-                if ln<=2000
+                if ln<=maxTimeout %12s
                     for i = 1:numEnabledBPChannels
                         cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx
                         W{i} = BioPotentialSignals{i}(end-ln:end);
@@ -448,17 +457,23 @@ while get(hObject,'Value') == 1
                     else
                         countH(cnt) = 0;
                     end
-                    if (max(meanH)>7) && countH(cnt)>=4
-                        OUTPROPER(cnt) = OUT(cnt); %This is the command.
+                    if countH(cnt)>3 %(max(meanH)>7) &&
+                        OUTPROPER(cnt) = OUT(cnt); %This is the command.;
+                        OUTPUT(ocnt) = OUTPROPER(cnt);
+                        ocnt = ocnt+1;
                     else
                         OUTPROPER(cnt) = 0;
                     end
+                    OUT
+                    OUTI = OUT(cnt)
+                    
                     % Mean of 4 ch:
                     ln = ln+WAITDEFAULT;
                     cnt = cnt+1;
                     wait = WAITDEFAULT;
                 else
-                    ln = 249;
+                    OUT = zeros(1,size(OUT,2));
+                    ln = startLen;
                     cnt = 1;
                     wait = WAITDEFAULT;
                 end
@@ -549,7 +564,7 @@ if get(hObject,'Value') == 0
     SamplingRate = Fs;
     assignin('base','SamplingRate',SamplingRate);
     %% Change into button function.
-    OP_1 = OUTPUT{1};
+    OP_1{1} = OUTPUT;
     H_Notes = [handles.edit2 handles.edit_ChannelLocations, handles.editImpedanceValues, ...
         handles.editElectrodeType, handles.editStimulusSource, handles.editMiscInfo];
     RecordingNotes = cell(length(H_Notes)+1, 2);
