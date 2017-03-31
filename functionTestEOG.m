@@ -17,8 +17,8 @@ ch2 = Trial{2}(1+removeStart:end-250,1);
 ch3 = Trial{3}(1+removeStart:end-250,1);
 ch4 = Trial{4}(1+removeStart:end-250,1);
 Fs = SamplingRate; 
-range = 250:60:2500;
-% range = 730:60:2500;
+% range = 250:60:2500;
+range = 500:60:2000;
 Window = cell(size(range,2),4);
 Y = cell(size(range,2),1);
 cont = [];
@@ -33,7 +33,7 @@ for i = 1:size(range,2)
     Window{i,3} = ch3( start : winEnd );
     Window{i,4} = ch4( start : winEnd );
     [Y{i},F{i}] = fHC(Window{i,1}, Window{i,2}, Window{i,3}, ...
-        Window{i,4}, Fs);
+        Window{i,4}, Fs, false);
     OUTPUT = Y{i}'
     if isempty(cont)
         commandwindow;

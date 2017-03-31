@@ -27,7 +27,7 @@ fch(4,1:wL) = fch4(1:wL);
 selc = ['.m';'.b';'.m';'.k']; %select dot color; 
 if plotData
     fH = figure(12); %-% Figure Handle
-    set(fH, 'Position', [1920, 0, 960, 600]);
+    set(fH, 'Position', [2560, 0, 1280, 1440]);
     xL = [9.0 17.2];
     clf(fH)
 end
@@ -116,7 +116,6 @@ if wL>=250
         subplot(4,2,5);hold on;imagesc(T,F1,S3),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet);
         subplot(4,2,6);hold on;imagesc(T,F1,S4),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet);
         subplot(4,2,[7 8]);hold on;plot(F1,SS(:,1));plot(F1,SS(:,2));plot(F1,SS(:,3));plot(F1,SS(:,4));
-        
     end
 end
 %% TEMP

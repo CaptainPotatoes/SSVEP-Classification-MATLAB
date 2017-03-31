@@ -186,11 +186,13 @@ eog4_data_unfilt = zeros(plotWindow*Fs,1);
 ln = 250-1;
 for i = 1:numEnabledBPChannels
     cIdx{i} = 1;
+    cIdx1{i} = 1;
 end
 YEOG = cell(1,1);
 OUTPUT = cell(1,1);
 W = cell(4,1); % # channels = # windows
 op=1;
+waitEOG = 60;
 wait = 250;
 while get(hObject,'Value') == 1
     pause(0.05)
@@ -387,8 +389,51 @@ while get(hObject,'Value') == 1
             for i = 1:numEnabledBPChannels
                 W_EOG(i,:) = BioPotentialSignals{i}(end-249:end); %last second of data; always
                 b1(i) = length(BioPotentialSignals{i}) > cIdx{i}+wait; % has 1 second passed?
+                b2(i) = length(BioPotentialSignals{i}) > cIdx1{i}+waitEOG;
             end
-            YEOG{1} = fHC(W_EOG(1,:), W_EOG(2,:), W_EOG(3,:), W_EOG(4,:), Fs)
+            if sum(b2) == numEnabledBPChannels
+                [YEOG{1}] = fHC(W_EOG(1,:), W_EOG(2,:), W_EOG(3,:), W_EOG(4,:), Fs, true);
+                if(YEOG{1}(1)~=0)
+                    RESULT_EOG = YEOG{1}(1)
+                end
+                for i = 1:numEnabledBPChannels
+                    cIdx1{i} = length(BioPotentialSignals{i});       %Assign new current indx
+                end
+            end
+            if (YEOG{1}(1) == 2) || (YEOG{1}(1) == 1) %Double Blink Detected: Reset Command (Stop and reset):
+                %Reset cell (ON ANDROID, RESET ARRAYS TO ZERO).
+                for i = 1:numEnabledBPChannels
+                    cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx, forced to wait 1s
+                end
+                ln = 249;
+                wait = 360; % changed from
+            end
+            if sum(b1) == numEnabledBPChannels
+                fprintf('len = %d\r\n',ln);
+                if ln<=2000
+                    for i = 1:numEnabledBPChannels
+                        cIdx{i} = length(BioPotentialSignals{i});       %Assign new current indx
+                        W{i} = BioPotentialSignals{i}(end-ln:end);
+                    end
+                    [~, FEA0] = fHC(W{1}, W{2}, W{3}, W{4}, Fs, false);
+                    if sum(FEA0(:,3))~=0
+                        FEA0(:,4) = scaleAbs(FEA0(:,4));
+                    end
+                    % PSD
+                    FEA0
+                    % Mean of 4 ch:
+                    for i = 1:4
+                        mnFreq(i,1) = mean(FEA0(1+(4*(i-1)):4*i,3));
+                        mnMag(i,1) = mean(FEA0(1+(4*(i-1)):4*i,4));
+                    end
+                    AAAPSD = [mnFreq, mnMag]
+                    ln = ln+250;
+                    wait = 250;
+                else
+                    ln = 249;
+                    wait = 250;
+                end
+            end
             %{
             YEOG{1} = fullHybridClassifier(W_EOG(1,:), W_EOG(2,:), W_EOG(3,:), W_EOG(4,:), Fs, true);
             if (YEOG{1}(1) == 1)%Double Blink Detected: Reset Command (Stop and reset):
