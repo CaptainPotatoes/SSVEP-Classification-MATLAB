@@ -5,11 +5,11 @@ clear;clc;close all;
 % LOAD TEST DATA:
 % load('meog_t1.mat');
 % load('mssvep_10_2.mat');
-load('mssvep_12.5_1.mat');
+% load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
-% load('mssvep_16.6_3.mat');
+load('mssvep_16.6_3.mat');
 % load('mssvep_10_5');
-% load('Marc_TEST_15.mat');
+% load('Marc_TEST_10.mat');
 % load('meog_t3')
 removeStart=500;
 ch1 = Trial{1}(1+removeStart:end-250,1); %ignore last second
@@ -17,8 +17,8 @@ ch2 = Trial{2}(1+removeStart:end-250,1);
 ch3 = Trial{3}(1+removeStart:end-250,1);
 ch4 = Trial{4}(1+removeStart:end-250,1);
 Fs = SamplingRate; 
-% range = 250:60:2500;
-range = 500:60:2000;
+range = 250:60:2500;
+% range = 500:60:2000;
 Window = cell(size(range,2),4);
 Y = cell(size(range,2),1);
 cont = [];
@@ -34,7 +34,14 @@ for i = 1:size(range,2)
     Window{i,4} = ch4( start : winEnd );
     [Y{i},F{i}] = fHC(Window{i,1}, Window{i,2}, Window{i,3}, ...
         Window{i,4}, Fs, false);
-    OUTPUT = Y{i}'
+    O10 = F{i}(1:4,:)
+    O12 = F{i}(5:8,:)
+    O15 = F{i}(9:12,:)
+    O16 = F{i}(13:16,:)
+    B10 = sum(O10(:)==0)
+    B12 = sum(O12(:)==0)
+    B15 = sum(O15(:)==0)
+    B16 = sum(O16(:)==0)
     if isempty(cont)
         commandwindow;
         cont = input('Continue? \n');

@@ -50,9 +50,9 @@ if chLen >= 250
             sch3f = eegcfilt(ch3(:,i));
             sch4f = eegcfilt(ch4(:,i));
             if plotData
-                fH = figure(1);
-                set(fH, 'Position', [1280, 50, 960, 540]);clf(fH);
-                hold on;plot(sch1f);plot(sch2f);plot(sch3f);plot(sch4f),ylim([-2E-4, 2E-4]),xlim([0,chLen]);
+%                 fH = figure(1);
+%                 set(fH, 'Position', [250, 50, 960, 540]);clf(fH);
+%                 hold on;plot(sch1f);plot(sch2f);plot(sch3f);plot(sch4f),ylim([-2E-4, 2E-4]),xlim([0,chLen]);
             end
             %%TODO:
             F = fESSVEP(sch1f,sch2f,sch3f,sch4f,Fs,plotData);
