@@ -5,20 +5,20 @@ clear;clc;close all;
 % LOAD TEST DATA:
 % load('meog_t1.mat');
 % load('mssvep_10_2.mat');
-load('mssvep_12.5_1.mat');
+% load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
-% load('mssvep_16.6_3.mat');
+load('mssvep_16.6_3.mat');
 % load('mssvep_10_5');
 % load('Marc_TEST_10.mat');
 % load('meog_t3')
-removeStart=500;
+removeStart=0;
 ch1 = Trial{1}(1+removeStart:end-250,1); %ignore last second
 ch2 = Trial{2}(1+removeStart:end-250,1);
 ch3 = Trial{3}(1+removeStart:end-250,1);
 ch4 = Trial{4}(1+removeStart:end-250,1);
 Fs = SamplingRate; 
-% range = 500:60:2500;
-range = 380:60:2000;
+range = 500:60:2500;
+% range = 380:60:2000;
 Window = cell(size(range,2),4);
 Y = cell(size(range,2),1);
 cont = [];
@@ -49,10 +49,11 @@ for i = 1:size(range,2)
     else
         OUTPROPER(i) = 0;
     end
-%     if OUT
     if isempty(cont)
         commandwindow;
         cont = input('Continue? \n');
+    else
+        PLOTDATA = false;
     end
 end
 %{

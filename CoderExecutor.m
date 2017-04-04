@@ -16,7 +16,8 @@ for wL = 250:6:5000
     W2 = B(start:wL);
     W3 = C(start:wL);
     W4 = D(start:wL);
-    Y_EOG{i} = fullHybridClassifier(W1,W2,W3,W4,Fs,true);
-    Y{i} = fullHybridClassifier(W1,W2,W3,W4,Fs,false);
+    TY{i} = eegcfilt(W1);
+%     Y_EOG{i} = fullHybridClassifier(W1,W2,W3,W4,Fs,true);
+%     Y{i} = fullHybridClassifier(W1,W2,W3,W4,Fs,false);
     i = i+1;
 end

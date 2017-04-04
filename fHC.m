@@ -36,7 +36,7 @@ if chLen >= 250
     DB = ismember(2, Y1); %IF 2 is a member of Y
     SB = ismember(1, Y1);
     %% EEG, SSVEP Classification
-    if ~DB && ~SB && ~EOGONLY %0
+    if ~EOGONLY %~DB && ~SB && 
         for i = 1:size(ch1,2)
             sch1f = eegcfilt(ch1(:,i));
             sch2f = eegcfilt(ch2(:,i));

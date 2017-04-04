@@ -64,7 +64,7 @@ if wL >= 250
         end
     end
 end
-h=64;
+h=32;
 if wL<500
     wlen = 128;
 else
