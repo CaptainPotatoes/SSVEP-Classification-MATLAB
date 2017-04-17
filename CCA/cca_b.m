@@ -1,4 +1,4 @@
-function [Wx, Wy, r] = cca(X,Y)
+function [Wx, Wy, r] = cca_b(X,Y)
 % CCA calculate canonical correlations
 %
 % [Wx Wy r] = cca(X,Y) where Wx and Wy contains the canonical

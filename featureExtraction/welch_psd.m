@@ -66,12 +66,13 @@ for a = 1:number_of_blocks
     c = 1;
     for aa = 1:size(Data_Block,2)
         for b = aa:size(Data_Block,2)
-            % P(:,c) = Data_Block(:,b).*conj(Data_Block(:,aa)); % THIS
-            % IS FOR WIND TUNNEL EESC-USP BEAMFORMING CODE
-            % P(:,c) = Data_Block(:,aa).*conj(Data_Block(:,b)); % THIS IS THE ORIGINAL
-            % LINE
-            P(:,c) = real(Data_Block(:,aa).*conj(Data_Block(:,b)));
+            % THIS IS FOR WIND TUNNEL EESC-USP BEAMFORMING CODE
+%             P(:,c) = real(Data_Block(:,b).*conj(Data_Block(:,aa))); 
+            % P(:,c) = Data_Block(:,b).*conj(Data_Block(:,aa)); 
+            
             % IS FOR FAN RIG BEAMFORMING CODE
+            P(:,c) = real(Data_Block(:,aa).*conj(Data_Block(:,b)));
+            % P(:,c) = Data_Block(:,aa).*conj(Data_Block(:,b)); % THIS IS THE ORIGINAL LINE
             c = c+1;
         end
     end

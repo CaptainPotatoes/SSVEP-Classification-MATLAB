@@ -1,11 +1,10 @@
 function [ A,B,r,U,V ] = CCA( X, Y )
 %CANONCORR Canonical correlation analysis.
-%   
-if nargin < 2
-%     error(message('stats:canoncorr:TooFewInputs'));
-end
-    coder.varsize('Q1','Q2','T11','T22');
 
+
+%%%%%% MATLAB CODER VARIABLE SIZE ARRAYS %%%%%%
+coder.varsize('Q1','Q2','T11','T22');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [n,p1] = size(X);
 if size(Y,1) ~= n
 %     error(message('stats:canoncorr:InputSizeMismatch'));
@@ -59,7 +58,6 @@ if nargout > 3
     U = X * A;
     V = Y * B;
 end
-
 
 end
 
