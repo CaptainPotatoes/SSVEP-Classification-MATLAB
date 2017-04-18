@@ -5,12 +5,13 @@ clear;clc;close all;
 % LOAD TEST DATA:
 % load('meog_t1.mat');
 % load('mssvep_10_2.mat');
-% load('mssvep_12.5_1.mat');
+load('mssvep_12.5_1.mat');
 % load('mssvep_15_1.mat');
-load('mssvep_16.6_3.mat');
+% load('mssvep_16.6_3.mat');
 % load('mssvep_10_5');
 % load('Marc_TEST_10.mat');
 % load('meog_t3')
+% load('Fadi_X3_12Hz_2');
 removeStart=0;
 ch1 = Trial{1}(1+removeStart:end-250,1); %ignore last second
 ch2 = Trial{2}(1+removeStart:end-250,1);

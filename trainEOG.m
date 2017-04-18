@@ -1,65 +1,79 @@
 %% Shifting Window Method
 clear;clc;close all;
 % load('Trial_DB1');
-load('meog_t4.mat')
+% load('meog_t4.mat')
 % load('meog_t3');
-fp1 = Trial{1}(1:end-250,1); %ignore last second
-fp2 = Trial{2}(1:end-250,1);
-fpz = Trial{3}(1:end-250,1);
-eyeR = Trial{4}(1:end-250,1);
-% eyeL
+load('Marc_TD_3chEOG_t1.mat');
+ch1 = Trial{1}(1:end-250,1); %ignore last second
+ch2 = Trial{2}(1:end-250,1);
+if(length(Trial)>2) 
+    ch3 = Trial{3}(1:end-250,1);
+end
 h=1/250;
-t=0:h:length(fp1)/250-h;
-% markers = tD{1};
+t=0:h:length(ch1)/250-h;
 markers = trainingData{1};
-Fs = SamplingRate; 
-% Fs = 250;
-fp1filt = eog_h_fcn(fp1,250);
-fp2filt = eog_h_fcn(fp2,250);
-fpzfilt = eog_h_fcn(fpz,250);
-eyeRfilt = eog_h_fcn(eyeR,250);
-%
+Fs = SamplingRate;
+%% Using CSV
+%{
+clear;clc;close all;
+data_csv = csvread('EEGSensorData_2017.04.05_11.04.57_part1.csv');
+ch1 = data_csv(:,1);
+ch2 = data_csv(:,2);
+ch3 = data_csv(:,3);
+ch4 = data_csv(:,4);
+ch1f = eog_h_fcn(ch1,250);
+ch2f = eog_h_fcn(ch2,250);
+ch3f = eog_h_fcn(ch3,250);
+ch4f = eog_h_fcn(ch4,250);
+%}
+ch1f = eog_h_fcn(ch1,250);
+ch2f = eog_h_fcn(ch2,250);
+if(length(Trial)>2) 
+    ch3f = eog_h_fcn(ch3,250);
+end
+%%
 figure; hold on;
-plot(fp1filt,'color','r')
+plot(ch1f,'color','r')
 for i=1:length(markers)
-    text(markers(i,1), fp1filt(markers(i,1)), num2str(markers(i,2)));
+    text(markers(i,1), ch1f(markers(i,1)), num2str(markers(i,2)));
 end
 hold off;
 figure; hold on;
-plot(eyeRfilt,'color','c');
+plot(ch2f,'color','y');
 for i=1:length(markers)
-    text(markers(i,1), eyeRfilt(markers(i,1)), num2str(markers(i,2)));
-end
-hold off;
-figure; hold on;
-plot(fpzfilt,'color','m');
-for i=1:length(markers)
-    text(markers(i,1), fpzfilt(markers(i,1)), num2str(markers(i,2)));
-end
-hold off;
-figure; hold on;
-plot(fp2filt,'color','y');
-for i=1:length(markers)
-    text(markers(i,1), fp2filt(markers(i,1)), num2str(markers(i,2)));
+    text(markers(i,1), ch2f(markers(i,1)), num2str(markers(i,2)));
 end
 hold off;
 
-
+if(length(Trial)>2) 
+%     figure; hold on;plot(ch4f,'color','c');
+%     for i=1:length(markers)
+%         text(markers(i,1), ch4f(markers(i,1)), num2str(markers(i,2)));
+%     end
+%     hold off;
+    figure; hold on;
+    plot(ch3f,'color','m');
+    for i=1:length(markers)
+        text(markers(i,1), ch3f(markers(i,1)), num2str(markers(i,2)));
+    end
+    hold off;
+end
 %--ALT PLOT
 close all;
 f1 = figure(1);
 set(f1, 'Position', [100, 100, 1600, 900]);
 hold on;
-plot(fp1filt,'color','r')%,ylim([-8e-4,8e-4]);
-plot(eyeRfilt,'color','c');
-plot(fpzfilt,'color','m');
-plot(fp2filt,'color','y')%,ylim([-8e-4,8e-4]);
+plot(ch1f,'color','r')%,ylim([-8e-4,8e-4]);
+plot(ch2f,'color','y')%,ylim([-8e-4,8e-4]);
+if(length(Trial)>2) 
+    plot(ch3f,'color','m');
+end
 for i=1:length(markers)
-    text(markers(i,1), fp2filt(markers(i,1)), num2str(markers(i,2)));
+    text(markers(i,1), ch2f(markers(i,1)), num2str(markers(i,2)));
     if mod(i,2)==0
-        text(markers(i,1), fp2filt(markers(i,1))+2.5E-5, [num2str(markers(i,1))] );
+        text(markers(i,1), ch2f(markers(i,1))+2.5E-5, [num2str(markers(i,1))] );
     else
-        text(markers(i,1), fp2filt(markers(i,1))-2.5E-5, [num2str(markers(i,1))] );
+        text(markers(i,1), ch2f(markers(i,1))-2.5E-5, [num2str(markers(i,1))] );
     end
 end
 hold off
@@ -68,7 +82,7 @@ seconds = 1; %2 second window
 winLen = seconds*Fs; 
 winFraction = 4;%2.5; %1/4 of a second
 winShift = floor(Fs/winFraction); 
-dataLimit = floor((length(fp1)-winLen)/winLen);
+dataLimit = floor((length(ch1)-winLen)/winLen);
 start = 1;
 numCh = 4;
 Window = cell( seconds*winFraction*dataLimit - 1, numCh);
@@ -83,30 +97,27 @@ for i = 1 : iterations
     start = 1 + winShift*(i-1);
     winEnd = start + winLen-1;
     fprintf('Current index = [%d to %d]\r\n',start, winEnd);
-    Window{i,1} = fp1( start : start + winLen-1 );              % set values:
-    Window{i,2} = fp2( start : start + winLen-1 );
-    Window{i,3} = fpz( start : start + winLen-1 );
-    Window{i,4} = eyeR( start : start + winLen-1 );
-    fp1f = eogcfilt( Window{i,1} ); 
-    fp2f = eogcfilt( Window{i,2} );
-    fpzf = eogcfilt( Window{i,3} );
-    eyeRf = eogcfilt( Window{i,4} );
-    [p, l] = findpeaks(fp1f, 'MinPeakHeight',minPeakProm);
-    [p1, l1] = findpeaks(fp2f, 'MinPeakHeight',minPeakProm);
-    [p2, l2] = findpeaks(fpzf, 'MinPeakHeight',minPeakProm);
+    Window{i,1} = ch1( start : start + winLen-1 );              % set values:
+    Window{i,2} = ch2( start : start + winLen-1 );
+    ch1f = eogcfilt( Window{i,1} ); 
+    ch2f = eogcfilt( Window{i,2} );
+    if(length(Trial)>2)
+        Window{i,3} = ch3( start : start + winLen-1 );
+        ch3f = eogcfilt( Window{i,3} );
+    end
+    [p, l] = findpeaks(ch1f, 'MinPeakHeight',minPeakProm);
+    [p1, l1] = findpeaks(ch2f, 'MinPeakHeight',minPeakProm);
     figure(2)
     hold on;
-    plot(fp1f),ylim([-2.5E-4 2.5E-4]); 
-    plot(fp2f),ylim([-2.5E-4 2.5E-4]);
-    plot(fpzf),ylim([-2.5E-4 2.5E-4]);
-    plot(eyeRf),ylim([-2.5E-4 2.5E-4]);
+    plot(ch1f),ylim([-2.5E-4 2.5E-4]); 
+    plot(ch2f),ylim([-2.5E-4 2.5E-4]);
+    if(length(Trial)>2)
+        plot(ch3f),ylim([-2.5E-4 2.5E-4]);
+    end
     plot(l,p,'-*r'); 
     plot(l1,p1,'-*c');
-    plot(l2,p2,'-*y');
     hold off;
-    figure(3)
-    plot(eegcfilt(Window{i,1})),ylim([-2.5E-4 2.5E-4]);
-    Y(i,:) = fullHybridClassifier(fp1f, fp2f, fpzf, eyeRf, Fs, false);
+    %%%% TODO: Make separate EOG Classifier.
     getClass = [];
     while isempty(getClass)
         commandwindow;
@@ -116,14 +127,15 @@ for i = 1 : iterations
         end
     end
     tY(i,1) = getClass;
-    F_fp1(i,:) = featureExtractionEOG( fp1f' );
-    F_fp2(i,:) = featureExtractionEOG( fp2f' );
-    F_fpz(i,:) = featureExtractionEOG( fpzf' );
-    F_eyeR(i,:) = featureExtractionEOG( eyeRf' );
+    F_ch1(i,:) = featureExtractionEOG( ch1f' );
+    F_ch2(i,:) = featureExtractionEOG( ch2f' );
+    if(length(Trial)>2)
+        F_ch3(i,:) = featureExtractionEOG( ch3f' );
+    end
     clf(figNum);
 end
 %horzcat: 32 features (8/ch)
-tX = [F_fp1 F_fp2 F_fpz F_eyeR];
+tX = [F_ch1 F_ch2 F_ch3];
 %
 
 

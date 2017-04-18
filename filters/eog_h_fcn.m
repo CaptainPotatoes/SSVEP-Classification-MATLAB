@@ -13,7 +13,7 @@ N = 3; % order of 3 less processing
 [a,b] = butter(N,Wn,'low'); %bandpass filtering
 eog_h = filtfilt(a,b,eog);
 %% Temp
-fh=2; %cuttoff frequency to discard high frequency noise
+fh=0.1; %cuttoff frequency to discard high frequency noise
 Wn=fh*2/f2s; % cut off based on fs
 N = 3; % order of 3 less processing
 [a,b] = butter(N,Wn,'high'); %bandpass filtering

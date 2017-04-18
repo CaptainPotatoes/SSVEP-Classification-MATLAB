@@ -4,8 +4,8 @@ clear;close all;clc;
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
 % load('mssvep_16.6_3.mat');
 % load('mssvep_15_1.mat');
-load('Marc_TEST_15.mat');
-% load('mssvep_12.5_1.mat')
+% load('Dad_X2_12Hz.mat');
+load('mssvep_12.5_1.mat')
 % load('mssvep_t1_baseline');
 % load('mssvep_t2_16_1.mat');
 % load('meog_t4')
@@ -33,7 +33,7 @@ if size(Trial,2) > 3
     ch4 = Trial{4}(1:end-remove,1);
 end
 
-seconds = length(ch1)/Fs
+seconds = length(ch1)/Fs;
 flim   = [8.0 18];
 winLim = [9 17.3];
 %
