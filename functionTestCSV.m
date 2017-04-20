@@ -1,6 +1,6 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-datach = csvread('EEGSensorData_2017.04.03_21.38.59_part1.csv');
+datach = csvread('EEGSensorData_2017.04.11_16.42.13_part1.csv');
 removeStart = 0;
 removeEnd   = 0;
 ch1 = datach(1+removeStart:end-removeEnd,1);
@@ -14,19 +14,20 @@ filtch = zeros(size(datach,1),size(datach,2));
 hannWin = hann(4096); 
 wlen = 1024; h=64; nfft = 4096;
 K = sum(hamming(wlen, 'periodic'))/wlen;
-figure(1);hold on;%FFT
+figure(1);plot(datach);
+figure(2);hold on;%FFT
 for i = 1:4
     filtch(:,i) = eegcfilt(datach(:,i)); plot(filtch(:,i));
 %     [f, P1] = get_fft_data(filtch(:,i),Fs);
 %     plot(f,P1),xlim(winLim);
 end
-figure(2);hold on;%PSD
-for i = 1:4
+figure(3);hold on;%PSD
+for i = 1:1
     [S1,wfreqs] = welch_psd(filtch(:,i), 250, hannWin); 
     plot(wfreqs, S1),xlim(winLim);
 end   
-fH = figure(3);hold on; set(fH, 'Position', [-2560, 0, 1600, 900]);%Spect
-for i = 1:4
+fH = figure(4);hold on; set(fH, 'Position', [-2560, 0, 1600, 900]);%Spect
+for i = 1:1
     subplot(2,2,i);
     [S1, f1, t1] = stft( filtch(:,i), wlen, h, nfft, Fs ); S2 = 20*log10(abs(S1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
     imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),S2);set(gca,'YDir','normal');xlabel('Time, s');ylabel('Frequency, Hz');colormap(jet)
