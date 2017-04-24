@@ -5,10 +5,10 @@ THRESHOLD1 = 2.85E-4;
 THRESHOLD2 = 3.6E-3;
 T_average_peak_distance = 0;
 % figure(20);hold on; plot(samplesX);
-% waveletCoef = cwt(samplesX,1:20,'haar');
-waveletCoef = cwt_haar(samplesX);
-Scalogram = abs(waveletCoef.*waveletCoef);
-E = sum(Scalogram(:)); %Energy Level.
+% waveletCoef0 = cwt(samplesX,1:20,'haar');
+% waveletCoef = cwt_haar(samplesX);
+% Scalogram = abs(waveletCoef.*waveletCoef);
+% E = sum(Scalogram(:)); %Energy Level.
 IntegralEst = trapz(samplesX);
 [Max,Imax] = findpeaks(diff(samplesX), 'SORTSTR','descend','NPEAKS',1);
 [Min,Imin] = findpeaks(-diff(samplesX),'SORTSTR','descend','NPEAKS',1);
