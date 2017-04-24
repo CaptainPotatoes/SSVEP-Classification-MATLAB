@@ -11,44 +11,49 @@ ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
 % load('mssvep_10_2.mat');
 % load('mssvep_12.5_1.mat')
 % load('mssvep_t1_baseline');
-load('mssvep_t2_16_1.mat');
-
+% load('mssvep_t2_16_1.mat');
+load('Dad_X1_6Hz.mat');
 %--- LOAD CLASS ---%
-CLASS = 16;
-%---
+%    CLASS = 16;   %
+%--- ---------- ---%
 remove = 0; % Remove final second of data.
 removeFromStart = 0;
 
 Fs = SamplingRate;
 %Import as variables and scale all to one:
-ch1 = Trial{1}(1+removeFromStart:end-remove,1);
-ch2 = Trial{2}(1+removeFromStart:end-remove,1);
-ch3 = Trial{3}(1+removeFromStart:end-remove,1);
-ln = min([length(ch1) length(ch2) length(ch3)]);
-
+% ch1 = Trial{1}(1+removeFromStart:end-remove,1);
+ch1 = Trial{1}(1:1251);
+if(length(Trial)>1) 
+    ch2 = Trial{2}(1+removeFromStart:end-remove,1);
+%     ch3 = Trial{3}(1+removeFromStart:end-remove,1);
+    ln = min([length(ch1) length(ch2) ]);
+else 
+    ln = length(ch1);
+end
 ch1 = ch1(1:ln);
 ch2 = ch2(1:ln);
-ch3 = ch3(1:ln);
-
+% ch3 = ch3(1:ln);
+remove = 250;
+% ch1 = ch1(5000:end-remove,1);
 if size(Trial,2) > 3
-    ch4 = Trial{4}(1:end-remove,1);
+%     ch4 = Trial{4}(1:end-remove,1);
 end
 
 seconds = length(ch1)/Fs
-flim   = [8.0 18];
-winLim = [9 17.3];
+flim   = [11 18];
+winLim = [10 17.3];
 %
 N = 5;
     %Filter & Scale everything to '1'
 ch1_f = scaleAbs(customFilt(ch1, Fs, flim, N));
 ch2_f = scaleAbs(customFilt(ch2, Fs, flim, N));
-ch3_f = scaleAbs(customFilt(ch3, Fs, flim, N));
+% ch3_f = scaleAbs(customFilt(ch3, Fs, flim, N));
 if size(Trial,2) > 3
     ch4_f = scaleAbs(customFilt(ch4, Fs, flim, N));
 end
 [f,  P1]  = get_fft_data(ch1_f, Fs);
 [~, P2] = get_fft_data(ch2_f, Fs);
-[~, P3] = get_fft_data(ch3_f, Fs);
+% [~, P3] = get_fft_data(ch3_f, Fs);
 if size(Trial,2) > 3
     [f4, P4] = get_fft_data(ch4_f, Fs);
 end
@@ -58,7 +63,7 @@ end
 hold on;
 plot(f,  P1,'color','m'),xlim([1 35]);
 plot(f, P2,'color','c'),xlim([1 35]);
-plot(f, P3,'color','r'),xlim([1 35]);
+% plot(f, P3,'color','r'),xlim([1 35]);
 if size(Trial,2) > 3
     plot(f4, P4,'color','b'),xlim([1 35]);
 end
@@ -67,21 +72,21 @@ title('FFT(Ch1-4)');
 ylabel('|P1(f)|');
 xlabel('f (Hz)');
     subplot(2,2,2)
-    plot(f,(P1+P2+P3)),xlim([1 35]);
+%     plot(f,(P1+P2+P3)),xlim([1 35]);
 subplot(2,2,3);
 % wind = [1024 512 256 128];
 hannWin = hann(1024);
 [S1,wfreqs] = welch_psd(ch1_f, 250, hannWin); 
 [S2,~    ] = welch_psd(ch2_f, 250, hannWin);
-[S3,~    ] = welch_psd(ch3_f, 250, hannWin);
+% [S3,~    ] = welch_psd(ch3_f, 250, hannWin);
 hold on;
 plot(wfreqs, S1),xlim([1 35]);
 plot(wfreqs, S2),xlim([1 35]);
-plot(wfreqs, S3),xlim([1 35]);
+% plot(wfreqs, S3),xlim([1 35]);
 hold off;
 
-subplot(2,2,4)
-plot(wfreqs, (S1+S2+S3)),xlim([1 35]);
+% subplot(2,2,4)
+% plot(wfreqs, (S1+S2+S3)),xlim([1 35]);
 
 showSpect = 1;  
 %%     TODO: PLOT SPECTROGRAMS USING TWO METHODS, AND COMPARE.
@@ -99,39 +104,39 @@ if showSpect == 1
     ylabel(cb, 'Power (db)')
     colormap(jet)
     title('Channel 1', 'FontSize', 14)
-        subplot(2,2,2)
-    [~, Fspect, T, P2] = spectrogram(ch2_f, 5*Fs,4*Fs,10*Fs,Fs);
-    imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P2(Fspect<winLim(2) & Fspect>winLim(1),:)));
-    set(gca,'YDir','normal')
-    ylabel('Frequency (Hz)')
-    xlabel('Time (s)')
-    cb = colorbar;
-    ylabel(cb, 'Power (db)')
-    colormap(jet)
-    title('Channel 2', 'FontSize', 14)
-        subplot(2,2,3)
-    [~, Fspect, T, P3] = spectrogram(ch3_f, 5*Fs,4*Fs,10*Fs,Fs);
-    imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P3(Fspect<winLim(2) & Fspect>winLim(1),:)));
-    set(gca,'YDir','normal')
-    ylabel('Frequency (Hz)')
-    xlabel('Time (s)')
-    cb = colorbar;
-    ylabel(cb, 'Power (db)')
-    colormap(jet)
-    title('Channel 3', 'FontSize', 14)
-        subplot(2,2,4)
-        P1_3combined =  10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:))+10*log10(P2(Fspect<winLim(2) & Fspect>winLim(1),:))...
-            +10*log10(P3(Fspect<winLim(2) & Fspect>winLim(1),:));
-    imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)),P1_3combined);
-    set(gca,'YDir','normal')
-    ylabel('Frequency (Hz)')
-    xlabel('Time (s)')
-    cb = colorbar;
-    ylabel(cb, 'Power (db)')
-    colormap(jet)
-    title('Channel Sum(1-3)', 'FontSize', 14)
+%         subplot(2,2,2)
+%     [~, Fspect, T, P2] = spectrogram(ch2_f, 5*Fs,4*Fs,10*Fs,Fs);
+%     imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P2(Fspect<winLim(2) & Fspect>winLim(1),:)));
+%     set(gca,'YDir','normal')
+%     ylabel('Frequency (Hz)')
+%     xlabel('Time (s)')
+%     cb = colorbar;
+%     ylabel(cb, 'Power (db)')
+%     colormap(jet)
+%     title('Channel 2', 'FontSize', 14)
+%         subplot(2,2,3)
+%     [~, Fspect, T, P3] = spectrogram(ch3_f, 5*Fs,4*Fs,10*Fs,Fs);
+%     imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)), 10*log10(P3(Fspect<winLim(2) & Fspect>winLim(1),:)));
+%     set(gca,'YDir','normal')
+%     ylabel('Frequency (Hz)')
+%     xlabel('Time (s)')
+%     cb = colorbar;
+%     ylabel(cb, 'Power (db)')
+%     colormap(jet)
+%     title('Channel 3', 'FontSize', 14)
+%         subplot(2,2,4)
+%         P1_3combined =  10*log10(P(Fspect<winLim(2) & Fspect>winLim(1),:))+10*log10(P2(Fspect<winLim(2) & Fspect>winLim(1),:))...
+%             +10*log10(P3(Fspect<winLim(2) & Fspect>winLim(1),:));
+%     imagesc(T, Fspect(Fspect<winLim(2) & Fspect>winLim(1)),P1_3combined);
+%     set(gca,'YDir','normal')
+%     ylabel('Frequency (Hz)')
+%     xlabel('Time (s)')
+%     cb = colorbar;
+%     ylabel(cb, 'Power (db)')
+%     colormap(jet)
+%     title('Channel Sum(1-3)', 'FontSize', 14)
 end   
-
+%% 
 f3 = figure(3);
 set(f3, 'Position', [100, 100, 1200, 675]);
 % wlen = 2^nextpow2(Fs);

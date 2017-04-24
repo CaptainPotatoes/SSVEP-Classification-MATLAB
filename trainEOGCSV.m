@@ -1,23 +1,48 @@
 %% Shifting Window Method
 clear;clc;close all;
-% DATA = csvread('MarcTest4.csv');
-DATA = csvread('FadiTest1.csv');
+% DATA = csvread('MarcTest0.csv');
+DATA = csvread('MarcDiff2ch_T1.csv');
+% DATA2 = csvread('MarcDiff2ch_T2.csv');
+% DATA3 = csvread('MarcDiff2ch_T3.csv');
+% DATA4 = csvread('MarcDiff2ch_T4.csv');
+% DATA5 = csvread('MarcDiff2ch_T5.csv');
+% DATA = [DATA1;DATA2;DATA3;DATA4;DATA5];
 rFB = 0; % Remove From Beginning
 rFE = 0; % Remove From End
-for i = 1:3
+numCh = 2;
+for i = 1:numCh
     ch(:,i) = DATA(1+rFB:end-rFE,i);
 end
-dataTags = DATA(1+rFB:end-rFE,4);
+THRESHOLD1 = 2.85E-4;
+THRESHOLD2 = 3.6E-3;
+THRESHOLD3 = -0.5E-3;
+dataTags = DATA(1+rFB:end-rFE,3);
 recordingLengthSeconds = length(ch(:,1))/250;
 fprintf('Recording Length: %2.2f seconds \n',recordingLengthSeconds);
 Fs = 250;
 h=1/250;
-t=0:h:length(ch)/250-h;
-for i = 1:3
-    chf(:,i) = eog_h_fcn(ch(:,i),250);
-    cutoff(:,i) = abs(diff(customFilt(ch(:,i),Fs,[0.001 25],2)).^2);
+for i = 1:numCh
+    chf(:,i) = customFilt(ch(:,i),Fs,[1 10],2);
+%     cutoff(:,i) = abs(diff(customFilt(ch(:,i),Fs,[0.2 15],2)).^2);
+    cutoff(:,i) = diff(chf(:,i));
 end
-f1 = figure(1); set(f1, 'Position', [100, 100, 1600, 900]); hold on; 
+f1 = figure(1); set(f1, 'Position', [100, 100, 1600, 900]); hold on;
+title('EOG Signal Amplitude');
+xlabel('Time (s)'); 
+ylabel('EOG Signal Amplitude (mV)');
+s = length(ch)/250;
+h=1/250;
+t=0:h:(s-h);
+plot(t,chf),xlim([0,max(t)]);hold on;legend('EOG Channel 1','EOG Channel 2')
+rl1 = refline(0,THRESHOLD1); rl1.Color = 'r';
+rl2 = refline(0,THRESHOLD2); rl2.Color = 'm';
+rl3 = refline(0,THRESHOLD3); rl3.Color = 'c';
+for i=2:length(chf)
+    if (dataTags(i) ~= dataTags(i-1)) %Signal Change
+        text( t(i), chf(i,1), num2str(dataTags(i)) );
+    end
+end
+f2 = figure(2); set(f2, 'Position', [2600, 100, 1600, 900]); hold on; 
 plot(cutoff);
 for i=2:length(chf)
     if (dataTags(i) ~= dataTags(i-1)) %Signal Change
@@ -34,19 +59,16 @@ winFraction = 4; %2.5; %1/4 of a second
 winShift = floor( Fs/winFraction ); 
 dataLimit = floor( (length(ch)-winLen)/winLen );
 start = 1;
-numCh = 3;
 Window = cell( seconds*winFraction*dataLimit - 1, numCh );
 WindowTags = cell( 1,1 ); 
 assignedClass = zeros( seconds*winFraction*dataLimit - 1, 1 );
 figNum = 2;
 fH = figure(figNum); 
-set(fH, 'Position', [100, 100, 1600, 900]);
+set(fH, 'Position', [100, 100, 1200, 600]);
 fH2 = figure(3);
-set(fH2, 'Position', [2600, 100, 1600, 900]);
+set(fH2, 'Position', [1940, 100, 900, 600]);
 YLIM = [-0.005, 0.01];
 iterations = seconds*winFraction*dataLimit;
-absDiffThresholdSmall = 2.75E-9;
-absDiffThresholdLarge = 1.25E-8;
 fprintf('Iterations: %2.2f \r\n',iterations);
 chf = zeros(Fs,3);
 adchf = zeros(Fs-1,3);
@@ -56,96 +78,101 @@ for i = 1 : iterations
     start = 1 + winShift*(i-1);
     winEnd = start + winLen-1;
     fprintf('Current index = [%d to %d]\r\n',start, winEnd);
-    for c = 1:3
+    for c = 1:numCh
         Window{i,c} = ch(start : start + winLen-1,c);
-        chf(:,c) = customFilt(Window{i,c},Fs,[0.001 10],2);
+        chf(:,c) = customFilt(Window{i,c},Fs,[1 10],2);
         adchf(:,c) = abs(diff(chf(:,c))).^2;
     end
     WindowTags{i} = dataTags( start : start + winLen-1 );
     
-    %%%%% TODO: CHANGE FILTER:
-    
-%     figure(2); hold on;
-%         title('Filtered EOG Data');
-%         plot(chf); hold off;
-%     figure(3);hold on; 
-%         plot(adchf); title('ABS(DIFF(filteredData))');hold off;
-    
-    thresholdCheck = find(max(adchf)>absDiffThresholdSmall);
-    thresholdCheck2 = find(max(adchf)>absDiffThresholdLarge);
-    %{
+    figure(2); hold on;
+        title('Filtered EOG Data');
+        plot(chf); hold off;
+    figure(3);hold on; 
+        plot(adchf); hold off;
+    %%If surpasses threshold THEN classify and store data.
+    thresholdCheck = find(max(chf)>THRESHOLD1);
+    thresholdCheck2 = find(max(chf)>THRESHOLD2);
+    getClass = [];
     if ~isempty(thresholdCheck) && isempty(thresholdCheck2)
         tagsPresent = unique(WindowTags{i},'stable')
-        %%% TODO: If surpasses threshold THEN classify and store data.
-%         getClass = [];
-%         while isempty(getClass)
-%             commandwindow;
-%             getClass = input('Enter an integer value!\n');
-%             if isempty(getClass)
-%                 getClass = 0; 
-%             end
+        getClass = mode(WindowTags{i})
+        if (getClass~=0 && getClass~=1 && getClass~=2)
+            tYA(cnt,1) = getClass;
+            F_ch1(cnt,:) = featureExtractionEOG2( chf(:,1)' );%%%% TODO: Make separate EOG Classifier/Feature Extraction. 
+            F_ch2(cnt,:) = featureExtractionEOG2( chf(:,2)' );
+            cnt = cnt + 1;
+        end
+    end
+%     if ~isempty(thresholdCheck2)
+%         tagsPresent = unique(WindowTags{i},'stable')
+%         getClass = mode(WindowTags{i}); 
+%         if(getClass==1 || getClass==2)
+%             tYA(cnt,1) = getClass;
+%             %%%% TODO: Make separate EOG Classifier/Feature Extraction. 
+%             F_ch1(cnt,:) = featureExtractionEOG( chf(:,1)' );
+%             F_ch2(cnt,:) = featureExtractionEOG( chf(:,2)' );
+%             cnt = cnt + 1;
 %         end
-        getClass = mode(WindowTags{i}); 
-        if(getClass~=0 && getClass~=1 && getClass~=2)
-            tY(cnt,1) = getClass;
-            %%%% TODO: Make separate EOG Classifier/Feature Extraction. 
-            F_ch1(cnt,:) = featureExtractionEOG( chf(:,1)' );
-            F_ch2(cnt,:) = featureExtractionEOG( chf(:,2)' );
-            F_ch3(cnt,:) = featureExtractionEOG( chf(:,3)' );
-            cnt = cnt + 1;
+%     end
+%{  
+    if ~isempty(thresholdCheck) && isempty(thresholdCheck2)
+        while isempty(getClass)
+            commandwindow;
+            gC = mode(WindowTags{i})
+            getClass = input('Enter an integer value!\n');
+            if isempty(getClass)
+                getClass = mode(WindowTags{i});
+                %if(getClass~=0 && getClass~=1 && getClass~=2)
+                if (getClass~=0)
+                    tagsPresent = unique(WindowTags{i},'stable')
+                    tYA(cnt,1) = getClass;
+                    F_ch1(cnt,:) = featureExtractionEOG2( chf(:,1)' );%%%% TODO: Make separate EOG Classifier/Feature Extraction. 
+                    F_ch2(cnt,:) = featureExtractionEOG2( chf(:,2)' );
+                    cnt = cnt + 1;
+                end
+                getClass = [];
+            else
+                break;
+            end
         end
     end
-    %}
-    if ~isempty(thresholdCheck2)
-        tagsPresent = unique(WindowTags{i},'stable')
-        getClass = mode(WindowTags{i}); 
-        if(getClass==1 || getClass==2)
-            tY(cnt,1) = getClass;
-            %%%% TODO: Make separate EOG Classifier/Feature Extraction. 
-            F_ch1(cnt,:) = featureExtractionEOG( chf(:,1)' );
-            F_ch2(cnt,:) = featureExtractionEOG( chf(:,2)' );
-            F_ch3(cnt,:) = featureExtractionEOG( chf(:,3)' );
-            cnt = cnt + 1;
-        end
-    end
+%}
+
     clf(figNum);
     clf(3);
 end
 
 %horzcat: 36 features (12/ch)
-tX = [F_ch1 F_ch2 F_ch3];
+tXA = [F_ch1 F_ch2];
 
-clearvars -except tX tY
-
+clearvars -except tXA tYA
 %% % % % TRAIN CLASSIFIER, KNN :: filename('knnclassification')
-% % % % % Combine
-load('fadi_eyemove_tD1.mat');
-load('fadi_eyemove_tD2.mat');
-load('fadi_eyemove_tD3.mat');
-load('fadi_eyemove_tD4.mat');
-load('fadi_eyemove_tD5.mat');
-tXtY5 = [tX5 tY5];
-tXtY4 = [tX4 tY4];
-tXtY3 = [tX3 tY3];
-tXtY2 = [tX2 tY2];
-tXtY1 = [tX tY];
-tXtY = [tXtY1;tXtY2;tXtY3;tXtY4;tXtY5];
-clearvars -except tXtY
-%{
-load('fadi_blink_1.mat');
-load('fadi_blink_2.mat');
-load('fadi_blink_3.mat');
-load('fadi_blink_4.mat');
-load('fadi_blink_5.mat');
-
-tXtY5 = [tX5 tY5];
-tXtY4 = [tX4 tY4];
-tXtY3 = [tX3 tY3];
-tXtY2 = [tX2 tY2];
-tXtY1 = [tX tY];
-tXtY = [tXtY1;tXtY2;tXtY3;tXtY4;tXtY5];
+% % % % % Combine %{
+tX = [];
+tY = [];
+if exist('marc_eyemove_tD2.mat','file')==2
+    load('marc_eyemove_tD2');
+end
+tX = [tX;tXA];
+tY = [tY;tYA];
+AAA = [tX,tY];
+save('marc_eyemove_tD2','tX','tY','AAA');
 %}
+%% PLOT:
+numberfeatures=13;
+for i=1:numberfeatures
+    figure(i); hold on;
+    plot(tX(:,i));
+    plot(tX(:,i+13));
+end
 
+%% Load Training data for Classification Learner: 
+%{
+clear;clc;close all;
+load('marc_eyemove_tD.mat');
+tXtY = [tX tY];
+%}
 %         switch (dataTags(i))
 %             case 0
 %                 tag = 'null';
