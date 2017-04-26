@@ -3,9 +3,10 @@ function [ Y ] = customFilt( X,Fs,f,N )
 if ~isvector(X)
   error('must be a row or column vector');
 end
+coder.varsize('a','b');
 X = X(:); %vectorize
 Wn=[f(1) f(2)]*2/Fs; % cut off based on Fs
-[a,b] = butter(N,Wn);
-Y = filtfilt(a,b,X);
+[b,a] = butter(N,Wn);
+Y = filtfilt(b,a,X);
 end
 

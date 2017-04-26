@@ -1,8 +1,16 @@
 clear;clc;close all;
 %      %%%%% FILE SELECTION %%%%%
 % DATA = csvread('MarcDiff2ch_T5.csv');
-DATA = csvread('Marc_Large_EyeMove_T4.csv');
+% DATA = csvread('Marc_Baseline_B_DB.csv');
+% DATA = csvread('Marc_Trial_New_largeGap_T3.csv');
+DATA = csvread('Marc_Trial_New_Blink2.csv');
         %%%%% - DATA SELECTION - %%%%%
+%%%%%%-- THRESHOLDS --%%%%%%
+    %%%_- FOR DIFF(FILT(CH))
+UTH1 = 0.4E-4;
+UTH2 = 3.25E-4;% UTH2 = 2.75E-4;
+LTH1 = -0.5E-4;
+LTH2 = -2.75E-4; %TODO: Change to lower number
 rFB = 0; % Remove From Beginning
 rFE = 0; % Remove From End
 numCh = 2;
@@ -27,12 +35,11 @@ for i = 1:numCh
 end
 %%%% PLOT FILTERED TIME SIGNAL %%%%
 f1 = figure(1); set(f1, 'Position', [100, 100, 1600, 900]); hold on;
-title('EOG Signal Amplitude');
+title('EOG Signal Amplitude');%
 xlabel('Time (s)'); 
 ylabel('EOG Signal Amplitude (mV)');
 
 plot(t,filtch),xlim([0,max(t)]);hold on;legend('EOG Channel 1','EOG Channel 2')
-% rl1 = refline(0,TH1); rl1.Color = 'r'; % rl2 = refline(0,TH2); rl2.Color = 'm'; % rl3 = refline(0,TH3); rl3.Color = 'c';
 for i=2:length(filtch)
     if (dataTags(i) ~= dataTags(i-1)) %Signal Change
         text( t(i), filtch(i,1), num2str(dataTags(i)) );
@@ -41,8 +48,10 @@ end
 %%%% PLOT DIFFERENTIAL TIME SIGNAL %%%
 f2 = figure(2); set(f2, 'Position', [2600, 100, 1600, 900]); hold on; 
 plot(diffchf);
-rl4 = refline(0,DIFF_UPTH1); rl4.Color = 'r';
-rl5 = refline(0,DIFF_LOTH1); rl5.Color = 'r';
+rl1 = refline(0,LTH1); rl1.Color = 'r'; 
+rl2 = refline(0,UTH1); rl2.Color = 'r';
+rl3 = refline(0,LTH2); rl3.Color = 'm';
+rl4 = refline(0,UTH2); rl4.Color = 'm';
 for i=2:length(filtch)
     if (dataTags(i) ~= dataTags(i-1)) %Signal Change
         text( i, diffchf(i,1), num2str(dataTags(i)) );
@@ -72,12 +81,7 @@ chf = zeros(seconds*Fs,numCh);
 selCh = chf;
 dchf = zeros(seconds*Fs-1,numCh);
 cnt = 1;
-%%%%%%-- THRESHOLDS --%%%%%%
-    %%%_- FOR DIFF(FILT(CH))
-UTH1 = 0.4E-4;
-UTH2 = 2.75E-4;
-LTH1 = -0.5E-4;
-LTH2 = -2.75E-4;
+
 for i = 1 : iterations
     start = 1 + winShift*(i-1);
     winEnd = start + winLen-1;
@@ -88,16 +92,44 @@ for i = 1 : iterations
         dchf(:,c) = diff(chf(:,c)); % abs(diff(chf(:,c))).^2;
     end
     WindowTags{i} = dataTags(winEnd-249:winEnd);%WindowTags{i} = dataTags( start : start + winLen-1 );
-    figure(figNumA); hold on; title('Filtered EOG Data'); plot(chf(end-249:end,:)); hold off;
+%     figure(figNumA); hold on; title('Filtered EOG Data'); plot(chf(end-249:end,:)); hold off;
     figure(figNumB);hold on; title('Diff(Filtered EOG Data)'); plot(dchf(end-249:end,:)); 
     refline(0,UTH1); refline(0,UTH2); refline(0,LTH1); refline(0,LTH2); 
-%     refline(0,DIFF_UPTH1); refline(0,DIFF_LOTH1); hold off; 
-    %%TODO; Check threshold in last quartile.
     thresholdCheck = find(max(dchf(end-249:end,:))>UTH1);
     thresholdCheck2 = find(max(dchf(end-249:end,:))>UTH2);
-    F3(cnt,:) = featureExtractionEOG3( dchf(end-249:end,1), LTH1, LTH2, UTH1, UTH2 );
-    F4(cnt,:) = featureExtractionEOG3( dchf(end-249:end,2), LTH1, LTH2, UTH1, UTH2 );
+    % Feature Extraction For Eye Movement
+%     F1(cnt,:) = featureExtractionEOG3( dchf(end-249:end,1), LTH1, LTH2, UTH1, UTH2, true );
+%     F2(cnt,:) = featureExtractionEOG3( dchf(end-249:end,2), LTH1, LTH2, UTH1, UTH2, true );
+    % Feature Extraction For Eye Blinking
+    F1(cnt,:) = featureExtractionEOG2( dchf(end-249:end,1), LTH1, LTH2, UTH1, UTH2, true );
+    F2(cnt,:) = featureExtractionEOG2( dchf(end-249:end,2), LTH1, LTH2, UTH1, UTH2, true );
     getClass = [];
+    % BLINK/DB CLASSES     %{
+    if ~isempty(thresholdCheck) && ~isempty(thresholdCheck2)
+        tagsPresent = unique(WindowTags{i},'stable')
+        getClass = mode(WindowTags{i})
+        commandwindow; getInput = input('Enter an integer value!\n'); % Approve/Disapprove?
+        if isempty(getInput)
+            if (getClass==1 || getClass==2)
+                tYA(cnt,1) = getClass;
+                cnt = cnt + 1;
+            end
+        end
+    end
+    %}
+    % NULL CLASS
+    %{
+    if isempty(thresholdCheck) && isempty(thresholdCheck2)
+        tagsPresent = unique(WindowTags{i},'stable')
+        getClass = mode(WindowTags{i})
+        if (getClass==0)
+            tYA(cnt,1) = getClass;
+            cnt = cnt + 1;
+        end
+    end
+    %}
+    % DIRECTION CLASSES     
+    %{
     if ~isempty(thresholdCheck) && isempty(thresholdCheck2)
         tagsPresent = unique(WindowTags{i},'stable')
         getClass = mode(WindowTags{i})
@@ -105,26 +137,23 @@ for i = 1 : iterations
         if isempty(getInput)
             if (getClass~=0 && getClass~=1 && getClass~=2)
                 tYA(cnt,1) = getClass;
-%                 F1(cnt,:) = featureExtractionEOG2( chf(end-249:end,1)' );
-%                 F2(cnt,:) = featureExtractionEOG2( chf(end-249:end,2)' );
-%                 F3(cnt,:) = featureExtractionEOG3( dchf(end-249:end,1), LTH1, LTH2, UTH1, UTH2 );
-%                 F4(cnt,:) = featureExtractionEOG3( dchf(end-249:end,2), LTH1, LTH2, UTH1, UTH2 );
                 cnt = cnt + 1;
             end
         end
     end
+    %}
 %{  
-%     if ~isempty(thresholdCheck2)
-%         tagsPresent = unique(WindowTags{i},'stable')
-%         getClass = mode(WindowTags{i}); 
-%         if(getClass==1 || getClass==2)
-%             tYA(cnt,1) = getClass;
-%             %%%% TODO: Make separate EOG Classifier/Feature Extraction. 
-%             F_ch1(cnt,:) = featureExtractionEOG( chf(:,1)' );
-%             F_ch2(cnt,:) = featureExtractionEOG( chf(:,2)' );
-%             cnt = cnt + 1;
-%         end
-%     end
+    if ~isempty(thresholdCheck2)
+        tagsPresent = unique(WindowTags{i},'stable')
+        getClass = mode(WindowTags{i}); 
+        if(getClass==1 || getClass==2)
+            tYA(cnt,1) = getClass;
+            %%%% TODO: Make separate EOG Classifier/Feature Extraction. 
+            F_ch1(cnt,:) = featureExtractionEOG( chf(:,1)' );
+            F_ch2(cnt,:) = featureExtractionEOG( chf(:,2)' );
+            cnt = cnt + 1;
+        end
+    end
     if ~isempty(thresholdCheck) && isempty(thresholdCheck2)
         while isempty(getClass)
             commandwindow;
@@ -150,16 +179,14 @@ for i = 1 : iterations
     clf(figNumA);
     clf(figNumB);
 end
-
-%horzcat: 36 features (12/ch)
-% tXA = [F_ch1 F_ch2];
-tX0 = [F3 F4]; %F1 F2 
+tX0 = [F1 F2]; %F1 F2 
 tXA = tX0(1:length(tYA),:);
 clearvars -except tXA tYA
+AAA=[tXA tYA];
 %% % % % TRAIN CLASSIFIER, KNN :: filename('knnclassification')
 % % % % % Combine 
 %{
-filename = 'marc_eyemove_tD2.mat';
+filename = 'marc_eyemove_tDB1.mat';
 tX = [];
 tY = [];
 if exist(filename ,'file')==2

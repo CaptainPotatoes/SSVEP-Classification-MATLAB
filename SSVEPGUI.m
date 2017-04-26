@@ -51,10 +51,8 @@ function SSVEPGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % global countFar countMiddle countClose
 % Choose default command line output for SSVEPGUI
 handles.output = hObject;
-global trainingData
-trainingData = cell(1,2);
-trainingData{1} = [0,0];
-trainingData{2} = [0,0];
+% global trainingData
+% trainingData = cell(1,1);
 % Update handles structure
 guidata(hObject, handles);
 
@@ -132,7 +130,8 @@ function togglebutton2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global myDevice Idx 
-global trainingData totalCount which_pc OUTPUT
+clear trainingData
+global totalCount which_pc OUTPUT
 
 totalCount = cell(2);
 totalCount{1} = 0;
@@ -311,7 +310,7 @@ while get(hObject,'Value') == 1
                 eog_data_1 = eog_h_fcn(fp1_data_unfilt, Fs);
                 plot(axis_handles(9),t{ch},eog_data_1);
                 set(handles.(['axes',num2str(9)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
-                set(handles.(['axes',num2str(9)]),'YLim',[-4E-4 4E-4]);
+                set(handles.(['axes',num2str(9)]),'YLim',[-2.5E-4 2.5E-4]);
                 set(get(handles.(['axes',num2str(9)]), 'XLabel'), 'String', 'Time (s)')
                 set(get(handles.(['axes',num2str(9)]), 'YLabel'), 'String',  'mV')
                 set(get(handles.(['axes',num2str(9)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
@@ -351,7 +350,7 @@ while get(hObject,'Value') == 1
                 eog_data_1 = eog_h_fcn(fp2_data_unfilt, Fs);
                 plot(axis_handles(10),t{ch},eog_data_1);
                 set(handles.(['axes',num2str(10)]),'XLim',[t{1}(end)-plotWindow t{1}(end)]);
-                set(handles.(['axes',num2str(10)]),'YLim',[-4E-4 4E-4]);
+                set(handles.(['axes',num2str(10)]),'YLim',[-2.5E-4 2.5E-4]);
                 set(get(handles.(['axes',num2str(10)]), 'XLabel'), 'String', 'Time (s)')
                 set(get(handles.(['axes',num2str(10)]), 'YLabel'), 'String',  'mV')
                 set(get(handles.(['axes',num2str(10)]), 'Title'), 'String', ['EOG Filter Ch' num2str(ch)])
@@ -409,6 +408,7 @@ while get(hObject,'Value') == 1
             %CLASSIFY EOG DATA:
                %take each ch unfilt (5s) & cut into 5 pieces, & pass
                %thru fullHybridClassifier: Put in columns:
+               %{
             for i = 1:numEnabledBPChannels
                 W_EOG(i,:) = BioPotentialSignals{i}(end-249:end); %last second of data; always
                 b1(i) = length(BioPotentialSignals{i}) > cIdx{i}+wait; % has 1 second passed?
@@ -478,6 +478,7 @@ while get(hObject,'Value') == 1
                     wait = WAITDEFAULT;
                 end
             end
+               %}
             %{
             YEOG{1} = fullHybridClassifier(W_EOG(1,:), W_EOG(2,:), W_EOG(3,:), W_EOG(4,:), Fs, true);
             if (YEOG{1}(1) == 1)%Double Blink Detected: Reset Command (Stop and reset):
@@ -553,8 +554,7 @@ while get(hObject,'Value') == 1
 end     %/while connected==1
 
 if get(hObject,'Value') == 0
-    myDevice.StopAcquisition;
-    
+    myDevice.StopAcquisition;  
     Trial = cell(1,numEnabledBPChannels);
     for i=1:numEnabledBPChannels
         Trial{1,i} = BioPotentialSignals{i};
@@ -581,6 +581,8 @@ if get(hObject,'Value') == 0
     RecordingNotes{length(H_Notes)+1,2} = num2str(SamplingRate);
     assignin('base','RecordingNotes',RecordingNotes);
     assignin('base','OUTPUT',OP_1);
+    tD = trainingData;
+    assignin('base','tD',tD);
     %% Auto-save variables
     filename = get(handles.edit2,'String');
     if isempty(filename)
@@ -605,7 +607,7 @@ if doubleBlinkCount==1
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = doubleBlinkIdx; %index
-    trainingData{1}(totalCount{1},2) = 1; %class
+    trainingData{1}(totalCount{1},2) = 2; %class
     
     assignin('base','tD',trainingData);
 else
@@ -615,8 +617,7 @@ else
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = doubleBlinkIdx; %index
-    trainingData{1}(totalCount{1},2) = 1; %class
-    
+    trainingData{1}(totalCount{1},2) = 2; %class
     assignin('base','tD',trainingData);
 end
 
@@ -635,9 +636,9 @@ if singleBlinkCount==1
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = singleBlinkIdx; %index
-    trainingData{1}(totalCount{1},2) = -1; %class
+    trainingData{1}(totalCount{1},2) = 1; %class
     
-    assignin('base','tD',trainingData);
+%     assignin('base','tD',trainingData);
 else
     singleBlinkIdx(1,1) = size(Idx{1,1},2)
     
@@ -645,9 +646,9 @@ else
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = singleBlinkIdx; %index
-    trainingData{1}(totalCount{1},2) = -1; %class
+    trainingData{1}(totalCount{1},2) = 1; %class
    
-    assignin('base','tD',trainingData);
+%     assignin('base','tD',trainingData);
 end
 
 % --- Executes on button press in pushbuttonUp.
@@ -665,8 +666,8 @@ if eyeMoveCount==1
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = eyeMoveUpIdx; %index
-    trainingData{1}(totalCount{1},2) = 2; %class
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{1},2) = 3; %class
+%     assignin('base','tD',trainingData);
 else
     eyeMoveUpIdx(1,1) = size(Idx{1,1},2)
     
@@ -674,9 +675,9 @@ else
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = eyeMoveUpIdx; %index
-    trainingData{1}(totalCount{1},2) = 2; %class
+    trainingData{1}(totalCount{1},2) = 3; %class
     
-    assignin('base','tD',trainingData);
+%     assignin('base','tD',trainingData);
 end
 
 % --- Executes on button press in pushbuttonDown.
@@ -694,8 +695,8 @@ if eyeMoveCount==1
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = eyeMoveDownIdx; %index
-    trainingData{1}(totalCount{1},2) = 3; %class
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{1},2) = 4; %class
+%     assignin('base','tD',trainingData);
 else
     eyeMoveDownIdx(1,1) = size(Idx{1,1},2)
     
@@ -703,9 +704,9 @@ else
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = eyeMoveDownIdx; %index
-    trainingData{1}(totalCount{1},2) = 3; %class
+    trainingData{1}(totalCount{1},2) = 4; %class
     
-    assignin('base','tD',trainingData);
+%     assignin('base','tD',trainingData);
 end
 
 % --- Executes on button press in pushbuttonLeft.
@@ -723,8 +724,8 @@ if eyeMoveCount==1
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = eyeMoveLeftIdx; %index
-    trainingData{1}(totalCount{1},2) = 4; %class
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{1},2) = 5; %class
+%     assignin('base','tD',trainingData);
 else
     eyeMoveLeftIdx(1,1) = size(Idx{1,1},2)
     
@@ -732,9 +733,9 @@ else
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = eyeMoveLeftIdx; %index
-    trainingData{1}(totalCount{1},2) = 4; %class
+    trainingData{1}(totalCount{1},2) = 5; %class
     
-    assignin('base','tD',trainingData);
+%     assignin('base','tD',trainingData);
 end
 
 % --- Executes on button press in pushbuttonRight.
@@ -752,8 +753,8 @@ if eyeMoveCount==1
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = eyeMoveRightIdx; %index
-    trainingData{1}(totalCount{1},2) = 5; %class
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{1},2) = 6; %class
+%     assignin('base','tD',trainingData);
 else
     eyeMoveRightIdx(1,1) = size(Idx{1,1},2)
     
@@ -761,9 +762,9 @@ else
     totalCount{1} = totalCount{1}+1;
     
     trainingData{1}(totalCount{1},1) = eyeMoveRightIdx; %index
-    trainingData{1}(totalCount{1},2) = 5; %class
+    trainingData{1}(totalCount{1},2) = 6; %class
     
-    assignin('base','tD',trainingData);
+%     assignin('base','tD',trainingData);
 end
 
 
@@ -779,17 +780,17 @@ if freqCount==1
     freqCount = freqCount+1;
     totalCount{2} = totalCount{2}+1;
     
-    trainingData{2}(totalCount{2},1) = freq10Idx;
-    trainingData{2}(totalCount{2},2) = 1; %class 
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{2},1) = freq10Idx;
+    trainingData{1}(totalCount{2},2) = 7; %class 
+%     assignin('base','tD',trainingData);
 else
     freq10Idx(1,1) = size(Idx{1,1},2)
     freqCount = freqCount+1;
     totalCount{2} = totalCount{2}+1;
     
-    trainingData{2}(totalCount{2},1) = freq10Idx;
-    trainingData{2}(totalCount{2},2) = 1; %class 
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{2},1) = freq10Idx;
+    trainingData{1}(totalCount{2},2) = 7; %class 
+%     assignin('base','tD',trainingData);
 end
 
 
@@ -805,17 +806,17 @@ if freqCount==1
     freqCount = freqCount+1;
     totalCount{2} = totalCount{2}+1;
     
-    trainingData{2}(totalCount{2},1) = freq12Idx;
-    trainingData{2}(totalCount{2},2) = 2; %class 
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{2},1) = freq12Idx;
+    trainingData{1}(totalCount{2},2) = 8; %class 
+%     assignin('base','tD',trainingData);
 else
     freq12Idx(1,1) = size(Idx{1,1},2)
     freqCount = freqCount+1;
     totalCount{2} = totalCount{2}+1;
     
-    trainingData{2}(totalCount{2},1) = freq12Idx;
-    trainingData{2}(totalCount{2},2) = 2; %class 
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{2},1) = freq12Idx;
+    trainingData{1}(totalCount{2},2) = 8; %class 
+%     assignin('base','tD',trainingData);
 end
 
 % --- Executes on button press in pushbutton13.
@@ -830,17 +831,17 @@ if freqCount==1
     freqCount = freqCount+1;
     totalCount{2} = totalCount{2}+1;
     
-    trainingData{2}(totalCount{2},1) = freq15Idx;
-    trainingData{2}(totalCount{2},2) = 3; %class 
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{2},1) = freq15Idx;
+    trainingData{1}(totalCount{2},2) = 9; %class 
+%     assignin('base','tD',trainingData);
 else
     freq15Idx(1,1) = size(Idx{1,1},2)
     freqCount = freqCount+1;
     totalCount{2} = totalCount{2}+1;
     
-    trainingData{2}(totalCount{2},1) = freq15Idx;
-    trainingData{2}(totalCount{2},2) = 3; %class 
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{2},1) = freq15Idx;
+    trainingData{1}(totalCount{2},2) = 9; %class 
+%     assignin('base','tD',trainingData);
 end
 % --- Executes on button press in pushbutton14.
 function pushbutton14_Callback(hObject, eventdata, handles)
@@ -855,17 +856,17 @@ if freqCount==1
     freqCount = freqCount+1;
     totalCount{2} = totalCount{2}+1;
     
-    trainingData{2}(totalCount{2},1) = freq16Idx;
-    trainingData{2}(totalCount{2},2) = 3; %class 
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{2},1) = freq16Idx;
+    trainingData{1}(totalCount{2},2) = 10; %class 
+%     assignin('base','tD',trainingData);
 else
     freq16Idx(1,1) = size(Idx{1,1},2)
     freqCount = freqCount+1;
     totalCount{2} = totalCount{2}+1;
     
-    trainingData{2}(totalCount{2},1) = freq16Idx;
-    trainingData{2}(totalCount{2},2) = 3; %class 
-    assignin('base','tD',trainingData);
+    trainingData{1}(totalCount{2},1) = freq16Idx;
+    trainingData{1}(totalCount{2},2) = 10; %class 
+%     assignin('base','tD',trainingData);
 end
 
 

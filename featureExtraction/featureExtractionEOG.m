@@ -33,11 +33,11 @@ else
     end
 end
 %%? Threshold Stuff:?
-% T_countmin_1 = sum(samplesX<-1*10^-5 & samplesX>(-1*10^-4),2);
-% T_countmin_2 = WCountMin(samplesX,-1*10^-4);
-% T_countmax = WCountMax(samplesX,8.5*10^-5);
+T_countmin_1 = sum(samplesX<-1*10^-5 & samplesX>(-1*10^-4),2);
+T_countmin_2 = WCountMin(samplesX,-1*10^-4);
+T_countmax = WCountMax(samplesX,8.5*10^-5);
 
-F = horzcat(E,IntegralEst, Velocity, Amplitude, Mean, T_stdv, T_max, T_min, T_Integrate, T_count_findpeaks, T_findpeaks_distX);
+F = horzcat(T_stdv, T_max, T_min, T_Integrate, T_count_findpeaks, T_findpeaks_distX);
 % hold off;
 end
 

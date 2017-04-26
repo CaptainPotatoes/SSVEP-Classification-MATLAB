@@ -1,5 +1,5 @@
 function [ Y ] = eog_knn( ch1, ch2, ch3 )
-%
+% FOR 3-CHANNEL SINGLE ENDED SETUP
 ch1 = ch1(:);
 ch2 = ch2(:);
 ch3 = ch3(:);

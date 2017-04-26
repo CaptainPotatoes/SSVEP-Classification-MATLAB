@@ -1,14 +1,17 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-datach = csvread('EEGSensorData_2017.04.11_16.42.13_part1.csv');
+datach = csvread('FadiTest1.csv');
 removeStart = 0;
 removeEnd   = 0;
-ch1 = datach(1+removeStart:end-removeEnd,1);
+ch1 = datach(:,1);
 ch2 = datach(:,2);
 ch3 = datach(:,3);
-ch4 = datach(:,4);
 Fs = 250;
-%%-Plot Analysis:
+% samplesX = ch1(end-249:end);
+% waveletCoef1 = cwt(samplesX,1:20,'haar');
+% waveletCoef2 = cwt_haar(samplesX);
+%%-Plot Analysis: 
+%{
 winLim = [6 24];
 filtch = zeros(size(datach,1),size(datach,2));
 hannWin = hann(4096); 
@@ -35,9 +38,22 @@ for i = 1:1
     ylabel(cb, 'Power (db)')
     title(['Ch' num2str(i)]);
 end
+%}
+%% Classification EOG;
+winSize = 250; %1s:
+c=1;
+for i = 1:250:length(ch1)-250
+    ch1_p = ch1(i:i+249);
+    ch2_p = ch2(i:i+249);
+    ch3_p = ch3(i:i+249);
+    Y(c) = eog_knn(ch1_p,ch2_p,ch3_p);
+    c=c+1;
+end
+
+
 %% Classification:
+%{
 range = 500:60:2500;
-% range = 380:60:2000;
 Window = cell(size(range,2),4);
 Y = cell(size(range,2),1);
 cont = [];
@@ -73,5 +89,5 @@ for i = 1:size(range,2)
         cont = input('Continue? \n');
     end
 end
-
+%}
 % % EOF
