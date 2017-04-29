@@ -7,7 +7,8 @@ function [ F ] = featureExtractionEOG2( X, LTH1, LTH2, UTH1, UTH2, plotData )
 % UTH1 = 0.4E-4;
 % UTH2 = 2.75E-4;
 % LTH1 = -0.5E-4;
-% LTH2 = -2.75E-4;
+% LTH2 = -2.75E-4; 
+%{
 [Fmax, Imax] = max(X);
 [Fmin, Imin] = min(X);
 Famplitude = Fmax-Fmin;
@@ -19,9 +20,11 @@ FcountMin = sum(X>LTH2 & X<LTH1); %Count between bottom two lines.
 FcountMax = sum(X>UTH1 & X<UTH2); 
 FcountMaxHigh = sum(X>UTH2);
 FcountMinLow = sum(X<LTH2);
+%}
 peaks = [];
 T_findpeaks_distX=[];
-[peaks, loc] = findpeaks(X, 'MinPeakHeight', UTH1);
+
+[peaks, loc] = findpeaks(X, 'MinPeakHeight', UTH2);
 if isempty(peaks)
     T_count_findpeaks = 0;
     T_findpeaks_distX = 0;
@@ -36,14 +39,12 @@ end
 if plotData
     figure(4);hold on;
     IDX = 1:250;
-%     plot(IDX(X>LTH2 & X<LTH1),X(X>LTH2 & X<LTH1),'k.');
-%     plot(IDX(X>UTH1 & X<UTH2),X(X>UTH1 & X<UTH2),'k^');
-    plot(IDX(X>UTH2),X(X>UTH2),'k.');
-    plot(IDX(X<LTH2),X(X<LTH2),'k^');
-    plot(Imax,Fmax,'r*');
-    plot(Imin,Fmin,'r*');
-     plot(loc,peaks,'-.m*');
+    plot(IDX(X>UTH2),X(X>UTH2),'b.');
+    plot(IDX(X<LTH2),X(X<LTH2),'b^');
+    plot(loc,peaks,'-.m*');
 end
-F = [Fmax,Fmin,Famplitude,Fstd,FInt1,FInt2,Fvelocity,FcountMin,FcountMax,FcountMaxHigh,FcountMinLow,T_count_findpeaks,T_findpeaks_distX];
+% F = [Fmax,Fmin,Famplitude,Fstd,FInt1,FInt2,Fvelocity,FcountMin,FcountMax,FcountMaxHigh,FcountMinLow,T_count_findpeaks,T_findpeaks_distX];
+F = [T_count_findpeaks,T_findpeaks_distX];
+
 end
 

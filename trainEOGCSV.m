@@ -1,9 +1,7 @@
 clear;clc;close all;
 %      %%%%% FILE SELECTION %%%%%
-% DATA = csvread('MarcDiff2ch_T5.csv');
-% DATA = csvread('Marc_Baseline_B_DB.csv');
-% DATA = csvread('Marc_Trial_New_largeGap_T3.csv');
-DATA = csvread('Marc_Trial_New_Blink2.csv');
+DATA = csvread('Marc_Large_EyeMove_T1.csv');
+% DATA = csvread('Marc_Trial_New_Blink1.csv');
         %%%%% - DATA SELECTION - %%%%%
 %%%%%%-- THRESHOLDS --%%%%%%
     %%%_- FOR DIFF(FILT(CH))
@@ -30,7 +28,8 @@ fprintf('Recording Length: %2.2f seconds \n',recordingLengthSeconds);
 % figure(10); plot(ch),xlim([0,length(ch)]); 
 %%% CALCULATE FILTERED AND DIFFERENCE ARRAYS %%%
 for i = 1:numCh
-    filtch(:,i) = customFilt(ch(:,i),Fs,[0.15,9.5],3);
+%     filtch(:,i) = customFilt(ch(:,i),Fs,[0.15,9.5],3);
+    filtch(:,i) = customFilt(ch(:,i),Fs,[1,9.9],5);
     diffchf(:,i) = diff(filtch(:,i));
 end
 %%%% PLOT FILTERED TIME SIGNAL %%%%
@@ -63,10 +62,11 @@ hold off;
     %%%%% - SET UP FIGURES - %%%%%
 figNumA = 3;
 figNumB = 4;
-fH = figure(figNumA); 
-set(fH, 'Position', [100, 100, 1600, 900]);
+% fH = figure(figNumA); 
+% set(fH, 'Position', [100, 100, 1600, 900]);
 fH2 = figure(figNumB);
-set(fH2, 'Position', [2600, 100, 1600, 900]);
+% set(fH2, 'Position', [2600, 100, 1600, 900]);
+set(fH2, 'Position', [100, 100, 1600, 900]);
     %%%%% - Classification Vars - %%%%%
 seconds = 4; %5 second window
 winLen = seconds*Fs; 
@@ -94,17 +94,39 @@ for i = 1 : iterations
     WindowTags{i} = dataTags(winEnd-249:winEnd);%WindowTags{i} = dataTags( start : start + winLen-1 );
 %     figure(figNumA); hold on; title('Filtered EOG Data'); plot(chf(end-249:end,:)); hold off;
     figure(figNumB);hold on; title('Diff(Filtered EOG Data)'); plot(dchf(end-249:end,:)); 
-    refline(0,UTH1); refline(0,UTH2); refline(0,LTH1); refline(0,LTH2); 
+    refline(0,UTH1); ar1 = refline(0,UTH2); refline(0,LTH1); ar2 = refline(0,LTH2); ar1.Color = 'r';ar2.Color='r';
     thresholdCheck = find(max(dchf(end-249:end,:))>UTH1);
     thresholdCheck2 = find(max(dchf(end-249:end,:))>UTH2);
     % Feature Extraction For Eye Movement
-%     F1(cnt,:) = featureExtractionEOG3( dchf(end-249:end,1), LTH1, LTH2, UTH1, UTH2, true );
-%     F2(cnt,:) = featureExtractionEOG3( dchf(end-249:end,2), LTH1, LTH2, UTH1, UTH2, true );
+    F1(cnt,:) = featureExtractionEOG3( dchf(end-249:end,1), LTH1, LTH2, UTH1, UTH2, true );
+    F2(cnt,:) = featureExtractionEOG3( dchf(end-249:end,2), LTH1, LTH2, UTH1, UTH2, true );
     % Feature Extraction For Eye Blinking
-    F1(cnt,:) = featureExtractionEOG2( dchf(end-249:end,1), LTH1, LTH2, UTH1, UTH2, true );
-    F2(cnt,:) = featureExtractionEOG2( dchf(end-249:end,2), LTH1, LTH2, UTH1, UTH2, true );
+    F3(cnt,:) = featureExtractionEOG2( dchf(end-249:end,1), LTH1, LTH2, UTH1, UTH2, true );
+    F4(cnt,:) = featureExtractionEOG2( dchf(end-249:end,2), LTH1, LTH2, UTH1, UTH2, true );
     getClass = [];
-    % BLINK/DB CLASSES     %{
+    % ALL CLASSES %{
+% :: 4/26 :: TODO CHANGE SO EVERY WINDOW GETS A CLASS NUM!
+    if isempty(thresholdCheck) && isempty(thresholdCheck2)
+%         tYA(cnt,1) = 0;
+%         cnt = cnt + 1;
+    else
+       tagsPresent = unique(WindowTags{i},'stable')
+       getClass = mode(WindowTags{i})
+       commandwindow; getInput = input('Enter an integer value!\n'); % Approve/Disapprove? 0 = reject:
+       if isempty(getInput)
+            tYA(cnt,1) = getClass;
+            cnt = cnt + 1
+       else
+            if getInput~=-1
+                tYA(cnt,1) = getInput;
+                cnt = cnt + 1
+            %else -1; rejected samples
+            end
+       end
+    end
+    %}
+    % BLINK/DB CLASSES     
+    %{
     if ~isempty(thresholdCheck) && ~isempty(thresholdCheck2)
         tagsPresent = unique(WindowTags{i},'stable')
         getClass = mode(WindowTags{i})
@@ -142,55 +164,24 @@ for i = 1 : iterations
         end
     end
     %}
-%{  
-    if ~isempty(thresholdCheck2)
-        tagsPresent = unique(WindowTags{i},'stable')
-        getClass = mode(WindowTags{i}); 
-        if(getClass==1 || getClass==2)
-            tYA(cnt,1) = getClass;
-            %%%% TODO: Make separate EOG Classifier/Feature Extraction. 
-            F_ch1(cnt,:) = featureExtractionEOG( chf(:,1)' );
-            F_ch2(cnt,:) = featureExtractionEOG( chf(:,2)' );
-            cnt = cnt + 1;
-        end
-    end
-    if ~isempty(thresholdCheck) && isempty(thresholdCheck2)
-        while isempty(getClass)
-            commandwindow;
-            gC = mode(WindowTags{i})
-            getClass = input('Enter an integer value!\n');
-            if isempty(getClass)
-                getClass = mode(WindowTags{i});
-                %if(getClass~=0 && getClass~=1 && getClass~=2)
-                if (getClass~=0)
-                    tagsPresent = unique(WindowTags{i},'stable')
-                    tYA(cnt,1) = getClass;
-                    F_ch1(cnt,:) = featureExtractionEOG2( chf(:,1)' );%%%% TODO: Make separate EOG Classifier/Feature Extraction. 
-                    F_ch2(cnt,:) = featureExtractionEOG2( chf(:,2)' );
-                    cnt = cnt + 1;
-                end
-                getClass = [];
-            else
-                break;
-            end
-        end
-    end
-%}
-    clf(figNumA);
+%     clf(figNumA);
     clf(figNumB);
 end
-tX0 = [F1 F2]; %F1 F2 
+tX0 = [F1 F2 F3 F4]; %F1 F2 
 tXA = tX0(1:length(tYA),:);
-clearvars -except tXA tYA
+tXB = [F1 F2 F3 F4];
+% tXC = [F1 F2 F3 F4 L1 L2];
+clearvars -except tXA tYA tXB F1 F2 F3 F4
 AAA=[tXA tYA];
+
 %% % % % TRAIN CLASSIFIER, KNN :: filename('knnclassification')
 % % % % % Combine 
 %{
-filename = 'marc_eyemove_tDB1.mat';
+filename = 'marc_eyemove_tD427.mat';
 tX = [];
 tY = [];
 if exist(filename ,'file')==2
-    load(filename);
+    -
 end
 tX = [tX;tXA];
 tY = [tY;tYA];
@@ -212,22 +203,16 @@ end
 clear;clc;close all;
 load('marc_eyemove_tD.mat');
 tXtY = [tX tY];
+
+AAB = AAA;
+for i=1:size(AAB,1)
+    if AAB(i,27) == 0
+        AAB(i,:) = [];
+    end
+end
+%Split AAA;
+AAA = AAB;
+AS = size(AAA,2);
+tX = AAA(:,1:AS-1);
+tY = AAA(:,AS);
 %}
-%         switch (dataTags(i))
-%             case 0
-%                 tag = 'null';
-%             case 1
-%                 tag = 'blink';
-%             case 2
-%                 tag = 'double-blink';
-%             case 3
-%                 tag = 'up';
-%             case 4
-%                 tag = 'left';
-%             case 5
-%                 tag = 'right';
-%             case 6
-%                 tag = 'down';
-%             case -1
-%                 tag = 'ret2center';
-%         end

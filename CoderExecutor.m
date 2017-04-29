@@ -110,7 +110,7 @@ set(fH2, 'Position', [2600, 100, 1600, 900]);
     %%%%% - Classification Vars - %%%%%
 seconds = 4; %5 second window
 winLen = seconds*Fs; 
-winFraction = 2; %2.5; %1/4 of a second
+winFraction = 10; %2.5; %1/4 of a second
 winShift = floor( Fs/winFraction ); 
 dataLimit = floor( (length(ch)-winLen)/winLen );
 % Window = cell( seconds*winFraction*dataLimit - 1, numCh );
