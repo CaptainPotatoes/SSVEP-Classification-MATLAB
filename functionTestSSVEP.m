@@ -4,8 +4,8 @@ clear;close all;clc;
 ChannelNames = {['Fp1' 'Fp2' 'Fpz' 'REye']};
 % load('mssvep_16.6_3.mat');
 % load('mssvep_15_1.mat');
-% load('Dad_X2_12Hz.mat');
-load('mssvep_12.5_1.mat')
+% load('Dad_X2_6Hz.mat');
+% load('mssvep_12.5_1.mat')
 % load('mssvep_t1_baseline');
 % load('mssvep_t2_16_1.mat');
 % load('meog_t4')
@@ -23,6 +23,7 @@ Fs = SamplingRate;
 ch1 = Trial{1}(1+removeFromStart:end-remove,1);
 ch2 = Trial{2}(1+removeFromStart:end-remove,1);
 ch3 = Trial{3}(1+removeFromStart:end-remove,1);
+% ch3 = ch2;
 ln = min([length(ch1) length(ch2) length(ch3)]);
 
 ch1 = ch1(1:ln);
@@ -34,7 +35,7 @@ if size(Trial,2) > 3
 end
 
 seconds = length(ch1)/Fs;
-flim   = [8.0 18];
+flim   = [8 18];
 winLim = [9 17.3];
 %
 N = 5;
@@ -233,7 +234,8 @@ if cont == 1
 end
 %% Training Data Control 
 % use this section to load all the tXSSVEP Data and Combine into a single
-% tXSSVEP and tYSSVEP. 
+% tXSSVEP and tYSSVEP.  
+%{
 clear;close all;clc
 %includes '0' class
 load('tXSSVEP_10v1');
@@ -252,6 +254,7 @@ tXSSVEPALL = [tX10;tX12;tX15;tX16];
 tYSSVEPALL = [tY10;tY12;tY15;tY16];
 clearvars -except tXSSVEPALL tYSSVEPALL
 tXtYSSVEP = [tXSSVEPALL tYSSVEPALL];
+%}
 %% CCA Test: (using CCA2)
 %{
 close all;clc;clear all;

@@ -1,36 +1,35 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-datach = csvread('FadiTest1.csv');
+datach = csvread('Matt_1ch_10_15.csv');
 removeStart = 0;
 removeEnd   = 0;
 ch1 = datach(:,1);
 ch2 = datach(:,2);
 ch3 = datach(:,3);
+numch = 1;
 Fs = 250;
-% samplesX = ch1(end-249:end);
-% waveletCoef1 = cwt(samplesX,1:20,'haar');
-% waveletCoef2 = cwt_haar(samplesX);
-%%-Plot Analysis: 
-%{
+%%-Plot Analysis: %{
 winLim = [6 24];
 filtch = zeros(size(datach,1),size(datach,2));
 hannWin = hann(4096); 
 wlen = 1024; h=64; nfft = 4096;
 K = sum(hamming(wlen, 'periodic'))/wlen;
-figure(1);plot(datach);
-figure(2);hold on;%FFT
-for i = 1:4
-    filtch(:,i) = eegcfilt(datach(:,i)); plot(filtch(:,i));
-%     [f, P1] = get_fft_data(filtch(:,i),Fs);
-%     plot(f,P1),xlim(winLim);
+figure(1);plot(datach(:,1:2));
+%%
+figure(2);hold on;
+for i = 1:numch
+    filtch(:,i) = eegcfilt(datach(:,i)); %plot(filtch(:,i));
+    [f, P1] = get_fft_data(filtch(:,i),Fs);
+    plot(f,P1),xlim(winLim);
 end
 figure(3);hold on;%PSD
-for i = 1:1
+for i = 1:numch
     [S1,wfreqs] = welch_psd(filtch(:,i), 250, hannWin); 
     plot(wfreqs, S1),xlim(winLim);
-end   
+end
 fH = figure(4);hold on; set(fH, 'Position', [-2560, 0, 1600, 900]);%Spect
-for i = 1:1
+
+for i = 1:numch
     subplot(2,2,i);
     [S1, f1, t1] = stft( filtch(:,i), wlen, h, nfft, Fs ); S2 = 20*log10(abs(S1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
     imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),S2);set(gca,'YDir','normal');xlabel('Time, s');ylabel('Frequency, Hz');colormap(jet)
