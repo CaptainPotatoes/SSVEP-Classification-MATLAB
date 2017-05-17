@@ -19,10 +19,9 @@ figure(3);hold on;%PSD
 for i = 1:numch
     [S1,wfreqs] = welch_psd(filtch(:,i), Fs, hannWin);     plot(wfreqs, S1),xlim(winLim);
 end
-fH = figure(4);hold on; set(fH, 'Position', [0, 0, 1600, 900]);%Spect
 
+fH = figure(4);hold on; set(fH, 'Position', [0, 0, 1600, 900]);%Spect
 for i = 1:numch
-    subplot(2,2,i);
     [S1, f1, t1] = stft( filtch(:,i), wlen, h, nfft, Fs ); S2 = 20*log10(abs(S1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
     imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),S2);set(gca,'YDir','normal');xlabel('Time, s');ylabel('Frequency, Hz');colormap(jet)
     cb = colorbar;
@@ -30,15 +29,10 @@ for i = 1:numch
     title(['Ch' num2str(i)]);
 end
 %}
-%% Generating Idealized Signals:
-len = 1000; % 4 seconds
-[sig_ideal_10,T] = testSignal(10.0000,len);
-[sig_ideal_12,~] = testSignal(12.5000,len);
-[sig_ideal_15,~] = testSignal(15.1515,len);
-[sig_ideal_16,~] = testSignal(16.6666,len);
-figure(5); hold on; plot(T,sig_ideal_10);plot(T,sig_ideal_12);plot(T,sig_ideal_15);plot(T,sig_ideal_16);ylim([-1.2E-4 1.2E-4]);
 %% Feature Extraction: Expanding window method:
+% Todo move to separate function 
 close all;clc;
+range = 250:60:1500;
 cont = [];
 showGraphs = true;
 signalDetected = false;
@@ -47,7 +41,6 @@ winJump = 125;      %-% Data points to skip after each iteration.
 maxWinL = 1000;     %-% 5s max
 ln = length(datach);
 mW = 1:winJump:(ln - maxWinL);
-range = 250:60:1500;
 ftr=1;
 pts = [1, 7935, 15295, 23425];
 start = 370;
@@ -68,6 +61,7 @@ for i = 1:size(range,2)
     end
     % Feature selection
 end
+
 %% Iterative (Fixed Window) Method: 
 %{
 close all;clc;

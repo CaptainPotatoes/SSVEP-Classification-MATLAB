@@ -1,5 +1,5 @@
 function [ Y, T ] = testSignal( freq, len, amplitude, Fs )
-%testSignal For generating idealized SSVEP Signals
+%testSignal For generating idealized SSVEP Signals (Fourier Series)
 %   freq = frequency of signal waveform
 %   Fs = Sampling Frequency
 

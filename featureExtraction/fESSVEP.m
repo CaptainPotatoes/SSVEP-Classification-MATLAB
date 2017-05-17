@@ -1,7 +1,10 @@
 function [ SSVEP_FEATURES ] = fESSVEP( X, Fs, plotData )
 %FESSVEP Feature Extraction for single (m x 1) SSVEP EEG Data Vector
 %   X (m x 1) vectorize input:
-% X = X(:);
+% X         = X(:);
+% Fs        = Sampling Frequency;
+% plotData  = Plot Data
+
 %%%%% - Thresholds: - %%%%%
 threshFFT = zeros(4,2);
 threshFFT(1,:) = [9.5 10.63];
@@ -20,7 +23,7 @@ winLim = [9,18];
 % - Variables - %
 if plotData
     fH = figure(12); %-% Figure Handle
-    set(fH, 'Position', [2000, 0, 1440, 960]);
+    set(fH, 'Position', [0, 0, 1440, 960]);
     xL = [9.0 17.2];
     clf(fH)
 end
