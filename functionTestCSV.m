@@ -36,6 +36,9 @@ for i = 1:numch
     title(['Ch' num2str(i)]);
 end
 %}
+%% Generating Idealized Signals:
+
+
 %% Feature Extraction: Expanding window method:
 close all;clc;
 cont = [];
@@ -59,7 +62,7 @@ for i = 1:size(range,2)
         fch = customFilt(datach(start:fin,c),Fs,[8 20],3);
     end
         %%%Feature Extraction: (per channel)
-    F{i} = fESSVEP(fch,Fs,true);
+    F(i,:) = fESSVEP(fch,Fs,isempty(cont));
     if isempty(cont)
         commandwindow;
         cont = input('Approve/continue?\n');

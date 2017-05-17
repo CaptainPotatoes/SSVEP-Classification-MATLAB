@@ -87,7 +87,8 @@ if wL>=250
     end
 end
 % Fts:
-SSVEP_FEATURES = [Lfft(:) Pfft(:) Lpsd(:) Ppsd(:) Lstft(:) Pstft(:)];
-
+SSVEP_FEATURES = [Lfft,Pfft,Lpsd,Ppsd,Lstft,Pstft];
+% SSVEP_FEATURES_TABLE = [Lfft(:) Pfft(:) Lpsd(:) Ppsd(:) Lstft(:) Pstft(:)];
+% SSVEP_FEATURES = SSVEP_FEATURES_TABLE(:);
 end
 
