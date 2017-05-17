@@ -69,7 +69,6 @@ for a = 1:number_of_blocks
             % THIS IS FOR WIND TUNNEL EESC-USP BEAMFORMING CODE
 %             P(:,c) = real(Data_Block(:,b).*conj(Data_Block(:,aa))); 
             % P(:,c) = Data_Block(:,b).*conj(Data_Block(:,aa)); 
-            
             % IS FOR FAN RIG BEAMFORMING CODE
             P(:,c) = real(Data_Block(:,aa).*conj(Data_Block(:,b)));
             % P(:,c) = Data_Block(:,aa).*conj(Data_Block(:,b)); % THIS IS THE ORIGINAL LINE

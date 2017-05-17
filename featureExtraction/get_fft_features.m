@@ -1,7 +1,7 @@
 function [fselect, fftselect, L, P] = get_fft_features( f, FFT, threshold )
 select = f>threshold(1) & f<threshold(2);
 fselect = f(select);
-fftselect = FFT(:,select);
+fftselect = FFT(select);
 [M, I] = max(fftselect);
 if length(fselect)>2
     [P1, L1] = findpeaks(fftselect,'SortStr','descend');

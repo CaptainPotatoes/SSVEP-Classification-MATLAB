@@ -1,6 +1,6 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-datach = csvread('Matt_1ch_10_15.csv');
+datach = csvread('Matt_1ch_10_to_16_3.csv');
 removeStart = 0;
 removeEnd   = 0;
 ch1 = datach(:,1);
@@ -11,23 +11,21 @@ Fs = 250;
 %%-Plot Analysis: %{
 winLim = [6 24];
 filtch = zeros(size(datach,1),size(datach,2));
-hannWin = hann(4096); 
+hannWin = hann(2048); 
 wlen = 1024; h=64; nfft = 4096;
 K = sum(hamming(wlen, 'periodic'))/wlen;
-figure(1);plot(datach(:,1:2));
-%%
+figure(1);plot(datach(:,1));
+
 figure(2);hold on;
-for i = 1:numch
-    filtch(:,i) = eegcfilt(datach(:,i)); %plot(filtch(:,i));
-    [f, P1] = get_fft_data(filtch(:,i),Fs);
-    plot(f,P1),xlim(winLim);
+for i = 1:numch %     filtch(:,i) = eegcfilt(datach(:,i)); %plot(filtch(:,i));
+	filtch(:,i) = customFilt(datach(:,i),Fs,[8 20],3);
+    [f, P1] = get_fft_data(filtch(:,i),Fs); plot(f,P1),xlim(winLim);
 end
 figure(3);hold on;%PSD
 for i = 1:numch
-    [S1,wfreqs] = welch_psd(filtch(:,i), 250, hannWin); 
-    plot(wfreqs, S1),xlim(winLim);
+    [S1,wfreqs] = welch_psd(filtch(:,i), Fs, hannWin);     plot(wfreqs, S1),xlim(winLim);
 end
-fH = figure(4);hold on; set(fH, 'Position', [-2560, 0, 1600, 900]);%Spect
+fH = figure(4);hold on; set(fH, 'Position', [0, 0, 1600, 900]);%Spect
 
 for i = 1:numch
     subplot(2,2,i);
@@ -38,7 +36,83 @@ for i = 1:numch
     title(['Ch' num2str(i)]);
 end
 %}
-%% Classification EOG;
+%% Feature Extraction: Expanding window method:
+close all;clc;
+cont = [];
+showGraphs = true;
+signalDetected = false;
+wPlus = 250;        %-% Value by which to increase window length
+winJump = 125;      %-% Data points to skip after each iteration. 
+maxWinL = 1000;     %-% 5s max
+ln = length(datach);
+mW = 1:winJump:(ln - maxWinL);
+range = 250:60:2000;
+ftr=1;
+pts = [1, 7935, 15295, 23425];
+start = pts(4);
+cWSize = 250;           %-% Start with a window size of 1s
+for i = 1:size(range,2)
+    fin = start + (range(i)-1);
+    fprintf('Current index = [%d to %d]\r\n',start, fin);
+    fprintf('length = %d\r\n',range(i));
+    for c = 1:numch
+        fch = customFilt(datach(start:fin,c),Fs,[8 20],3);
+    end
+        %%%Feature Extraction: (per channel)
+    F{i} = fESSVEP(fch,Fs,true);
+    if isempty(cont)
+        commandwindow;
+        cont = input('Approve/continue?\n');
+        clf(12);
+    end
+    % Feature selection
+end
+%% Iterative (Fixed Window) Method: 
+%{
+close all;clc;
+cont = [];
+showGraphs = true;
+signalDetected = false;
+wPlus = 250;        %-% Value by which to increase window length
+winJump = 125;      %-% Data points to skip after each iteration. 
+maxWinL = 1000;     %-% 5s max
+ln = length(datach);
+mW = 1:winJump:(ln - maxWinL);
+ftr=1;
+startPoint = 1;
+cWSize = 250;           %-% Start with a window size of 1s
+for i=startPoint:length(mW)
+    start = mW(i);          %-% Where to start window
+    fin   = (mW(i)+(cWSize-1));   %-% Signal ends at start+current Win Length
+    fprintf('Current index = [%d to %d]\r\n',start, fin);
+    for c = 1:numch
+        fch(c,:) = customFilt(datach(start:end,c),Fs,[8 20],3);
+    end
+        %%%Feature Extraction: (per channel)
+    F = fESSVEP(fch(1,:),Fs,true);
+    if isempty(cont)
+        commandwindow;
+        cont = input('Approve/continue?\n');
+        clf(12);
+    end
+    % Feature selection: 1=accept, 9=run entirely, anything else =
+    % continue/reject
+    if (cont==1)
+        tXSSVEP(i,:) = F(i,:);
+        tY(i,1) = str2double(CLASS);
+        ftr = ftr + 1;
+        cont = [];
+    else
+        tXSSVEP(i,:) = F(i,:);
+        tY(i,1) = 0; %REJECT CLASS
+    end
+    if ~isempty(cont) && cont~=9
+        cont = [];
+    end
+end
+%}
+%% Classification EOG; 
+%{
 winSize = 250; %1s:
 c=1;
 for i = 1:250:length(ch1)-250
@@ -48,9 +122,8 @@ for i = 1:250:length(ch1)-250
     Y(c) = eog_knn(ch1_p,ch2_p,ch3_p);
     c=c+1;
 end
-
-
-%% Classification:
+%}
+%% EOG Classification?:
 %{
 range = 500:60:2500;
 Window = cell(size(range,2),4);
