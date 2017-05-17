@@ -1,25 +1,19 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-datach = csvread('Matt_1ch_10_to_16_3.csv');
-removeStart = 0;
-removeEnd   = 0;
-ch1 = datach(:,1);
-ch2 = datach(:,2);
-ch3 = datach(:,3);
+datach = csvread('Matt_10Hz_null.csv');
+rS = 0; %Remove From Start
+rE = 0; %Remove From End
+datach = datach(rS+1:end-rE,1);
 numch = 1;
 Fs = 250;
 %%-Plot Analysis: %{
 winLim = [6 24];
-filtch = zeros(size(datach,1),size(datach,2));
-hannWin = hann(2048); 
-wlen = 1024; h=64; nfft = 4096;
+filtch = zeros(size(datach,1),numch);
+hannWin = hann(2048); wlen = 1024; h=64; nfft = 4096;
 K = sum(hamming(wlen, 'periodic'))/wlen;
-figure(1);plot(datach(:,1));
-
-figure(2);hold on;
 for i = 1:numch %     filtch(:,i) = eegcfilt(datach(:,i)); %plot(filtch(:,i));
-	filtch(:,i) = customFilt(datach(:,i),Fs,[8 20],3);
-    [f, P1] = get_fft_data(filtch(:,i),Fs); plot(f,P1),xlim(winLim);
+	filtch(:,i) = customFilt(datach(:,i),Fs,[8 20],3); figure(1); hold on; plot(filtch(:,i));
+    [f, P1] = get_fft_data(filtch(:,i),Fs); figure(2);hold on; plot(f,P1),xlim(winLim);
 end
 figure(3);hold on;%PSD
 for i = 1:numch
@@ -37,8 +31,12 @@ for i = 1:numch
 end
 %}
 %% Generating Idealized Signals:
-
-
+len = 1000; % 4 seconds
+[sig_ideal_10,T] = testSignal(10.0000,len);
+[sig_ideal_12,~] = testSignal(12.5000,len);
+[sig_ideal_15,~] = testSignal(15.1515,len);
+[sig_ideal_16,~] = testSignal(16.6666,len);
+figure(5); hold on; plot(T,sig_ideal_10);plot(T,sig_ideal_12);plot(T,sig_ideal_15);plot(T,sig_ideal_16);ylim([-1.2E-4 1.2E-4]);
 %% Feature Extraction: Expanding window method:
 close all;clc;
 cont = [];
@@ -49,10 +47,10 @@ winJump = 125;      %-% Data points to skip after each iteration.
 maxWinL = 1000;     %-% 5s max
 ln = length(datach);
 mW = 1:winJump:(ln - maxWinL);
-range = 250:60:2000;
+range = 250:60:1500;
 ftr=1;
 pts = [1, 7935, 15295, 23425];
-start = pts(4);
+start = 370;
 cWSize = 250;           %-% Start with a window size of 1s
 for i = 1:size(range,2)
     fin = start + (range(i)-1);
