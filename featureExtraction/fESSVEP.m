@@ -34,10 +34,17 @@ else
     PSD = zeros(1,wL/2);
 end
 
+Lfft = zeros(1,4);
+Pfft = zeros(1,4);
+Lpsd = zeros(1,4);
+Ppsd = zeros(1,4);
+Lstft = zeros(1,4);
+Pstft = zeros(1,4);
+
 nfft = 2^nextpow2(wL);
 FFT = zeros(4,(nfft/2)+1);
 hW = hannWin(wL);
-
+% Lfft = zeros(4,1);
 if wL >= 250 %Recall Data is Already Filtered From Calling Method
     [f, FFT] = get_nfft_data(X, Fs, wL);
     [PSD, fPSD] = welch_psd(X, Fs, hW);
@@ -68,6 +75,7 @@ S1 = zeros(sum(select),c);
 K = sum(hammPeriodic(wlen))/wlen;
 M = zeros(nCh,4);
 I = zeros(nCh,4);
+
 if wL>=250 
     F1 = F(select);
     % STFT:
@@ -91,7 +99,6 @@ if wL>=250
 end
 % Fts:
 SSVEP_FEATURES = [Lfft,Pfft,Lpsd,Ppsd,Lstft,Pstft];
-% SSVEP_FEATURES_TABLE = [Lfft(:) Pfft(:) Lpsd(:) Ppsd(:) Lstft(:) Pstft(:)];
-% SSVEP_FEATURES = SSVEP_FEATURES_TABLE(:);
+% SSVEP_FEATURES_SHORT = [Lpsd,Pfft,Ppsd,Pstft]; 
 end
 

@@ -7,7 +7,7 @@
 
 function [S, F, T] = stft2(x, wlen, h, nfft, fs)
 
-% function: [S, F, T] = stft(x, wlen, h, nfft, fs)
+% function: [S, F, T] = stft2(x, wlen, h, nfft, fs)
 % x - signal in the time domain
 % wlen - length of the hamming window
 % h - hop size
