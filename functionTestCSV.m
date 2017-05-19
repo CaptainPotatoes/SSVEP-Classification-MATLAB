@@ -1,6 +1,6 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-datach = csvread('Matt_1ch_10_to_16_3.csv');
+datach = csvread('Matt_10Hz_null.csv');
 rS = 0; %Remove From Start
 rE = 0; %Remove From End
 datach = datach(rS+1:end-rE,1);
@@ -17,7 +17,7 @@ for i = 1:numch %     filtch(:,i) = eegcfilt(datach(:,i)); %plot(filtch(:,i));
 end
 figure(3);hold on;%PSD
 for i = 1:numch
-    [S1,wfreqs] = welch_psd(filtch(:,i), Fs, hannWin);     plot(wfreqs, S1),xlim(winLim);
+    [S1,wfreqs] = welch_psd(filtch(:,i), Fs, hannWin);plot(wfreqs, S1),xlim(winLim);
 end
 
 fH = figure(4);hold on; set(fH, 'Position', [0, 0, 1600, 900]);%Spect

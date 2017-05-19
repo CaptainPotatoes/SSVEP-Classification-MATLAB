@@ -3,7 +3,7 @@ function [ Y ] = customFilt( X,Fs,f,N )
 if ~isvector(X)
   error('must be a row or column vector');
 end
-coder.varsize('a','b');
+% coder.varsize('a','b');
 X = X(:); %vectorize
 Wn=[f(1) f(2)]*2/Fs; % cut off based on Fs
 [b,a] = butter(N,Wn);
