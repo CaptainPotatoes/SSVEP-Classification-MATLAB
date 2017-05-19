@@ -49,15 +49,15 @@ if wL >= 250 %Recall Data is Already Filtered From Calling Method
     [f, FFT] = get_nfft_data(X, Fs, wL);
     [PSD, fPSD] = welch_psd(X, Fs, hW);
     if plotData
-        subplot(2,2,1);hold on;plot(f,FFT),xlim(xL);
-        subplot(2,2,2);hold on;plot(fPSD,PSD),xlim(xL);
+        subplot(3,2,1);hold on;plot(f,FFT),xlim(xL);
+        subplot(3,2,2);hold on;plot(fPSD,PSD),xlim(xL);
     end
     for i=1:4
         [fselect, fftselect, Lfft(i), Pfft(i)] = get_fft_features(f,FFT,threshFFT(i,:));
         [fselect2, psdselect, Lpsd(i), Ppsd(i)] = get_psd_features(fPSD,PSD,threshPSD(i,:));
         if plotData
-            subplot(2,2,1);hold on;plot(fselect,fftselect,selc(i,:)); plot(Lfft(i),Pfft(i),'or');
-            subplot(2,2,2);hold on;plot(fselect2,psdselect, selc(i,:)); plot(Lpsd(i),Ppsd(i),'or');
+            subplot(3,2,1);hold on;plot(fselect,fftselect,selc(i,:)); plot(Lfft(i),Pfft(i),'or');
+            subplot(3,2,2);hold on;plot(fselect2,psdselect, selc(i,:)); plot(Lpsd(i),Ppsd(i),'or');
         end
     end
 end
@@ -85,7 +85,7 @@ if wL>=250
     for i=1:4
         [fselect, stftselect, Lstft(i), Pstft(i), M(i), I(i)] = get_stft_features(F1,SS,threshFFT(i,:));
         if plotData
-            subplot(2,2,4);hold on;plot(fselect,stftselect,selc(i,:));
+            subplot(3,2,4);hold on;plot(fselect,stftselect,selc(i,:));
             if Lstft(i)~=0
                 plot(Lstft(i), Pstft(i), 'or');
             end
@@ -93,10 +93,21 @@ if wL>=250
         end
     end
     if plotData
-        subplot(2,2,3);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet);
-        subplot(2,2,4);hold on;plot(F1,SS(:));
+        subplot(3,2,3);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet);
+        subplot(3,2,4);hold on;plot(F1,SS(:));
     end
 end
+%%Convolution filtering:
+f_new=9:0.1:17;
+hannW = hannWin(2048);winLim = [6 24]; 
+len = 5000;
+for i = 1:length(f_new)
+    [sigs(i,:)] = testSignal(f_new(i),len);
+    convconv(i,:) = conv(X,sigs(i,:),'full');
+    [S1 ,wfreqs] = welch_psd(convconv(i,:), Fs, hannW); subplot(3,2,[5 6]); hold on; plot(wfreqs, S1)
+    [M,L] = max(S1); plot(wfreqs(L),M,'*r'),xlim(winLim);
+end
+
 % Fts:
 SSVEP_FEATURES = [Lfft,Pfft,Lpsd,Ppsd,Lstft,Pstft];
 % SSVEP_FEATURES_SHORT = [Lpsd,Pfft,Ppsd,Pstft]; 

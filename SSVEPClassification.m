@@ -2,29 +2,31 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
 % DATA = csvread('Matt_16Hz_null.csv');
-DATA = csvread('Matt_16Hz_null.csv');
+DATA = csvread('EEGTrainingData_16_15_12_10.csv');
 Fs = 250;
 % Generating Idealized Signals:
 clear sig_ideal;
 len = 5000; % 4s = testSignal(desiredF,ln,amplitude,Fs);
 sig_ideal = zeros(4,len);
 X_samples = DATA(:,1);
+%{
 pts = [1, 7935, 15500, 23750];
-starti = 250; l0 = 750;
+starti = 1500; l0 = 1000;
 endi = starti + l0-1;
-f_new=9:0.075:17;
+f_new=9:0.1:17;
 fH = figure(4); hold on; set(fH, 'Position', [0, 0, 1600, 900]);%Spect
 hannW = hannWin(2048);winLim = [6 24]; winLim2 = [18 35];
 for i=1:length(f_new)
     [sigs(i,:)] = testSignal(f_new(i),len);
     X_filt_snip = customFilt(X_samples(starti:endi),Fs,[8 20],3);
     convconv(i,:) = conv(X_filt_snip,sigs(i,:),'full');
-    [S1 ,wfreqs] = welch_psd(convconv(i,:), Fs, hannW); figure(4); hold on; plot(wfreqs, S1),xlim(winLim);
+    [S1 ,wfreqs] = welch_psd(convconv(i,:), Fs, hannW); figure(4); hold on; plot(wfreqs, S1)
+    [M,L] = max(S1); plot(wfreqs(L),M,'*r'),xlim(winLim);
 %     [sigs_h1(i,:)] = testSignal(2*f_new(i),len);
 %     X_filt_snip_h1 = customFilt(X_samples(starti:endi),Fs,[8 50],3);
 %     convconv_h1(i,:) = conv(X_filt_snip_h1,sigs_h1(i,:),'full');
 end
-
+%}
 %% Some signal manipulation: 
 %{
 f = [0.0000, 10.0000, 12.5000, 15.0500, 16.6667];%TODO: use for loop 
@@ -51,28 +53,15 @@ for i = 1:5
 end
 %}
 
-%% Feature Extraction: Expanding window method:
-% Todo move to separate function 
-close all;clc;
-range = 250:60:2500;
-F = []; F1 = [];
-filtRange = [8 20];
-for i = 1:5
-    F0{i} = featureExtractionSSVEP(sig_ideal(i,:),range,filtRange,[0]);
-%     F1{i} = featureExtractionSSVEP(sig_h1(i,:),range,filtRange,0);
-%     F2{i} = featureExtractionSSVEP(sig_h2(i,:),range,filtRange,0);
-    FF{i} = [F0{i}(:,5:8),F0{i}(:,13:16),F0{i}(:,21:24)];
-    FF{i}(:,end+1) = i-1;
-%     F = [F; featureExtractionSSVEP(sig_ideal(i,:),range,filtRange,0)];
-end
-FALL = [FF{1};FF{2};FF{3};FF{4};FF{5}];
-
 %% Feature Extraction for Signal
-F_s = featureExtractionSSVEP(X_samples, range, filtRange, [1]);
-F_s2 = [F_s(:,5:8),F_s(:,13:16),F_s(:,21:24)];
-for i = 1:size(F_s,1)
-    Y(i) = knn(F_s2(i,:),FALL(:,1:end-1),FALL(:,end),1);
-end
+range = 250:60:1500;
+filtRange = [8 20];
+start = 5200;
+F_s = featureExtractionSSVEP(X_samples, range, filtRange, [], start);
+% F_s2 = [F_s(:,5:8),F_s(:,13:16),F_s(:,21:24)];
+% for i = 1:size(F_s,1)
+%     Y(i) = knn(F_s2(i,:),FALL(:,1:end-1),FALL(:,end),1);
+% end
 %% CCA
 % load carbig;
 % X = [Displacement Horsepower Weight Acceleration MPG];

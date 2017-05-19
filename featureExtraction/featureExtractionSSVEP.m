@@ -1,4 +1,4 @@
-function [ F ] = featureExtractionSSVEP( X, range, filtRange, cont, start, Fs)
+function [ F ] = featureExtractionSSVEP( X, range, filtRange, cont, start, Fs )
 %featureExtractionSSVEP
     % Input Vars:
 %  X            = Signal Vector;
@@ -26,8 +26,8 @@ if nargin < 2
 end
 
     %Preallocate:
-NUMBERFEATURES = 24;
-F = zeros(size(range,2),NUMBERFEATURES);
+% NUMBERFEATURES = 24;
+% F = zeros(size(range,2),NUMBERFEATURES);
 for i = 1:size(range,2)
     fin = start + (range(i)-1);
     fprintf('Current index = [%d to %d]\r\n',start, fin);
