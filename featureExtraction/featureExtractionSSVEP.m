@@ -27,6 +27,8 @@ end
 
     %Preallocate:
 % NUMBERFEATURES = 24;
+coder.varsize('F');
+F = 0;
 % F = zeros(size(range,2),NUMBERFEATURES);
 for i = 1:size(range,2)
     fin = start + (range(i)-1);

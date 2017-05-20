@@ -97,15 +97,18 @@ if wL>=250
         subplot(3,2,4);hold on;plot(F1,SS(:));
     end
 end
-%%Convolution filtering:
+%%Convolution Amplification:
 f_new=9:0.1:17;
 hannW = hannWin(2048);winLim = [6 24]; 
 len = 5000;
 for i = 1:length(f_new)
     [sigs(i,:)] = testSignal(f_new(i),len);
     convconv(i,:) = conv(X,sigs(i,:),'full');
-    [S1 ,wfreqs] = welch_psd(convconv(i,:), Fs, hannW); subplot(3,2,[5 6]); hold on; plot(wfreqs, S1)
-    [M,L] = max(S1); plot(wfreqs(L),M,'*r'),xlim(winLim);
+    [S1 ,wfreqs] = welch_psd(convconv(i,:), Fs, hannW); 
+    [Mconv(i),L(i)] = max(S1); 
+    if plotData
+        subplot(3,2,[5 6]); hold on; plot(wfreqs, S1);plot(wfreqs(L),Mconv,'*r'),xlim(winLim);
+    end
 end
 
 % Fts:

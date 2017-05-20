@@ -57,7 +57,11 @@ end
 range = 250:60:1500;
 filtRange = [8 20];
 start = 5200;
-F_s = featureExtractionSSVEP(X_samples, range, filtRange, [], start);
+% endindex = start+10000;
+% for i = start:endindex
+    F_s = featureExtractionSSVEP(X_samples, range, filtRange, [], start);
+% end
+
 % F_s2 = [F_s(:,5:8),F_s(:,13:16),F_s(:,21:24)];
 % for i = 1:size(F_s,1)
 %     Y(i) = knn(F_s2(i,:),FALL(:,1:end-1),FALL(:,end),1);
