@@ -19,13 +19,15 @@ start = 1;
 % Generate table (reference):
 wStart = start:250:length(X_samples)-max(range);
 i=1;
-% [ FS(i,:),CLASS(i) ] = classifySSVEP(X_samples(1:1000),wStart(i),Fs);
-[ FP(i,:),PCLASS(i) ] = classifySSVEP(X_samples(1:2500),wStart(i),Fs);
-% for i = 1:length(wStart)
+% CLASS(i) = classifySSVEP(X_samples(1:1000),1);
+for i = 1:length(wStart)
+    CLASS(i) = classifySSVEP(X_samples(wStart(i):wStart(i)+999),1,false);
+end
+
+%     CLASS(i) = classifySSVEP(X_samples,wStart(i),Fs);
 %     [ FS(i,:),CLASS(i) ] = classifySSVEP(X_samples,wStart(i),Fs);
 %     [F(i,:),CLASS(i)] = featureExtractionSSVEP(X_samples,range,filtRange,[0],wStart(i),Fs);
-%     C = input('CLASS':
-% end
+
 % FALL=[F,CLASS'];
 %%
 %{

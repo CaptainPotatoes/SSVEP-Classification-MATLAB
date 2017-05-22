@@ -1,4 +1,4 @@
-function [ FS,CLASS ] = classifySSVEP( X, start, Fs )
+function [ CLASS ] = classifySSVEP( X, start, plotData )
 %CLASSIFYSSVEP - FINAL VERSION FOR MATLAB CODER
     % INPUT VARS:
     % X - input array (any size)
@@ -6,11 +6,8 @@ function [ FS,CLASS ] = classifySSVEP( X, start, Fs )
     % Fs - signal sampling frequency
     
 % range - range of window sizes to view
-range = 250:60:1000; % 1-4 s at 60pt intervals
-NUMFTS = 40;
+range = 250:250:1000; % 1-4 s at 60pt intervals
 NUMP = 56;
-F  = zeros(size(range,2),NUMFTS);
-FS = zeros(1,NUMFTS*size(range,2));
 P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
     fin = start + (range(i)-1);
@@ -18,17 +15,21 @@ for i = 1:size(range,2)
 %     fprintf('length = %d\r\n',range(i));
 %     fch = customFilt(X(start:fin),Fs,filtRange,3);
     fch = ssvepcfilt(X(start:fin));
-        %%%Feature Extraction: (per channel)
-    [F(i,:),P(i,:)] = fESSVEP(fch,Fs,false);
+    %%%Feature Extraction: (per channel)
+    P(i,:) = fESSVEP2(fch,false);
 end
 idx = 1:4;
 M = zeros(1,4);
 L = M;
-% f = P(1,1:28);
-% figure(13);hold on;xlim([8 20]);
+f = P(1,1:28);
+if plotData
+    figure(13);hold on;xlim([8 20]);
+end
 for i = 1:4
     [M(i),L(i)] = max(max(P(:,29+((i-1)*7):35+((i-1)*7))));
-%     plot(f((i-1)*7+L(i)),M(i),'or');
+    if plotData
+        plot(f((i-1)*7+L(i)),M(i),'or');
+    end
 end
 [Peak,ClusterLoc] = max(M);
 idx2 = idx(ClusterLoc~=idx);
@@ -37,19 +38,27 @@ for i=1:length(idx2)
     b(i) = (M(idx2(i)) > Peak/3);
 end
 
-for i = 1:size(P,1)
-%     plot(P(i,1:28),P(i,29:end))
+if plotData
+%     h = refline([0,Peak/3]); h.Color = 'r';
+    for i = 1:size(P,1)
+        plot(P(i,1:28),P(i,29:end))
+    end
 end
-
-if sum(b)==0
-    CLASS = ClusterLoc;
-else
-    CLASS = 0;
+% CLASS = [];
+% CLASS = input('Approve/continue?\n');
+% if isempty(CLASS)
+    if sum(b)==0
+        CLASS = ClusterLoc;
+    else
+        CLASS = 0;
+    end
+% end
+if plotData
+    clf(13)
 end
-
-for i = 1:size(F,1)
-    FS(1+size(F,2)*(i-1):size(F,2)*(i)) = F(i,:);
-end
+% for i = 1:size(F,1)
+%     FS(1+size(F,2)*(i-1):size(F,2)*(i)) = F(i,:);
+% end
 
 end
 

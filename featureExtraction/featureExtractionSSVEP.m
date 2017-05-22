@@ -39,6 +39,7 @@ for i = 1:size(range,2)
     fch = customFilt(X(start:fin),Fs,filtRange,3);
         %%%Feature Extraction: (per channel)
     [F(i,:),P(i,:)] = fESSVEP(fch,Fs,isempty(cont));
+%     P(i,:) = fESSVEP2(fch,Fs,isempty(cont));
     if isempty(cont)
         commandwindow;
         cont = input('Approve/continue?\n');
