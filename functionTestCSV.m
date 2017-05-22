@@ -1,6 +1,6 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-datach = csvread('EEGTrainingData_A1.csv');
+datach = csvread('EEGTrainingData_2017.05.22_11.17.39.csv');
 % datach = csvread('Matt_1ch_10_to_16_3.csv');
 % datach = csvread('Matt_1ch_10_to_16.csv');
 rS = 0; %Remove From Start
