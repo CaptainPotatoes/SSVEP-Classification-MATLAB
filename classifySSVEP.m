@@ -1,4 +1,4 @@
-function [ CLASS ] = classifySSVEP( X, plotData )
+function [ CLASS ] = classifySSVEP( X, plotData, thresholdFraction )
 %CLASSIFYSSVEP - FINAL VERSION FOR MATLAB CODER
     % INPUT VARS:
     % X - input array (any size)
@@ -29,32 +29,40 @@ end
 for i = 1:4
     [M(i),L(i)] = max(max(P(:,29+((i-1)*7):35+((i-1)*7))));
     if plotData
-        plot(f((i-1)*7+L(i)),M(i),'or');
+        plot(f((i-1)*7+L(i)),M(i),'or'),xlabel('Frequency (Hz)'),ylabel('Power Density (W/s)'),title('Power Spectral Density Est. of Modified Signal');
     end
 end
 [Peak,ClusterLoc] = max(M);
 idx2 = idx(ClusterLoc~=idx);
 b = zeros(1,length(idx2));
-Threshold = Peak/2;
+Threshold = Peak/thresholdFraction;
 for i=1:length(idx2)
     b(i) = (M(idx2(i)) > Threshold);
 end
 
 if plotData
     for i = 1:size(P,1)
-        plot(P(i,1:28),P(i,29:end),'*k')
+        plot(P(i,1:28),P(i,29:end),'-.')
     end
     h = refline([0,Threshold]); h.Color = 'r';
 end
 
-% commandwindow;CLASS = input('Approve/continue?\n');
-% if isempty(CLASS)
-    if sum(b)==0
-        CLASS = ClusterLoc;
-    else
-        CLASS = 0;
+if plotData
+    commandwindow;CLASS = input('Approve/continue?\n');
+    if isempty(CLASS)
+        if sum(b)==0
+            CLASS = ClusterLoc
+        else
+            CLASS = 0
+        end
     end
-% end
+else
+    if sum(b)==0
+        CLASS = ClusterLoc
+    else
+        CLASS = 0
+    end
+end
 if plotData
     clf(13)
 end

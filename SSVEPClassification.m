@@ -1,8 +1,8 @@
 %% SSVEP CLASSIFICATION:
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-[DATA,filename] = csvread('EEGTrainingData_2017.05.22_12.14.39.csv');
-% DATA = csvread('Matt_1ch_10_to_16_3.csv');
+% [DATA,filename] = csvread('EEGTrainingData_2017.05.22_12.10.06.csv');
+[DATA,filename] = csvread('Matt_1ch_10_to_16_3.csv');
 % DATA = csvread('EEGTrainingData_A1.csv');
 Fs = 250;
 % Generating Idealized Signals:
@@ -19,9 +19,11 @@ start = 1;
 % Generate table (reference):
 wStart = start:250:(length(X_samples)-1000);
 i=1;
+PLOTDATA = 1==0;
+THRESHOLD_FRACTION = 2;
 % CLASS(i) = classifySSVEP(X_samples(1:1000),1);
 for i = 1:length(wStart)
-    CLASS(i) = classifySSVEP(X_samples(wStart(i):wStart(i)+999),false);
+    CLASS(i) = classifySSVEP(X_samples(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
 end
 figure(6);plot(CLASS),ylabel('Class Label'),xlabel('Time (s)'),title(filename);
 %     CLASS(i) = classifySSVEP(X_samples,wStart(i),Fs);
