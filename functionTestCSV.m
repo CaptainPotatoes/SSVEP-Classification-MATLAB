@@ -1,11 +1,11 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-datach = csvread('EEGTrainingData_2017.05.22_11.17.39.csv');
+DATA = csvread('EEGTrainingData_2017.05.22_12.14.39.csv');
 % datach = csvread('Matt_1ch_10_to_16_3.csv');
 % datach = csvread('Matt_1ch_10_to_16.csv');
 rS = 0; %Remove From Start
 rE = 0; %Remove From End
-datach = datach(rS+1:end-rE,1);
+datach = DATA(rS+1:end-rE,1);
 numch = 1;
 Fs = 250;
 %%-Plot Analysis: %{
@@ -22,12 +22,13 @@ for i = 1:numch
     [S1,wfreqs] = welch_psd(filtch(:,i), Fs, hannWin);plot(wfreqs, S1),xlim(winLim);
 end
 
-fH = figure(4);hold on; set(fH, 'Position', [0, 0, 1600, 900]);%Spect
+fH = figure(4);hold on; 
+set(fH, 'Position', [0, 0, 1600, 900]);%Spect
 for i = 1:numch
-    [S1, f1, t1] = stft( filtch(:,i), wlen, h, nfft, Fs ); S2 = 20*log10(abs(S1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
-    imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),S2);set(gca,'YDir','normal');xlabel('Time, s');ylabel('Frequency, Hz');colormap(jet)
-    cb = colorbar;
-    ylabel(cb, 'Power (db)')
+    [S1, f1, t1] = stft2( filtch(:,i), wlen, h, nfft, Fs ); S2 = 20*log10(abs(S1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
+    imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),S2),xlim([min(t1) max(t1)]),ylim(winLim);
+    set(gca,'YDir','normal');xlabel('Time, s');ylabel('Frequency, Hz');colormap(jet)
+    cb = colorbar;ylabel(cb, 'Power (db)')
     title(['Ch' num2str(i)]);
 end
 %}

@@ -18,6 +18,7 @@ for i = 1:size(range,2)
 %     fprintf('length = %d\r\n',range(i));
     P(i,:) = fESSVEP2(fch,false);
 end
+
 idx = 1:4;
 M = zeros(1,4);
 L = M;
@@ -34,18 +35,19 @@ end
 [Peak,ClusterLoc] = max(M);
 idx2 = idx(ClusterLoc~=idx);
 b = zeros(1,length(idx2));
+Threshold = Peak/2;
 for i=1:length(idx2)
-    b(i) = (M(idx2(i)) > Peak/3);
+    b(i) = (M(idx2(i)) > Threshold);
 end
 
 if plotData
     for i = 1:size(P,1)
         plot(P(i,1:28),P(i,29:end),'*k')
     end
-%     h = refline([0,Peak/3]); h.Color = 'r';
+    h = refline([0,Threshold]); h.Color = 'r';
 end
-% CLASS = [];
-% CLASS = input('Approve/continue?\n');
+
+% commandwindow;CLASS = input('Approve/continue?\n');
 % if isempty(CLASS)
     if sum(b)==0
         CLASS = ClusterLoc;

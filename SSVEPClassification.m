@@ -1,7 +1,7 @@
 %% SSVEP CLASSIFICATION:
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-DATA = csvread('EEGTrainingData_2017.05.22_11.59.00.csv');
+[DATA,filename] = csvread('EEGTrainingData_2017.05.22_12.14.39.csv');
 % DATA = csvread('Matt_1ch_10_to_16_3.csv');
 % DATA = csvread('EEGTrainingData_A1.csv');
 Fs = 250;
@@ -17,13 +17,13 @@ pts = [1, 7935, 15500, 23425];
 % start = pts(1);
 start = 1;
 % Generate table (reference):
-wStart = start:250:length(X_samples)-max(range);
+wStart = start:250:(length(X_samples)-1000);
 i=1;
 % CLASS(i) = classifySSVEP(X_samples(1:1000),1);
 for i = 1:length(wStart)
-    CLASS(i) = classifySSVEP(X_samples(wStart(i):wStart(i)+999), false);
+    CLASS(i) = classifySSVEP(X_samples(wStart(i):wStart(i)+999),false);
 end
-
+figure(6);plot(CLASS),ylabel('Class Label'),xlabel('Time (s)'),title(filename);
 %     CLASS(i) = classifySSVEP(X_samples,wStart(i),Fs);
 %     [ FS(i,:),CLASS(i) ] = classifySSVEP(X_samples,wStart(i),Fs);
 %     [F(i,:),CLASS(i)] = featureExtractionSSVEP(X_samples,range,filtRange,[0],wStart(i),Fs);
