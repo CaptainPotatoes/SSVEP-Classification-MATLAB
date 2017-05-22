@@ -2,15 +2,33 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
 % DATA = csvread('Matt_16Hz_null.csv');
-DATA = csvread('EEGTrainingData_16_15_12_10.csv');
+DATA = csvread('Matt_1ch_10_to_16_3.csv');
+% DATA = csvread('EEGTrainingData_A1.csv');
 Fs = 250;
 % Generating Idealized Signals:
 clear sig_ideal;
 len = 5000; % 4s = testSignal(desiredF,ln,amplitude,Fs);
 sig_ideal = zeros(4,len);
 X_samples = DATA(:,1);
+%% Feature Extraction for Signal
+range = 250:60:1000;
+filtRange = [8 20];
+pts = [1, 7935, 15500, 23425];
+% start = pts(1);
+start = 1;
+% Generate table (reference):
+wStart = start:250:length(X_samples)-max(range);
+i=1;
+% [ FS(i,:),CLASS(i) ] = classifySSVEP(X_samples(1:1000),wStart(i),Fs);
+[ FP(i,:),PCLASS(i) ] = classifySSVEP(X_samples(1:2500),wStart(i),Fs);
+% for i = 1:length(wStart)
+%     [ FS(i,:),CLASS(i) ] = classifySSVEP(X_samples,wStart(i),Fs);
+%     [F(i,:),CLASS(i)] = featureExtractionSSVEP(X_samples,range,filtRange,[0],wStart(i),Fs);
+%     C = input('CLASS':
+% end
+% FALL=[F,CLASS'];
+%%
 %{
-pts = [1, 7935, 15500, 23750];
 starti = 1500; l0 = 1000;
 endi = starti + l0-1;
 f_new=9:0.1:17;
@@ -27,6 +45,11 @@ for i=1:length(f_new)
 %     convconv_h1(i,:) = conv(X_filt_snip_h1,sigs_h1(i,:),'full');
 end
 %}
+
+% F_s2 = [F_s(:,5:8),F_s(:,13:16),F_s(:,21:24)];
+% for i = 1:size(F_s,1)
+%     Y(i) = knn(F_s2(i,:),FALL(:,1:end-1),FALL(:,end),1);
+% end
 %% Some signal manipulation: 
 %{
 f = [0.0000, 10.0000, 12.5000, 15.0500, 16.6667];%TODO: use for loop 
@@ -53,19 +76,6 @@ for i = 1:5
 end
 %}
 
-%% Feature Extraction for Signal
-range = 250:60:1500;
-filtRange = [8 20];
-start = 5200;
-% endindex = start+10000;
-% for i = start:endindex
-    F_s = featureExtractionSSVEP(X_samples, range, filtRange, [], start);
-% end
-
-% F_s2 = [F_s(:,5:8),F_s(:,13:16),F_s(:,21:24)];
-% for i = 1:size(F_s,1)
-%     Y(i) = knn(F_s2(i,:),FALL(:,1:end-1),FALL(:,end),1);
-% end
 %% CCA
 % load carbig;
 % X = [Displacement Horsepower Weight Acceleration MPG];

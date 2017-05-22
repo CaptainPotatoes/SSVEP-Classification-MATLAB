@@ -1,4 +1,6 @@
 function [fselect, fftselect, L, P] = get_fft_features( f, FFT, threshold )
+% coder.varsize('fftselect');
+FFT = FFT(:);
 select = f>threshold(1) & f<threshold(2);
 fselect = f(select);
 fftselect = FFT(select);

@@ -1,4 +1,4 @@
-function [ Y, T, Y1, Y2, SQW ] = testSignal( freq, len, amplitude, Fs )
+function [ Y, T, Y1, Y2 ] = testSignal( freq, len, amplitude, Fs )
 %testSignal For generating idealized SSVEP Signals (Fourier Series)
 %   freq = frequency of signal waveform
 %   Fs = Sampling Frequency
@@ -26,7 +26,7 @@ Y1 = amplitude*sin(4*pi*freq*T);
 Y1 = Y1(:);
 Y2 = amplitude*sin(6*pi*freq*T);
 Y2 = Y2(:);
-SQW = amplitude*square(2*pi*freq*T);
-SQW = SQW(:);
+% SQW = amplitude*square(2*pi*freq*T);
+% SQW = SQW(:);
 end
 
