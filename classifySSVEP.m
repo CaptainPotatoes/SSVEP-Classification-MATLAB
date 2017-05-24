@@ -4,7 +4,6 @@ function [ CLASS ] = classifySSVEP( X, plotData, thresholdFraction )
     % X - input array (any size)
     % start - where to start from in 'X'
     % Fs - signal sampling frequency
-    
 % range - range of window sizes to view
 start = 1;
 range = 250:250:1000; % 1-4 s at 60pt intervals
@@ -14,9 +13,10 @@ for i = 1:size(range,2)
     fin = start + (range(i)-1);
     fch = ssvepcfilt(X(start:fin));
     %%%Feature Extraction: (per channel)
-%     fprintf('Current index = [%d to %d]\r\n',start, fin);
-%     fprintf('length = %d\r\n',range(i));
+    fprintf('Current index = [%d to %d]\r\n',start, fin);
+    fprintf('length = %d\r\n',range(i));
     P(i,:) = fESSVEP2(fch,false);
+%     [~,P(i,:)] = fESSVEP(fch,250,plotData);
 end
 
 idx = 1:4;
@@ -46,7 +46,7 @@ if plotData
     end
     h = refline([0,Threshold]); h.Color = 'r';
 end
-
+% Apply other methods of classification?
 if plotData
     commandwindow;CLASS = input('Approve/continue?\n');
     if isempty(CLASS)

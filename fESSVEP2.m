@@ -6,8 +6,7 @@ X = zeros(1,length(X0));
 X = (X0(:)');
 Fs = 250;
 %%Convolution Amplification:
-% f_new=9:0.1:17;
-ic = 0.1;
+ic = 0.1; % Increment, % f_new=9:0.1:17;
 % Clusters:
 C1 = 9.7:ic:10.3;
 C2 = 12.1:ic:12.7;

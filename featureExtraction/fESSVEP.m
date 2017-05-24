@@ -95,7 +95,7 @@ if wL>=250
         end
     end
     if plotData
-%         subplot(3,2,3);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet);
+        subplot(3,2,3);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet);
         subplot(3,2,4);hold on;plot(F1,SS(:));
     end
 end
@@ -109,7 +109,7 @@ C3 = 14.8:ic:15.4;
 C4 = 16.2:ic:16.8;
 f_new = [C1,C2,C3,C4]; 
 hannW = hannWin(2048);winLim = [6 24]; 
-len = 5000;
+len = 2000;
 fixed = zeros(1,len);
 sigs = zeros(length(f_new),len);
 convconv = zeros(length(f_new),length(X) + len - 1);

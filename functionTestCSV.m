@@ -1,8 +1,9 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
 % DATA = csvread('EEGTrainingData_2017.05.22_12.14.39.csv');
-DATA = csvread('Matt_1ch_10_to_16_3.csv');
+% DATA = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
 % DATA = csvread('Matt_1ch_10_to_16.csv');
+DATA = csvread('A16HzOnly.csv');
 rS = 0; %Remove From Start
 rE = 0; %Remove From End
 datach = DATA(rS+1:end-rE,1);
