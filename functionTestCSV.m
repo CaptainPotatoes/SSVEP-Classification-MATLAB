@@ -3,11 +3,12 @@ clear;clc;close all;
 % DATA = csvread('EEGTrainingData_2017.05.22_12.14.39.csv');
 % DATA = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
 % DATA = csvread('Matt_1ch_10_to_16.csv');
-DATA = csvread('A16HzOnly.csv');
+% DATA = csvread('Subject1_Trial1.1.csv');
+DATA = csvread('Subject1_Trial5.3.csv');
 rS = 0; %Remove From Start
 rE = 0; %Remove From End
-datach = DATA(rS+1:end-rE,1);
-numch = 1;
+numch = 2; datach = DATA(rS+1:end-rE,1:numch);
+
 Fs = 250;
 %%-Plot Analysis: %{
 winLim = [6 24];
@@ -15,24 +16,26 @@ filtch = zeros(size(datach,1),numch);
 hannWin = hann(2048); wlen = 1024; h=64; nfft = 4096;
 K = sum(hamming(wlen, 'periodic'))/wlen;
 for i = 1:numch %     filtch(:,i) = eegcfilt(datach(:,i)); %plot(filtch(:,i));
-	filtch(:,i) = customFilt(datach(:,i),Fs,[8 20],3); figure(1); hold on; plot(filtch(:,i));
+	filtch(:,i) = customFilt(datach(:,i),Fs,[8 20],3); %figure(1); hold on; plot(filtch(:,i));
     [f, P1] = get_fft_data(filtch(:,i),Fs); figure(2);hold on; plot(f,P1),xlim(winLim);
 end
 figure(3);hold on;%PSD
 for i = 1:numch
-    [S1,wfreqs] = welch_psd(filtch(:,i), Fs, hannWin);plot(wfreqs, S1),xlim(winLim);
+    [S1,wfreqs] = welch_psd(filtch(:,i), Fs, hannWin);plot(wfreqs, S1),xlim(winLim);xlabel('Frequency (Hz)'),ylabel('Power Density (W/Hz)'),title('Power Spectral Density Estimate');
 end
+legend('Channel 1','Channel 2');
 
-fH = figure(4);hold on; 
-set(fH, 'Position', [0, 0, 1600, 900]);%Spect
+fH = figure(4);
+set(fH, 'Position', [0, 0, 1200, 1400]);%Spect
 for i = 1:numch
+    subplot(2,1,i)
     [S1, f1, t1] = stft2( filtch(:,i), wlen, h, nfft, Fs ); S2 = 20*log10(abs(S1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
     imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),S2),xlim([min(t1) max(t1)]),ylim(winLim);
     set(gca,'YDir','normal');xlabel('Time, s');ylabel('Frequency, Hz');colormap(jet)
     cb = colorbar;ylabel(cb, 'Power (db)')
     title(['Ch' num2str(i)]);
 end
-%}
+
 %% Feature Extraction: Expanding window method:
 % Todo move to separate function 
 close all;clc;

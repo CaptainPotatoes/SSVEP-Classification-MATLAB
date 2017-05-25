@@ -13,8 +13,8 @@ for i = 1:size(range,2)
     fin = start + (range(i)-1);
     fch = ssvepcfilt(X(start:fin));
     %%%Feature Extraction: (per channel)
-    fprintf('Current index = [%d to %d]\r\n',start, fin);
-    fprintf('length = %d\r\n',range(i));
+%     fprintf('Current index = [%d to %d]\r\n',start, fin);
+%     fprintf('length = %d\r\n',range(i));
     P(i,:) = fESSVEP2(fch,false);
 %     [~,P(i,:)] = fESSVEP(fch,250,plotData);
 end
@@ -44,25 +44,25 @@ if plotData
     for i = 1:size(P,1)
         plot(P(i,1:28),P(i,29:end),'-.')
     end
-    h = refline([0,Threshold]); h.Color = 'r';
+%     h = refline([0,Threshold]); h.Color = 'r';
 end
 % Apply other methods of classification?
-if plotData
-    commandwindow;CLASS = input('Approve/continue?\n');
-    if isempty(CLASS)
-        if sum(b)==0
-            CLASS = ClusterLoc
-        else
-            CLASS = 0
-        end
-    end
-else
+% if plotData
+%     commandwindow;CLASS = input('Approve/continue?\n');
+%     if isempty(CLASS)
+%         if sum(b)==0
+%             CLASS = ClusterLoc
+%         else
+%             CLASS = 0
+%         end
+%     end
+% else
     if sum(b)==0
         CLASS = ClusterLoc
     else
         CLASS = 0
     end
-end
+% end
 if plotData
     clf(13)
 end
