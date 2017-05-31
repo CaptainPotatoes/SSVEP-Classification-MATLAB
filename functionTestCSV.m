@@ -1,22 +1,25 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
-% DATA = csvread('EEGTrainingData_2017.05.22_12.14.39.csv');
+% DATA = csvread('Subject1_Trial1.2.csv');
 % DATA = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
-% DATA = csvread('Matt_1ch_10_to_16.csv');
-% DATA = csvread('Subject1_Trial1.1.csv');
-DATA = csvread('Subject1_Trial5.3.csv');
+% DATA = csvread('EEG_SSVEPData_2017.05.31_15.53.32.csv');
+DATA = csvread('Subject1_Trial3.1.csv');
+Fs = 250;
 rS = 0; %Remove From Start
 rE = 0; %Remove From End
+F = [4 37];
+winLim = [5 37];
 numch = 2; datach = DATA(rS+1:end-rE,1:numch);
-
-Fs = 250;
+plot(datach),xlabel('index'),ylabel('Voltage (V)');
+datach2 = customFilt(datach(:,1),Fs,F,3);
+datach3 = customFilt(datach(:,2),Fs,F,3);
+% figure;hold on;plot(datach2);plot(datach3);xlabel('index'),ylabel('Voltage (V)');
 %%-Plot Analysis: %{
-winLim = [6 24];
 filtch = zeros(size(datach,1),numch);
 hannWin = hann(2048); wlen = 1024; h=64; nfft = 4096;
 K = sum(hamming(wlen, 'periodic'))/wlen;
 for i = 1:numch %     filtch(:,i) = eegcfilt(datach(:,i)); %plot(filtch(:,i));
-	filtch(:,i) = customFilt(datach(:,i),Fs,[8 20],3); %figure(1); hold on; plot(filtch(:,i));
+	filtch(:,i) = customFilt(datach(:,i),Fs,F,3); %figure(1); hold on; plot(filtch(:,i));
     [f, P1] = get_fft_data(filtch(:,i),Fs); figure(2);hold on; plot(f,P1),xlim(winLim);
 end
 figure(3);hold on;%PSD

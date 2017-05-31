@@ -55,22 +55,14 @@ for a = 1:number_of_blocks
     Data_Block = Data_Block - repmat(mean(Data_Block),block_samples,1);
     Data_Block = Data_Block.*data_taper; %Taper it
     Data_Block = fft(Data_Block); %FFT it,
-    % bilateral DFT
     % viii
     Data_Block = Data_Block(1:block_samples/2,:); %ORIGINAL
-    % Data_Block = Data_Block(1:ceil(block_samples/2),:);
     %All spectral combinations:
     P = zeros(block_samples/2,number_of_signals.^2); %ORIGINAL
-    % P = zeros(ceil(block_samples/2)/2,number_of_signals.^2);
     c = 1;
     for aa = 1:size(Data_Block,2)
         for b = aa:size(Data_Block,2)
-            % THIS IS FOR WIND TUNNEL EESC-USP BEAMFORMING CODE
-%             P(:,c) = real(Data_Block(:,b).*conj(Data_Block(:,aa))); 
-            % P(:,c) = Data_Block(:,b).*conj(Data_Block(:,aa)); 
-            % IS FOR FAN RIG BEAMFORMING CODE
             P(:,c) = real(Data_Block(:,aa).*conj(Data_Block(:,b)));
-            % P(:,c) = Data_Block(:,aa).*conj(Data_Block(:,b)); % THIS IS THE ORIGINAL LINE
             c = c+1;
         end
     end
@@ -80,13 +72,10 @@ end
 S = S*2/(sum(window.^2)*fs*number_of_blocks); % Average them out
 Sf = zeros(sensors,size(S,1));
 c=1;
-% for a = 1:sensors
-    for b = 1:sensors
-        Sf(b,:) = S(:,c);
-        c = c+1;
-    end
-% end
-% clear S
+for b = 1:sensors
+    Sf(b,:) = S(:,c);
+    c = c+1;
+end
 CSM = Sf;
 for i = 1:size(CSM,3)
     CSM(:,i) = CSM(:,i) + CSM(:,i)' - eye(sensors).*CSM(:,i);

@@ -11,3 +11,4 @@ codegen/
 TEST.mat
 *.mexw64
 *.prj
+_rejectData/

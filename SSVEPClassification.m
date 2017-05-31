@@ -2,8 +2,8 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
 % [DATA,filename] = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
-% [DATA,filename] = csvread('Subject1_Trial1.1.csv');
-[DATA,filename] = csvread('Subject1_Trial1.3.csv');
+[DATA,filename] = csvread('EEG_SSVEPData_2017.05.31_14.55.24.csv');
+% [DATA,filename] = csvread('Subject1_Trial1.3.csv');
 Fs = 250;
 X_1 = DATA(:,1);
 X_2 = DATA(:,2);
@@ -15,26 +15,38 @@ plot(t,DATA(:,3),'r'),ylabel('Class Label'),xlabel('Time (s)'),title('Target Cla
 %% Feature Extraction for Signal
 range = 250:250:1000;
 % filtRange = [8 20];
-% pts = [1, 7935, 15500, 23425];
-% start = pts(1);
+pts = [1, 7935, 15500, 23425];
+start = pts(1);
 % Generate table (reference):
-start = 1;
+% start = 1;
 wStart = start:250:(length(X_1)-max(range));
 i=1;
 PLOTDATA = 1==0;
+
+% %%%%%%%%%%%%% % %{
 THRESHOLD_FRACTION = 3;
-% CLASS(i) = classifySSVEP(X_samples(1:1000),1);
 for i = 1:length(wStart)
     CLASS(i) = classifySSVEP(X_1(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
     CLASS2(i) = classifySSVEP(X_2(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
 end
-figure(6); 
+figure(7); 
 h = 1/250;
 t=0:h:(size(DATA,1)/250)-h;
 hold on; 
 plot(t,DATA(:,3),'r');
 plot(CLASS),ylabel('Class Label'),xlabel('Time (s)'),title([filename '-Ch1']);
 plot(CLASS2),legend('Target Class','Ch1','Ch2');
+%}
+%% Feature Extraction Loop: %{
+for i = 1:length(wStart)
+    [T,F,S{i}] = extractSpectrograms(X_1(wStart(i):wStart(i)+999),PLOTDATA);
+    [~,~,S2{i}] = extractSpectrograms(X_2(wStart(i):wStart(i)+999),PLOTDATA);
+%     a = input('Continue? \n');
+end
+
+% DATAWRITE = [filtch, classLabels];
+% csvwrite([filename(1:end-4) '_filt.csv'],DATAWRITE);
+%}
 %% CCA-KNN?
 %{
 for i = 1:5
