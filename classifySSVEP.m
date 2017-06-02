@@ -6,8 +6,8 @@ function [ CLASS ] = classifySSVEP( X, plotData, thresholdFraction )
     % Fs - signal sampling frequency
 % range - range of window sizes to view
 start = 1;
-% range = 250:250:1000; % 1-4 s at 60pt intervals
-range = 1000;
+range = 500:500:length(X); % 1-4 s at 60pt intervals
+% range = 1000;
 NUMP = 56;
 P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
@@ -43,7 +43,7 @@ end
 
 if plotData
     for i = 1:size(P,1)
-        plot(P(i,1:28),P(i,29:end),'-.')
+        plot(P(i,1:28),P(i,29:end),'-*')
     end
 %     h = refline([0,Threshold]); h.Color = 'r';
 end

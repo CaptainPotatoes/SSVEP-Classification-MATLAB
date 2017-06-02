@@ -2,11 +2,12 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
 % [DATA,filename] = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
-[DATA,filename] = csvread('EEG_SSVEPData_2017.05.31_14.55.24.csv');
-% [DATA,filename] = csvread('Subject1_Trial1.3.csv');
+% [DATA,filename] = csvread('EEG_SSVEPData_2017.05.31_14.55.24.csv');
+[DATA,filename] = csvread('Subject2_Trial2.1.csv');
 Fs = 250;
 X_1 = DATA(:,1);
 X_2 = DATA(:,2);
+
 figure(6); 
 h = 1/250;
 t=0:h:(size(DATA,1)/250)-h;
@@ -22,11 +23,12 @@ start = pts(1);
 wStart = start:250:(length(X_1)-max(range));
 i=1;
 PLOTDATA = 1==0;
-
 % %%%%%%%%%%%%% % %{
 THRESHOLD_FRACTION = 3;
 for i = 1:length(wStart)
     CLASS(i) = classifySSVEP(X_1(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
+end
+for i = 1:length(wStart)
     CLASS2(i) = classifySSVEP(X_2(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
 end
 figure(7); 
@@ -37,13 +39,18 @@ plot(t,DATA(:,3),'r');
 plot(CLASS),ylabel('Class Label'),xlabel('Time (s)'),title([filename '-Ch1']);
 plot(CLASS2),legend('Target Class','Ch1','Ch2');
 %}
-%% Feature Extraction Loop: %{
+%% - Filt/Extract Spectrograms
+%{
 for i = 1:length(wStart)
-    [T,F,S{i}] = extractSpectrograms(X_1(wStart(i):wStart(i)+999),PLOTDATA);
-    [~,~,S2{i}] = extractSpectrograms(X_2(wStart(i):wStart(i)+999),PLOTDATA);
+    start = (i-1)*115+1; 
+    fin = start + 114;%S(start:fin,:)
+    [T,F,STFT1{i}] = extractSpectrograms(X_1(wStart(i):wStart(i)+999),PLOTDATA);
+    [~,~,STFT2{i}] = extractSpectrograms(X_2(wStart(i):wStart(i)+999),PLOTDATA);
+    CLASS{i} = unique(DATA(wStart(i):wStart(i)+999,3));
 %     a = input('Continue? \n');
 end
-
+clearvars -except filename T F STFT1 STFT2 CLASS
+save([filename(1:end-4) '_spect.mat'],'-v7','T','F','STFT1','STFT2','CLASS')
 % DATAWRITE = [filtch, classLabels];
 % csvwrite([filename(1:end-4) '_filt.csv'],DATAWRITE);
 %}

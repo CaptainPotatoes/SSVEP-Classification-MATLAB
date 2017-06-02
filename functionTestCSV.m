@@ -2,8 +2,8 @@ clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
 % DATA = csvread('Subject1_Trial1.2.csv');
 % DATA = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
-% DATA = csvread('EEG_SSVEPData_2017.05.31_15.53.32.csv');
-DATA = csvread('Subject1_Trial3.1.csv');
+% DATA = csvread('EEG_SSVEPData_2017.06.02_11.45.49.csv');
+DATA = csvread('Subject2_Trial2.2.csv');
 Fs = 250;
 rS = 0; %Remove From Start
 rE = 0; %Remove From End
@@ -29,7 +29,7 @@ end
 legend('Channel 1','Channel 2');
 
 fH = figure(4);
-set(fH, 'Position', [0, 0, 1200, 1400]);%Spect
+set(fH, 'Position', [0, 0, 1200, 1400]); %Spect
 for i = 1:numch
     subplot(2,1,i)
     [S1, f1, t1] = stft2( filtch(:,i), wlen, h, nfft, Fs ); S2 = 20*log10(abs(S1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
