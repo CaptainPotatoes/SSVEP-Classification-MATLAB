@@ -1,6 +1,6 @@
 %% Filter Data:
 clear;clc;close all;
-[DATA,filename] = csvread('EEG_SSVEPData_2017.06.01_15.50.25.csv');
+[DATA,filename] = csvread('Subject3_Trial5.3.csv');
 Fs = 250;
 datach = DATA(:,1:2);
 classLabels = DATA(:,3);
@@ -8,10 +8,9 @@ F = [4 35];winLim = [8 35];
 for i = 1:2
    filtch(:,i) = customFilt(datach(:,i),Fs,F,3);
 end
-
-fH = figure(4);
-set(fH, 'Position', [0, 0, 1200, 1400]);%Spect
-plot(filtch)
+% fH = figure(4);
+% set(fH, 'Position', [0, 0, 1200, 1400]);%Spect
+% plot(filtch)
 %{
 wlen = 1024; h=64; nfft = 4096;
 K = sum(hamming(wlen, 'periodic'))/wlen;

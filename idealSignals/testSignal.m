@@ -20,7 +20,7 @@ h = 1/Fs;
 Tend = len/Fs-h;
 T = 0:h:Tend; %Time Signal With Specified Frequency
 
-Y  = amplitude*sin(2*pi*freq*T);
+Y  = amplitude*sin(2*pi*freq*T) + amplitude*cos(2*pi*freq*T);
 Y  = Y(:);
 Y1 = amplitude*sin(4*pi*freq*T);
 Y1 = Y1(:);

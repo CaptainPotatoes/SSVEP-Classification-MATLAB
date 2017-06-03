@@ -1,44 +1,64 @@
 clear;clc;close all;
 % LOAD TRAINING DATA: (tX, tY);
 % DATA = csvread('Subject1_Trial1.2.csv');
-% DATA = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
-% DATA = csvread('EEG_SSVEPData_2017.06.02_11.45.49.csv');
-DATA = csvread('Subject2_Trial2.2.csv');
+% [DATA,filename] = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
+% [DATA,filename] = csvread('EEG_SSVEPData_2017.06.02_11.45.49.csv');
+[DATA, filename] = csvread('Subject1_Trial1.1.csv');
 Fs = 250;
-rS = 0; %Remove From Start
+rS = 0*15*Fs; %Remove From Start
 rE = 0; %Remove From End
 F = [4 37];
 winLim = [5 37];
 numch = 2; datach = DATA(rS+1:end-rE,1:numch);
-plot(datach),xlabel('index'),ylabel('Voltage (V)');
-datach2 = customFilt(datach(:,1),Fs,F,3);
-datach3 = customFilt(datach(:,2),Fs,F,3);
+% plot(datach),xlabel('index'),ylabel('Voltage (V)'); % Unfilt
 % figure;hold on;plot(datach2);plot(datach3);xlabel('index'),ylabel('Voltage (V)');
 %%-Plot Analysis: %{
 filtch = zeros(size(datach,1),numch);
 hannWin = hann(2048); wlen = 1024; h=64; nfft = 4096;
 K = sum(hamming(wlen, 'periodic'))/wlen;
-for i = 1:numch %     filtch(:,i) = eegcfilt(datach(:,i)); %plot(filtch(:,i));
+for i = 1:numch %    
 	filtch(:,i) = customFilt(datach(:,i),Fs,F,3); %figure(1); hold on; plot(filtch(:,i));
-    [f, P1] = get_fft_data(filtch(:,i),Fs); figure(2);hold on; plot(f,P1),xlim(winLim);
+%     [f, P1] = get_fft_data(filtch(:,i),Fs); figure(2);hold on; plot(f,P1),xlim(winLim);
 end
-figure(3);hold on;%PSD
+filename = strrep(filename,'_','-');
+fH = figure(4);
+set(fH, 'Position', [2565, 15, 2500, 1350]); %Spect
 for i = 1:numch
-    [S1,wfreqs] = welch_psd(filtch(:,i), Fs, hannWin);plot(wfreqs, S1),xlim(winLim);xlabel('Frequency (Hz)'),ylabel('Power Density (W/Hz)'),title('Power Spectral Density Estimate');
+    [S1,wfreqs] = welch_psd(filtch(:,i), Fs, hannWin);
+    hold on; subplot(2,2,[1 2]); plot(wfreqs, S1),xlim(winLim);xlabel('Frequency (Hz)'),ylabel('Power Density (W/Hz)'),title([ filename, ' - ',  'Power Spectral Density Estimate']);
 end
 legend('Channel 1','Channel 2');
 
-fH = figure(4);
-set(fH, 'Position', [0, 0, 1200, 1400]); %Spect
+
 for i = 1:numch
-    subplot(2,1,i)
+    subplot(2,2,i+2)
     [S1, f1, t1] = stft2( filtch(:,i), wlen, h, nfft, Fs ); S2 = 20*log10(abs(S1(f1<winLim(2) & f1>winLim(1),:))/wlen/K + 1e-6); 
     imagesc(t1,f1(f1<winLim(2) & f1>winLim(1)),S2),xlim([min(t1) max(t1)]),ylim(winLim);
     set(gca,'YDir','normal');xlabel('Time, s');ylabel('Frequency, Hz');colormap(jet)
     cb = colorbar;ylabel(cb, 'Power (db)')
     title(['Ch' num2str(i)]);
 end
-
+%% 
+X_1 = DATA(:,1);
+X_2 = DATA(:,2);
+pts = [1, 7935, 15500, 23425];
+start = pts(1); range = 250:250:1000;
+wStart = start:250:(length(X_1)-max(range));
+PLOTDATA = 1==0;
+THRESHOLD_FRACTION = 3;
+for i = 1:length(wStart)
+    CLASS(i) = classifySSVEP2(X_1(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
+end
+for i = 1:length(wStart)
+    CLASS2(i) = classifySSVEP2(X_2(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
+end
+figure(7); 
+h = 1/250;
+t=0:h:(size(DATA,1)/250)-h;
+hold on; 
+plot(t,DATA(:,3),'r');
+plot(CLASS),ylabel('Class Label'),xlabel('Time (s)'),title([filename '-Ch1']);
+plot(CLASS2),legend('Target Class','Ch1','Ch2');
 %% Feature Extraction: Expanding window method:
 % Todo move to separate function 
 close all;clc;
