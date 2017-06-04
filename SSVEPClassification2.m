@@ -2,7 +2,7 @@
 clear;clc;close all;
 % [DATA,filename] = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
 % [DATA,filename] = csvread('EEG_SSVEPData_2017.05.31_14.55.24.csv');
-[DATA, filename] = csvread('Subject1_Trial1.1.csv');
+[DATA, filename] = csvread('data\Subject1_SingleChannel_10Hz_to_16Hz.csv');
 Fs = 250;
 X_1 = DATA(:,1);
 X_2 = DATA(:,2);
