@@ -1,17 +1,41 @@
-%% Generating Reference Signal:
-clear;close all;clc
-ic = 0.1; C1 = 9.7:ic:10.3; C2 = 12.1:ic:12.7; C3 = 14.8:ic:15.4; C4 = 16.2:ic:16.8;
-f_new = [C1,C2,C3,C4]; Fs = 250;F = [4 37]; winLim = [5 37];
-amplitude = 0.5E-4;
-[DATA, filename] = csvread('Subject2_Trial1.2.csv');
-numch = 2; datach = DATA(:,1:numch);
-filtch = zeros(size(datach,1),numch);
-for i = 1:numch %    
-	filtch(:,i) = customFilt(datach(:,i),Fs,F,3); %figure(1); hold on; plot(filtch(:,i));
+%% SSVEP CLASSIFICATION:
+clear;clc;close all;
+% [DATA,filename] = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
+% [DATA,filename] = csvread('EEG_SSVEPData_2017.05.31_14.55.24.csv');
+[DATA, filename] = csvread('Subject1_Trial1.1.csv');
+Fs = 250;
+X_1 = DATA(:,1);
+X_2 = DATA(:,2);
+h = 1/250;
+t=0:h:(size(DATA,1)/250)-h;
+range = 250:250:1000;
+start = 1;
+wStart = start:250:(length(X_1)-max(range));
+PLOTDATA = 1==0;
+% figure(6); hold on; 
+% plot(t,DATA(:,3),'r'),ylabel('Class Label'),xlabel('Time (s)'),title('Target Class');
+%% Feature Extraction for Signal
+% filtRange = [8 20];
+pts = [1, 7935, 15500, 23425];
+start = pts(1);
+% Generate table (reference):
+
+wStart = start:250:(length(X_1)-max(range));
+i=1;
+% %%%%%%%%%%%%% % %{
+PLOTDATA = 1==0;
+THRESHOLD_FRACTION = 3;
+for i = 1:length(wStart)
+    CLASS(i) = classifySSVEP(X_1(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
 end
-for i = 1:length(f_new)
-    [sigs(i,:)] = testSignal(f_new(i),5000,amplitude,250);
+for i = 1:length(wStart)
+    CLASS2(i) = classifySSVEP(X_2(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
 end
-sumSigs = sum(sigs);
-[S1,wfreqs] = welch_psd(sumSigs, Fs, hannWin(2048));
-plot(wfreqs, S1),xlim(winLim);xlabel('Frequency (Hz)'),ylabel('Power Density (W/Hz)'),title([ filename, ' - ',  'Power Spectral Density Estimate']);
+figure(7); 
+h = 1/250;
+t=0:h:(size(DATA,1)/250)-h;
+hold on; 
+plot(t,DATA(:,3),'r');
+plot(CLASS),ylabel('Class Label'),xlabel('Time (s)'),title([filename '-Ch1']);
+plot(CLASS2),legend('Target Class','Ch1','Ch2');
+%}
