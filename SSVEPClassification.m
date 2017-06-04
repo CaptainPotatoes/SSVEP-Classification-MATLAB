@@ -14,19 +14,6 @@ wStart = start:250:(length(X_1)-max(range));
 PLOTDATA = 1==0;
 % figure(6); hold on; 
 % plot(t,DATA(:,3),'r'),ylabel('Class Label'),xlabel('Time (s)'),title('Target Class');
-% Filt/Extract Spectrograms 
-%{
-for i = 1:length(wStart)
-    start = (i-1)*115+1; 
-    fin = start + 114;%S(start:fin,:)
-    [T,F,STFT1{i}] = extractSpectrograms(X_1(wStart(i):wStart(i)+999),PLOTDATA);
-    [~,~,STFT2{i}] = extractSpectrograms(X_2(wStart(i):wStart(i)+999),PLOTDATA);
-    CLASS{i} = unique(DATA(wStart(i):wStart(i)+999,3));
-%     a = input('Continue? \n');
-end
-clearvars -except filename T F STFT1 STFT2 CLASS
-save([filename(1:end-4) '_spect.mat'],'-v7','T','F','STFT1','STFT2','CLASS')
-%}
 %% Feature Extraction for Signal
 % filtRange = [8 20];
 pts = [1, 7935, 15500, 23425];
@@ -52,6 +39,23 @@ plot(t,DATA(:,3),'r');
 plot(CLASS),ylabel('Class Label'),xlabel('Time (s)'),title([filename '-Ch1']);
 plot(CLASS2),legend('Target Class','Ch1','Ch2');
 %}
+
+
+
+%% Filt/Extract Spectrograms 
+%{
+for i = 1:length(wStart)
+    start = (i-1)*115+1; 
+    fin = start + 114;%S(start:fin,:)
+    [T,F,STFT1{i}] = extractSpectrograms(X_1(wStart(i):wStart(i)+999),PLOTDATA);
+    [~,~,STFT2{i}] = extractSpectrograms(X_2(wStart(i):wStart(i)+999),PLOTDATA);
+    CLASS{i} = unique(DATA(wStart(i):wStart(i)+999,3));
+%     a = input('Continue? \n');
+end
+clearvars -except filename T F STFT1 STFT2 CLASS
+save([filename(1:end-4) '_spect.mat'],'-v7','T','F','STFT1','STFT2','CLASS')
+%}
+
 
 %% CCA-KNN?
 % Generate static reference signal
