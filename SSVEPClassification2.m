@@ -13,14 +13,12 @@ start = 1;
 wStart = start:250:(length(X_1)-max(range));
 PLOTDATA = 1==0;
 % figure(6); hold on; 
-% plot(t,DATA(:,3),'r'),ylabel('Class Label'),xlabel('Time (s)'),title('Target Class');
+plot(t,DATA(:,3),'r'),ylabel('Class Label'),xlabel('Time (s)'),title('Target Class');
 %% Feature Extraction for Signal
 % filtRange = [8 20];
 pts = [1, 7935, 15500, 23425];
 start = pts(1);
-% Generate table (reference):
-
-wStart = start:250:(length(X_1)-max(range));
+% Generate table (reference);
 i=1;
 % %%%%%%%%%%%%% % %{
 PLOTDATA = 1==0;

@@ -21,12 +21,11 @@ threshPSD(4,:) = [15.5 17.5];
 %%% - Constants - %%%
 selc = ['.m';'.b';'.m';'.k']; %select dot color; 
 nCh = 1;
-winLim = [9,18];
+winLim = [9,18*2];
 % - Variables - %
 if plotData
     fH = figure(12); %-% Figure Handle
     set(fH, 'Position', [0, 0, 1440, 960]);
-    xL = [9.0 17.2];
     clf(fH)
 end
 wL = length(X);
@@ -51,8 +50,8 @@ if wL >= 250 %Recall Data is Already Filtered From Calling Method
     [f, FFT] = get_nfft_data(X, Fs, wL);
     [PSD, fPSD] = welch_psd(X, Fs, hW);
     if plotData
-        subplot(3,2,1);hold on;plot(f,FFT),xlim(xL);
-        subplot(3,2,2);hold on;plot(fPSD,PSD),xlim(xL);
+        subplot(3,2,1);hold on;plot(f,FFT),xlim(winLim);
+        subplot(3,2,2);hold on;plot(fPSD,PSD),xlim(winLim);
     end
     for i=1:4
         [fselect, fftselect, Lfft(i), Pfft(i)] = get_fft_features(f,FFT,threshFFT(i,:));
@@ -81,7 +80,7 @@ I = zeros(nCh,4);
 if wL>=250 
     F1 = F(select);
     % STFT:
-    [S,~,T] = stft2(X,wlen,h,nfft,Fs);
+    [S,~,T] = stft(X,wlen,h,nfft,Fs);
     S1 = 20*log10( abs( S(select,:) ) /wlen/K + 1E-6 );
     SS(:,1) = sum(S1,2)/size(S1,2);
     for i=1:4
