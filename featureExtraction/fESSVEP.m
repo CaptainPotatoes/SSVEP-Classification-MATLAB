@@ -1,4 +1,4 @@
-function [ SSVEP_FEATURES,P ] = fESSVEP( X0, Fs, plotData )
+function [ SSVEP_FEATURES,P,f ] = fESSVEP( X0, Fs, plotData )
 %FESSVEP Feature Extraction for single (m x 1) SSVEP EEG Data Vector
 %   X (m x 1) vectorize input:
 % Fix X size:
@@ -106,6 +106,11 @@ C1 = 9.7:ic:10.3;
 C2 = 12.1:ic:12.7;
 C3 = 14.8:ic:15.4;
 C4 = 16.2:ic:16.8;
+%adjusted:
+% C1 = 9.8:ic:10.2;
+% C2 = 12.2:ic:12.6;
+% C3 = 14.9:ic:15.3;
+% C4 = 16.3:ic:16.7;
 f_new = [C1,C2,C3,C4]; 
 hannW = hannWin(2048);winLim = [6 24]; 
 len = 2000;
@@ -117,11 +122,10 @@ Lconv = Mconv;
 % S1 = 
 for i = 1:length(f_new)
     [sigs(i,:)] = testSignal(f_new(i),len);
-    fixed = sigs(i,:); 
-%     convconv(i,:) = conv(X,sigs(i,:),'full');
+    fixed = sigs(i,:);
     convconv(i,:) = conv(X,fixed);
     [CPowerSpectrum ,wfreqs] = welch_psd(convconv(i,:), Fs, hannW); 
-    [Mconv(1,i),Lconv(1,i)] = max(CPowerSpectrum ); 
+    [Mconv(1,i),Lconv(1,i)] = max( CPowerSpectrum ); 
     if plotData
         subplot(3,2,[5 6]),xlim(winLim); hold on; plot(wfreqs, CPowerSpectrum );
     end
@@ -131,6 +135,8 @@ if plotData
 end
 % Fts:
 % SSVEP_FEATURES = [Lfft,Pfft,Lpsd,Ppsd,Lstft,Pstft,wfreqs(Lconv),Mconv];
+% f = wfreqs(Lconv);
+% P = Mconv;
 P = [wfreqs(Lconv),Mconv];
 SSVEP_FEATURES = [Pfft,Ppsd,Pstft,Mconv];
 

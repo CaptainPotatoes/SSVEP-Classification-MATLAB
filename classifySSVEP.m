@@ -7,14 +7,12 @@ function [ CLASS, F, M ] = classifySSVEP( X, plotData, thresholdFraction, Thresh
 % range - range of window sizes to view
 start = 1;
 % range = 500:250:length(X); % 1-4 s at 60pt intervals
-range = 750;
+range = 1000;
 NUMP = 56;
 P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
     fin = start + (range(i)-1);
     fch = ssvepcfilt2(X(start:fin)); %[5 40]
-%     fprintf('Current index = [%d to %d]\r\n',start, fin);
-%     fprintf('length = %d\r\n',range(i));
     [F, P(i,:)] = fESSVEP(fch,250,plotData); % Extract Features
 end
 
