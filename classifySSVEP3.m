@@ -9,14 +9,11 @@ for i = 1:size(range,2)
     fch = ssvepcfilt2(X1(start:fin)); %[5 40]
     fch2 = ssvepcfilt2(X2(start:fin));
     conv2ch = conv(fch,fch2,'full'); 
-    if  mod(length(conv2ch),2)==1
+%     if  mod(length(conv2ch),2)==1
         P(i,:) = fECONV2(conv2ch(1:end-1),250,plotData);
-%         [~, P(i,:)] = fESSVEP(conv2ch(1:end-1),250,plotData); % Extract Features
-    else
-        P(i,:) = fECONV2(conv2ch,250,plotData);
-        [~, P(i,:)] = fESSVEP(conv2ch,250,plotData); % Extract Features
-    end
-%     F = 0;
+%     else
+%         P(i,:) = fECONV2(conv2ch,250,plotData);
+%     end
 end
 
 idx = 1:4;
@@ -49,18 +46,18 @@ if plotData
     for i = 1:size(P,1)
         plot(P(i,1:28),P(i,29:end),'-*')
     end
-    h = refline([0,Threshold]); h.Color = 'r';
+%     h = refline([0,Threshold]); h.Color = 'r';
 end
 % Apply other methods of classification?
 if plotData
-    commandwindow;CLASS = input('Approve/continue?\n');
-    if isempty(CLASS)
-        if sum(b)==0
-            CLASS = ClusterLoc
-        else
-            CLASS = 0
-        end
-    end
+%     commandwindow;CLASS = input('Approve/continue?\n');
+%     if isempty(CLASS)
+%         if sum(b)==0
+%             CLASS = ClusterLoc
+%         else
+%             CLASS = 0
+%         end
+%     end
 else
     if sum(b)==0
         CLASS = ClusterLoc
