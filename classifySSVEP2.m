@@ -1,4 +1,4 @@
-function [ CLASS, F, M ] = classifySSVEP( X, plotData, thresholdFraction )
+function [ CLASS, F, M ] = classifySSVEP2( X, plotData, thresholdFraction )
 %CLASSIFYSSVEP - FINAL VERSION FOR MATLAB CODER - thresholdFraction 
     % INPUT VARS:
     % X - input array (any size)
@@ -6,8 +6,8 @@ function [ CLASS, F, M ] = classifySSVEP( X, plotData, thresholdFraction )
     % Fs - signal sampling frequency
 % range - range of window sizes to view
 start = 1;
-range = 250:250:length(X); % 1-4 s at 60pt intervals
-% range = 1000;
+% range = 250:250:length(X); % 1-4 s at 60pt intervals
+range = 1000;
 NUMP = 56;
 % P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
@@ -15,7 +15,8 @@ for i = 1:size(range,2)
     fch = ssvepcfilt2(X(start:fin)); %[5 40]
 %     fprintf('Current index = [%d to %d]\r\n',start, fin);
 %     fprintf('length = %d\r\n',range(i));
-    [F, P(i,:), f(i,:)] = fESSVEP(fch,250,plotData); % Extract Features
+%     [F, P(i,:), f(i,:)] = fESSVEP(fch,250,plotData); % Extract Features
+    
 end
 ClusterSize = length(P)/4;
 idx = 1:4;

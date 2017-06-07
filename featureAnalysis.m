@@ -30,7 +30,7 @@ else
 end
 % TREE:
 for i=1:4
-    if(P2(i)~=0)
+    if(P2(i)~=0) 
         TP(1,i) = compare(i); %TODO
     end
 end

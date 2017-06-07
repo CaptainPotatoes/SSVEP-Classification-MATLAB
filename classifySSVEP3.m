@@ -1,10 +1,4 @@
-function [ CLASS, F, M ] = classifySSVEP( X, plotData, thresholdFraction, Threshold )
-%CLASSIFYSSVEP - FINAL VERSION FOR MATLAB CODER - thresholdFraction 
-    % INPUT VARS:
-    % X - input array (any size)
-    % start - where to start from in 'X'
-    % Fs - signal sampling frequency
-% range - range of window sizes to view
+function [ Y ] = classifySSVEP3( X1, X2, plotData, thresholdFraction )
 start = 1;
 % range = 500:250:length(X); % 1-4 s at 60pt intervals
 range = 1000;
@@ -12,10 +6,17 @@ NUMP = 56;
 P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
     fin = start + (range(i)-1);
-    fch = ssvepcfilt2(X(start:fin)); %[5 40]
-%     [F, P(i,:)] = fESSVEP(fch,250,plotData); % Extract Features
-    P = fECONV2(fch,250,plotData);
-    F = 0;
+    fch = ssvepcfilt2(X1(start:fin)); %[5 40]
+    fch2 = ssvepcfilt2(X2(start:fin));
+    conv2ch = conv(fch,fch2,'full'); 
+    if  mod(length(conv2ch),2)==1
+        P(i,:) = fECONV2(conv2ch(1:end-1),250,plotData);
+%         [~, P(i,:)] = fESSVEP(conv2ch(1:end-1),250,plotData); % Extract Features
+    else
+        P(i,:) = fECONV2(conv2ch,250,plotData);
+        [~, P(i,:)] = fESSVEP(conv2ch,250,plotData); % Extract Features
+    end
+%     F = 0;
 end
 
 idx = 1:4;
@@ -36,7 +37,7 @@ end
 [Peak,ClusterLoc] = max(M);
 idx2 = idx(ClusterLoc~=idx);
 b = zeros(1,length(idx2));
-if (nargin<4)
+if (nargin<5)
     Threshold = Peak/thresholdFraction;
 end
 %TODO: 7.3E-13
@@ -67,12 +68,9 @@ else
         CLASS = 0
     end
 end
+Y = CLASS;
 if plotData
     clf(13)
 end
-% for i = 1:size(F,1)
-%     FS(1+size(F,2)*(i-1):size(F,2)*(i)) = F(i,:);
-% end
-
 end
 

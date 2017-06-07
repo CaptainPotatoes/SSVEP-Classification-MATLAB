@@ -102,17 +102,22 @@ end
 % f_new=9:0.1:17;
 ic = 0.1;
 % Clusters:
-C1 = 9.7:ic:10.3;
-C2 = 12.1:ic:12.7;
-C3 = 14.8:ic:15.4;
-C4 = 16.2:ic:16.8;
-%adjusted:
-% C1 = 9.8:ic:10.2;
-% C2 = 12.2:ic:12.6;
-% C3 = 14.9:ic:15.3;
-% C4 = 16.3:ic:16.7;
+% C1 = 9.7:ic:10.3;
+% C2 = 12.1:ic:12.7;
+% C3 = 14.8:ic:15.4;
+% C4 = 16.2:ic:16.8;
+% Second set (Updated).
+% C1 = 8.8:ic:9.4;
+% C2 = 10.8:ic:11.4;
+% C3 = 16.4:ic:17;
+% C4 = 18.2:ic:18.8;
+
+C1 = 16.4:ic:17;
+C2 = 18.2:ic:18.8;
+C3 = 19.7:ic:20.3;
+C4 = 24.4:ic:25;
 f_new = [C1,C2,C3,C4]; 
-hannW = hannWin(2048);winLim = [6 24]; 
+hannW = hannWin(2048);winLim = [6 30]; 
 len = 2000;
 fixed = zeros(1,len);
 sigs = zeros(length(f_new),len);
