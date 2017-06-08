@@ -1,4 +1,4 @@
-function [ Y ] = classifySSVEP3( X1, X2, plotData, thresholdFraction )
+function [ Y ] = classifySSVEP4( X1, X2, plotData, thresholdFraction )
 start = 1;
 % range = 500:250:length(X); % 1-4 s at 60pt intervals
 range = 1000;
@@ -8,12 +8,8 @@ for i = 1:size(range,2)
     fin = start + (range(i)-1);
     fch = ssvepcfilt2(X1(start:fin)); %[5 40]
     fch2 = ssvepcfilt2(X2(start:fin));
-    conv2ch = conv(fch,fch2,'full'); 
-%     if  mod(length(conv2ch),2)==1
-        P(i,:) = fECONV2(conv2ch(1:end-1),250,plotData);
-%     else
-%         P(i,:) = fECONV2(conv2ch,250,plotData);
-%     end
+    conv2ch = conv(fch,fch2,'full');
+    [~,P(i,:)] = fESSVEP(conv2ch(1:end-1),250,plotData);
 end
 
 idx = 1:4;
@@ -43,14 +39,12 @@ for i=1:length(idx2)
 end
 
 if plotData
-%     type = ['.r','.b','.k','.c']; 
     for i = 1:size(P,1)
-%         plot(P(i,1:28),P(i,29:end),'.r');
         for j = 1:4
             plot(P(i,((j-1)*7 + 1):j*7),P(i,((j+3)*7 + 1):(j+4)*7),'-.');
         end
     end
-    h = refline([0,Threshold]); h.Color = 'r';
+%     h = refline([0,Threshold]); h.Color = 'r';
 end
 % Apply other methods of classification?
 if plotData
