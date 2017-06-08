@@ -13,7 +13,7 @@ winHop = 250;
 wStart = 1:winHop:(length(X1)-max(range));
 PLOTDATA = 1==0
 freqs = [10,12.5,15.15,16.666];
-THRESHOLD_FRACTION = 3; i = 1;
+THRESHOLD_FRACTION = 4; i = 1;
 ic = 0.1;
 % C1 = 9.7:ic:10.3;
 % C2 = 12.1:ic:12.7;
@@ -37,6 +37,9 @@ figure(1); plot(PredictedClass); hold on; plot(ActualClass);
 % figure(1); hold on;  plot(PredictedClass2); figure(3); plot(M2);
 Compare = ActualClass == PredictedClass;% | ActualClass == PredictedClass2;
 Accuracy = sum(Compare)/length(ActualClass);
+legend('Predicted Class', 'Actual Class'); xlabel('Classifier Calls (1/s)');
+ylabel('Class Label');
+title(['SSVEP Classifier Output; Accuracy: ' num2str(100*Accuracy) '%']);
 %{
 %     [PredictedClass1(i),FTS1(i,:), M1(i,:)] = classifySSVEP(X1(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
 %     [PredictedClass2(i),FTS2(i,:), M2(i,:)] = classifySSVEP(X2(wStart(i):wStart(i)+999),PLOTDATA,THRESHOLD_FRACTION);
