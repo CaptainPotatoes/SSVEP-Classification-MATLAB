@@ -1,10 +1,11 @@
-function [fselect, stftselect, L, P, M, I] = get_stft_features(F, S, tH)
+function [fselect, stftselect, P1, L1] = get_stft_features(F, S, tH)
 select = F>tH(1) & F<tH(2);
 fselect = F(select);
 stftselect = S(select);
-[M, I] = max(stftselect);
+% [M, I] = max(stftselect);
 if length(fselect)>2
-    [P1, L1] = findpeaks(stftselect,'SortStr','descend');
+    [P1, L1] = max(stftselect);
+%     [P1, L1] = findpeaks(stftselect,'SortStr','descend');
 else
     P1 = [];
     L1 = [];

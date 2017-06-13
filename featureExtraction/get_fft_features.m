@@ -1,12 +1,13 @@
 function [fselect, fftselect, L, P] = get_fft_features( f, FFT, threshold )
-% coder.varsize('fftselect');
+
 FFT = FFT(:);
 select = f>threshold(1) & f<threshold(2);
 fselect = f(select);
 fftselect = FFT(select);
-[M, I] = max(fftselect);
+% [M, I] = max(fftselect);
 if length(fselect)>2
-    [P1, L1] = findpeaks(fftselect,'SortStr','descend');
+    [P1, L1] = max(fftselect);
+%     [P1, L1] = findpeaks(fftselect,'SortStr','descend');
 else
     P1 = [];
     L1 = [];

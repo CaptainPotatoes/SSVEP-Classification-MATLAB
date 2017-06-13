@@ -1,78 +1,47 @@
-function [ CLASS, F, M ] = classifySSVEP2( X, plotData, thresholdFraction )
-%CLASSIFYSSVEP - FINAL VERSION FOR MATLAB CODER - thresholdFraction 
-    % INPUT VARS:
-    % X - input array (any size)
-    % start - where to start from in 'X'
-    % Fs - signal sampling frequency
-% range - range of window sizes to view
+function [ Y , CLASS0 ] = classifySSVEP2( X1, X2, plotData, thresholdFraction )
 start = 1;
-% range = 250:250:length(X); % 1-4 s at 60pt intervals
-range = 1000;
-NUMP = 56;
-% P = zeros(size(range,2),NUMP);
+CLASS_LABELS = [0,1,2,3,4];
+range = length(X1);
+NUMP = 70;
+P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
     fin = start + (range(i)-1);
-    fch = ssvepcfilt2(X(start:fin)); %[5 40]
-%     fprintf('Current index = [%d to %d]\r\n',start, fin);
-%     fprintf('length = %d\r\n',range(i));
-%     [F, P(i,:), f(i,:)] = fESSVEP(fch,250,plotData); % Extract Features
-    
+    fch = ssvepcfilt2(X1(start:fin)); %[5 40]
+    fch2 = ssvepcfilt2(X2(start:fin));
+    conv2ch = conv(fch,fch2,'full');
+    [Ppsd] = fESSVEP(conv2ch(1:end-1),250,plotData);
+%     P = fESSVEP2(conv2ch(1:end-1),250,plotData);
 end
-ClusterSize = length(P)/4;
-idx = 1:4;
-% M = zeros(1,4);
 if plotData
-    figure(13);hold on;xlim([8 20]);
-%     for i=1:length(range)
-%         plot(f(i,:),P(i,:));
-%     end
-end
-for j = 1:length(range)
-    plot(f(j,:),P(j,:));
-    for i = 1:4
-        start = (i-1)*ClusterSize + 1;
-        fin = start+(ClusterSize-1); 
-        [M1,L1] = max(P(j,start:fin));
-        [M(j,i)] = max(M1);
-        if plotData
-            plot(f(j,(i-1)*ClusterSize+L1),M(j,i),'or'),xlabel('Frequency (Hz)'),ylabel('Power Density (W/Hz)'),title('Power Spectral Density Est. of Modified Signal');
-        end
-    end
-    [Peak(j),ClusterLoc(j)] = max(M(j,:));
-    Threshold(j) = Peak(j)/thresholdFraction;
-    idx2(j,:) = idx(ClusterLoc(j)~=idx);
-    for k=1:size(idx2,2)
-        b(j,k) = (M(j,idx2(k)) > Threshold(j));
-    end
+    figure(13);hold on;xlim([8 30]);
 end
 
-if plotData
-    h = refline([0,max(Threshold)]); h.Color = 'r';
+[M, Idx] = max(Ppsd);
+%% Version 1: (Simple)
+CLASS0 = CLASS_LABELS(Idx)
+%% Version 2: (More complex, uses threshold):
+% %{
+IF = 1:5;
+Idx2 = IF((1:5)~=Idx);
+b = zeros(1,length(Idx2));
+Threshold = M/thresholdFraction;
+for i=1:length(Idx2)
+    b(i) = (Ppsd(Idx2(i)) > Threshold);
 end
-
-% Apply other methods of classification?
-if plotData
-    commandwindow;CLASS = input('Approve/continue?\n');
-    if isempty(CLASS)
-        if sum(b)==0
-            CLASS = ClusterLoc
-        else
-            CLASS = 0
-        end
-    end
+if sum(b)==0
+    CLASS = CLASS_LABELS(Idx)
 else
-    if sum(b)==0
-        CLASS = ClusterLoc
-    else
-        CLASS = 0
-    end
+    CLASS = 0
 end
+%}
+
+if plotData
+    h = refline([0,Threshold]); h.Color = 'r';
+    commandwindow; IRINPUT = input('Approve/continue?\n');
+end
+Y = CLASS;
 if plotData
     clf(13)
 end
-% for i = 1:size(F,1)
-%     FS(1+size(F,2)*(i-1):size(F,2)*(i)) = F(i,:);
-% end
-
 end
 

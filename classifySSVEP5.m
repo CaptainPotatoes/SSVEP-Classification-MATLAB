@@ -1,8 +1,7 @@
-function [ Y ] = classifySSVEP5( X1, X2, plotData, thresholdFraction )
+function [ Y , P_data ] = classifySSVEP5( X1, X2, plotData, thresholdFraction )
 start = 1;
-% range = 500:250:length(X); % 1-4 s at 60pt intervals
 CLASS_LABELS = [0,1,2,3,4];
-range = 1000;
+range = length(X1);
 NUMP = 70;
 P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
@@ -10,6 +9,7 @@ for i = 1:size(range,2)
     fch = ssvepcfilt2(X1(start:fin)); %[5 40]
     fch2 = ssvepcfilt2(X2(start:fin));
     conv2ch = conv(fch,fch2,'full');
+%     [P, C] = fESSVEP(conv2ch(1:end-1),250,plotData);
     P = fESSVEP2(conv2ch(1:end-1),250,plotData);
 end
 P_len = size(P,2);
@@ -45,31 +45,25 @@ if plotData
     for i = 1:NumClasses
         plot(f((i-1)*7+1:7*i),P_data((i-1)*7+1:7*i),'*');
     end
-%     plot(f,P_data,'*');
-%     for i = 1:size(P,1)
-%         for j = 1:4
-%             plot(P(i,((j-1)*7 + 1):j*7),P(i,((j+3)*7 + 1):(j+4)*7),'-.');
-%         end
-%     end
-%     h = refline([0,Threshold]); h.Color = 'r';
+    h = refline([0,Threshold]); h.Color = 'r';
 end
 % Apply other methods of classification?
-% if plotData
-%     commandwindow;CLASS = input('Approve/continue?\n');
-%     if isempty(CLASS)
-%         if sum(b)==0
-%             CLASS = CLASS_LABELS(ClusterLoc)
-%         else
-%             CLASS = 0
-%         end
-%     end
-% else
+if plotData
+    commandwindow; CLASS = input('Approve/continue?\n');
+    if isempty(CLASS)
+        if sum(b)==0
+            CLASS = CLASS_LABELS(ClusterLoc)
+        else
+            CLASS = 0
+        end
+    end
+else
     if sum(b)==0
         CLASS = CLASS_LABELS(ClusterLoc)
     else
         CLASS = 0
     end
-% end
+end
 Y = CLASS;
 if plotData
     clf(13)
