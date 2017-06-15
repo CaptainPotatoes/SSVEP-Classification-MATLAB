@@ -98,7 +98,7 @@ if wL>498
         end
     end
     if plotData
-        subplot(3,2,3);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet);
+%         subplot(3,2,3);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet);
         subplot(3,2,4);hold on;plot(F1,SS(:));
         figure(13); hold on; plot(Lpsd, Ppsd, '*');
     end
