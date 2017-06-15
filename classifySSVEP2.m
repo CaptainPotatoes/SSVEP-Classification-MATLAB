@@ -36,8 +36,7 @@ end
 %}
 
 if plotData
-    h = refline([0,Threshold]); h.Color = 'r';
-    commandwindow; IRINPUT = input('Approve/continue?\n');
+    h = refline([0,Threshold]); h.Color = 'r'; commandwindow; IRINPUT = input('Approve/continue?\n');
 end
 Y = CLASS;
 if plotData

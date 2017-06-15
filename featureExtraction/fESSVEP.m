@@ -14,13 +14,13 @@ threshFFT(1,:) = [9.0 12];
 threshFFT(2,:) = [14.6 15.5]; 
 threshFFT(3,:) = [16.1 17.2];
 threshFFT(4,:) = [18.2 18.8];
-threshFFT(5,:) = [19.7 20.2];
+threshFFT(5,:) = [19.5 20.2];
 threshPSD = zeros(NUMBER_CLASSES,2);
 threshPSD(1,:) = [9.0 12.0];
 threshPSD(2,:) = [14 15.5];
 threshPSD(3,:) = [16.1 17.2];
 threshPSD(4,:) = [18.0 18.8];
-threshPSD(5,:) = [19.6 20.2];
+threshPSD(5,:) = [19.4 20.2];
 %%% - Constants - %%%
 selc = ['.m';'.b';'.m';'.k';'.c']; %select dot color; 
 nCh = 1;
@@ -79,7 +79,7 @@ K = sum(hammPeriodic(wlen))/wlen;
 M = zeros(nCh,NUMBER_CLASSES);
 I = zeros(nCh,NUMBER_CLASSES);
 
-if wL>=250 
+if wL>498 
     F1 = F(select);
     % STFT:
     [S,~,T] = stft(X,wlen,h,nfft,Fs);
@@ -90,9 +90,11 @@ if wL>=250
         if plotData
             subplot(3,2,4);hold on;plot(fselect,stftselect,selc(i,:));
 %             if Lstft(i)~=0
-%                 plot(Lstft(i), Pstft(i), 'or');
+%                 plot(Lstft(i), Pst`ft(i), 'or');
 %             end
+            if(I(i)~=0)
                 plot(fselect(I(i)),M(i),'or');
+            end
         end
     end
     if plotData
@@ -103,7 +105,7 @@ if wL>=250
 end
 
 %%Convolution Amplification:
-P = zeros(1,70);
+% P = zeros(1,70);
 % SSVEP_FEATURES = [Pfft,Ppsd,Pstft];
 
 end

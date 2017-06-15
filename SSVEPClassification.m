@@ -1,17 +1,17 @@
 clear;clc;close all;
-% [DATA, filename] = csvread('Subject1_15_20_withAlpha_1.csv');
-% [DATA, filename] = csvread('BioRadio_Matt_15s_2.csv');
-[DATA, filename] = csvread('EEG_SSVEPData_2017.06.12_13.03.54.csv');
+[DATA, filename] = csvread('Subject1_a15_20_interspersed_r1.csv');
+% [DATA, filename] = csvread('BioRadio_Matt_15s.csv');
+% [DATA, filename] = csvread('EEG_SSVEPData_2017.06.12_13.03.54.csv');
 X1 = DATA(:,1);
 X2 = DATA(:,2);
 Fs = 250; h=1/Fs;
 t = 0:h:(size(DATA,1)/250)-h;
-range = 250:250:1000;
+range = 500:250:1000;
 maxlen = max(range);
 winHop = 250;
-windowLength = 1000;
+windowLength = 250;
 wStart = 1:winHop:(length(X1)-max(range));
-PLOTDATA = 1==1
+PLOTDATA = 1==0
 THRESHOLD_FRACTION = 1.5; i = 1;
 % ic = 0.1; i=1;
 % C1 = 14.8:ic:15.4;
@@ -22,21 +22,35 @@ THRESHOLD_FRACTION = 1.5; i = 1;
 % sigs = generateTestSignal(f_new, 2000);
 % %{
 for i = 1:length(wStart)
-    fprintf('From [%d] to [%d] \r\n',wStart(i),wStart(i)+(windowLength-1));
-%     [PredictedClass(i)] = classifySSVEP5(X1(wStart(i):wStart(i)+999), X2(wStart(i):wStart(i)+999), PLOTDATA, THRESHOLD_FRACTION);
-    [PredictedClass(i),PC(i)] = classifySSVEP2(X1(wStart(i):wStart(i)+(windowLength-1)), X2(wStart(i):wStart(i)+(windowLength-1)), PLOTDATA, THRESHOLD_FRACTION);
+    for j = 1:length(range)
+        windowLength = range(j); 
+        fprintf('From [%d] to [%d] \r\n',wStart(i),wStart(i)+(windowLength-1));
+        [PredictedClass(j,i),PC2(j,i)] = classifySSVEP2(X1(wStart(i):wStart(i)+(windowLength-1)), X2(wStart(i):wStart(i)+(windowLength-1)), PLOTDATA, THRESHOLD_FRACTION);
+    end
     if(size(DATA,2) == 3)
         ActualClass(i) = mode(DATA(wStart(i):wStart(i)+(windowLength-1),3));
     end
 end
+figure(1); hold on;
 if(size(DATA,2) == 3)
-    figure(1); plot(ActualClass); 
-    Compare = ActualClass == PredictedClass;% | ActualClass == PredictedClass2;
-    Accuracy = sum(Compare)/length(ActualClass);
+    plot(ActualClass);
+    for j = 1:length(range)
+        plot(PredictedClass(j,:)); plot(PC2(j,:));
+        Compare = ActualClass == PredictedClass(j,:);% | ActualClass == PredictedClass2;
+        Compare2 = ActualClass == PC2(j,:);
+        Accuracy(j) = sum(Compare)/length(ActualClass);
+        Accuracy2(j) = sum(Compare2)/length(ActualClass);
+    end
+    
+    legend('Predicted Class', 'Actual Class'); xlabel('Classifier Calls (1/s)');
+    ylabel('Class Label');
+    title(['SSVEP Classifier Output; Accuracy: ' num2str(100*Accuracy(1)) '%']);
+else
+    plot(PredictedClass); plot(PC2);
+    legend('Predicted Class', 'Actual Class'); xlabel('Classifier Calls (1/s)');
+    ylabel('Class Label');
+    title(['SSVEP Classifier Output; Accuracy: ??%']);
 end
-figure(1); hold on; plot(PredictedClass);
-legend('Predicted Class', 'Actual Class'); xlabel('Classifier Calls (1/s)');
-ylabel('Class Label');
-title(['SSVEP Classifier Output; Accuracy: ' num2str(100*Accuracy) '%']);
+
 %}
 
