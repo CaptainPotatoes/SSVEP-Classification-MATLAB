@@ -11,12 +11,12 @@ X = (X0(:)');
 NUMBER_CLASSES = 5;
 threshFFT = zeros(NUMBER_CLASSES,2);
 threshFFT(1,:) = [9.0 12];
-threshFFT(2,:) = [14.6 15.5]; 
+threshFFT(2,:) = [14.6 15.7]; 
 threshFFT(3,:) = [16.1 17.2];
-threshFFT(4,:) = [18.2 18.8];
-threshFFT(5,:) = [19.5 20.2];
+threshFFT(4,:) = [18.0 19.2];
+threshFFT(5,:) = [19.3 20.7];
 threshPSD = zeros(NUMBER_CLASSES,2);
-threshPSD(1,:) = [9.0 12.0];
+threshPSD(1,:) = [9 12.0];
 threshPSD(2,:) = [14 15.5];
 threshPSD(3,:) = [16.1 17.2];
 threshPSD(4,:) = [18.0 18.8];
@@ -59,8 +59,8 @@ if wL >= 250
         [fselect, fftselect, Lfft(i), Pfft(i)] = get_fft_features(f,FFT,threshFFT(i,:));
         [fselect2, psdselect, Lpsd(i), Ppsd(i)] = get_psd_features(fPSD,PSD,threshPSD(i,:));
         if plotData
-            subplot(3,2,1);hold on;plot(fselect,fftselect,selc(i,:)); plot(Lfft(i),Pfft(i),'or');
-            subplot(3,2,2);hold on;plot(fselect2,psdselect, selc(i,:)); plot(Lpsd(i),Ppsd(i),'or');
+            subplot(3,2,1);hold on;plot(fselect,fftselect,selc(i,:)); plot(Lfft(i),Pfft(i),'or'); title('FFT Analysis');
+            subplot(3,2,2);hold on;plot(fselect2,psdselect, selc(i,:)); plot(Lpsd(i),Ppsd(i),'or'); title('Power Spectral Density Est.');
         end
     end
 end
@@ -98,8 +98,8 @@ if wL>498
         end
     end
     if plotData
-%         subplot(3,2,3);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet);
-        subplot(3,2,4);hold on;plot(F1,SS(:));
+        subplot(3,2,3);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet); title('Spectrogram');
+        subplot(3,2,4);hold on;plot(F1,SS(:)); title('Spectrogram Average Power');
         figure(13); hold on; plot(Lpsd, Ppsd, '*');
     end
 end

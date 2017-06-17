@@ -1,5 +1,5 @@
 clear;clc;close all;
-[DATA, filename] = csvread('Subject1_Trial4.5.csv');
+[DATA, filename] = csvread('Subject1_Trial3.1.csv');
 % [DATA, filename] = csvread('BioRadio_Matt_15s.csv');
 % [DATA, filename] = csvread('EEG_SSVEPData_2017.);
 X1 = DATA(:,1);
@@ -9,10 +9,10 @@ t = 0:h:(size(DATA,1)/250)-h;
 % range = 500:250:1000;
 range = 1000;
 maxlen = max(range);
-winHop = 250;
+winHop = 125;
 wStart = 1:winHop:(length(X1)-max(range));
 PLOTDATA = 1==0
-THRESHOLD_FRACTION = 2; i = 1;
+THRESHOLD_FRACTION = 2 ; i = 1;
 % ic = 0.1; i=1;
 % C1 = 14.8:ic:15.4;
 % C2 = 16.4:ic:17;
@@ -21,7 +21,7 @@ THRESHOLD_FRACTION = 2; i = 1;
 % f_new = [C1,C2,C3,C4];
 % sigs = generateTestSignal(f_new, 2000);
 % %{
-for i = 1:length(wStart)
+for i = 30:length(wStart)
     for j = 1:length(range)
         windowLength = range(j); 
         fprintf('From [%d] to [%d] \r\n',wStart(i),wStart(i)+(windowLength-1));
@@ -36,7 +36,8 @@ figure(1); hold on;
 if(size(DATA,2) == 3)
     plot(ActualClass);
     for j = 1:length(range)
-        plot(PredictedClass(j,:)); plot(PC2(j,:));
+        plot(PredictedClass(j,:));
+%         plot(PC2(j,:));
         Compare = ActualClass == PredictedClass(j,:);% | ActualClass == PredictedClass2;
         Compare2 = ActualClass == PC2(j,:);
         Accuracy(j) = sum(Compare)/length(ActualClass);

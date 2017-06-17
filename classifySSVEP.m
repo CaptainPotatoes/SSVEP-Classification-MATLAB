@@ -5,10 +5,13 @@ range = length(X1);
 NUMP = 70;
 P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
-    fch = ssvepcfilt2(X1(start:end)); %[5 40]
+    fch1 = ssvepcfilt2(X1(start:end)); %[5 40]
     fch2 = ssvepcfilt2(X2(start:end));
-    conv2ch = conv(fch,fch2,'full');
-    [Ppsd] = fESSVEP(conv2ch(1:end-1),250,plotData);
+    conv2ch = conv(fch1,fch2,'full');
+%     [Ppsd] = fESSVEP(conv2ch(1:end-1),250,plotData);
+%     [Ppsd] = fESSVEP(fch1,250,plotData);
+%     [Ppsd] = fESSVEP(fch2,250,plotData);
+    [Ppsd] = fPowerSpectrum(conv2ch(1:end-1),250,plotData);
 end
 if plotData
     figure(13);hold on;xlim([8 30]);
