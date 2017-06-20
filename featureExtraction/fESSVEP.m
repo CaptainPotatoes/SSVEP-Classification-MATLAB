@@ -16,7 +16,7 @@ threshFFT(3,:) = [16.1 17.2];
 threshFFT(4,:) = [18.0 19.2];
 threshFFT(5,:) = [19.3 20.7];
 threshPSD = zeros(NUMBER_CLASSES,2);
-threshPSD(1,:) = [9 12.0];
+threshPSD(1,:) = [9 13];
 threshPSD(2,:) = [14 15.5];
 threshPSD(3,:) = [16.1 17.2];
 threshPSD(4,:) = [18.0 18.8];
@@ -24,7 +24,7 @@ threshPSD(5,:) = [19.4 20.2];
 %%% - Constants - %%%
 selc = ['.m';'.b';'.m';'.k';'.c']; %select dot color; 
 nCh = 1;
-winLim = [8,24];
+winLim = [6,24];
 % - Variables - %
 if plotData
     fH = figure(12); %-% Figure Handle

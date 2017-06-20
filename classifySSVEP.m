@@ -1,9 +1,7 @@
 function [ Y , CLASS0 ] = classifySSVEP( X1, X2, plotData, thresholdFraction )
-start = 501;
+start = 1; % start = 501;
 CLASS_LABELS = [0,1,2,3,4];
 range = length(X1);
-NUMP = 70;
-P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
     fch1 = ssvepcfilt2(X1(start:end)); %[5 40]
     fch2 = ssvepcfilt2(X2(start:end));
@@ -37,7 +35,7 @@ end
 %}
 
 if plotData
-%     h = refline([0,Threshold]); h.Color = 'r'; commandwindow; IRINPUT = input('Approve/continue?\n');
+    h = refline([0,Threshold]); h.Color = 'r'; commandwindow; IRINPUT = input('Approve/continue?\n');
 end
 Y = CLASS;
 if plotData

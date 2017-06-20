@@ -1,16 +1,17 @@
 function [ Y , CLASS0 ] = classifySSVEP2( X1, X2, plotData, thresholdFraction )
-start = 1;
+start = 501;
 CLASS_LABELS = [0,1,2,3,4];
 range = length(X1);
 NUMP = 70;
 P = zeros(size(range,2),NUMP);
 for i = 1:size(range,2)
-    fin = start + (range(i)-1);
-    fch = ssvepcfilt2(X1(start:fin)); %[5 40]
-    fch2 = ssvepcfilt2(X2(start:fin));
-    conv2ch = conv(fch,fch2,'full');
-    [Ppsd] = fESSVEP(conv2ch(1:end-1),250,plotData);
-%     P = fESSVEP2(conv2ch(1:end-1),250,plotData);
+    fch1 = ssvepcfilt2(X1(start:end)); %[5 40]
+    fch2 = ssvepcfilt2(X2(start:end));
+    conv2ch = conv(fch1,fch2,'full');
+%     [Ppsd] = fESSVEP(conv2ch(1:end-1),250,plotData);
+%     [Ppsd] = fESSVEP(fch1,250,plotData);
+%     [Ppsd] = fESSVEP(fch2,250,plotData);
+    [Ppsd] = fPowerSpectrum(conv2ch(1:end-1),250,plotData);
 end
 if plotData
     figure(13);hold on;xlim([8 30]);
@@ -36,7 +37,7 @@ end
 %}
 
 if plotData
-%     h = refline([0,Threshold]); h.Color = 'r'; commandwindow; IRINPUT = input('Approve/continue?\n');
+    h = refline([0,Threshold]); h.Color = 'r'; commandwindow; IRINPUT = input('Approve/continue?\n');
 end
 Y = CLASS;
 if plotData

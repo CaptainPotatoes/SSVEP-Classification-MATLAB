@@ -4,7 +4,7 @@ sPSD = f>=tH(1) & f<=tH(2); %selectPSD
 fselect = f(sPSD);
 PSDselect = PSD(sPSD);
 
-if length(PSDselect)>2
+if length(PSDselect)>1
     [P1,L1] = max(PSDselect);
 %     [P1,L1] = findpeaks(PSDselect,'SortStr','descend');
 else

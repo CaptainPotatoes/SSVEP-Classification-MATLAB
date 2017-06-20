@@ -10,7 +10,7 @@ X = (X0(:)');
 %%%%% - Thresholds: - %%%%%
 NUMBER_CLASSES = 5;
 threshPSD = zeros(NUMBER_CLASSES,2);
-threshPSD(1,:) = [9 12.0];
+threshPSD(1,:) = [9 13];
 threshPSD(2,:) = [14 15.5];
 threshPSD(3,:) = [16.1 17.2];
 threshPSD(4,:) = [18.0 18.8];
