@@ -1,4 +1,4 @@
-function [ Y , CLASS0 ] = classifySSVEP( X1, X2, plotData, thresholdFraction )
+function [ Y , CLASS0, Ppsd ] = classifySSVEP( X1, X2, plotData, thresholdFraction )
 start = 1; % start = 501;
 CLASS_LABELS = [0,1,2,3,4];
 range = length(X1);
