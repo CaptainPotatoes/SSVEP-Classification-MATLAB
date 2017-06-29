@@ -1,7 +1,7 @@
 clear;clc;close all;
-[DATA, filename] = csvread('Subject1_Trial5.1.csv');
+% [DATA, filename] = csvread('Subject1_Trial5.1.csv');
 % [DATA, filename] = csvread('BioRadio_Matt_15s.csv');
-% [DATA, filename] = csvread('EEG_SSVEPData_2017.);
+[DATA, filename] = csvread('WheelchairControl_SSVEP_SecondDemo_Data_SubjectMP.csv');
 X1 = DATA(:,1);
 X2 = DATA(:,2);
 Fs = 250; h=1/Fs;
@@ -9,9 +9,9 @@ t = 0:h:(size(DATA,1)/250)-h;
 range = 250:250:1000;
 % range = 1000;
 maxlen = max(range);
-winHop = 125;
+winHop = 60;
 wStart = 1:winHop:(length(X1)-max(range));
-PLOTDATA = 1==0
+PLOTDATA = 1==11
 THRESHOLD_FRACTION = 2 ; i = 1;
 % test signals:
 sti_f = [ 9.5, 15.15, 16.67, 18.52, 20.0 ];
@@ -29,10 +29,8 @@ PC2 = PredictedClass; PC3 = PC2; ActualClass = PC3;
 % %{
 for i = 1:length(wStart)
     for j = 1:length(range)
-%         windowLength = range(j); 
         fprintf('From [%d] to [%d] \r\n',wStart(i),wStart(i)+(range(j)-1));
         [PredictedClass(j,i),PC2(j,i), Ppsd(i,:,j)] = classifySSVEP(X1(wStart(i):wStart(i)+(range(j)-1)), X2(wStart(i):wStart(i)+(range(j)-1)), PLOTDATA, THRESHOLD_FRACTION);
-%         [PredictedClass(j,i),PC2(j,i)] = classifySSVEP2(X1(wStart(i):wStart(i)+(range(j)-1)), X2(wStart(i):wStart(i)+(range(j)-1)), PLOTDATA, THRESHOLD_FRACTION);
         if(size(DATA,2) == 3)
             ActualClass(j,i) = mode(DATA(wStart(i):wStart(i)+(range(j)-1),3));
         end
@@ -52,9 +50,9 @@ Accuracy = zeros(1,length(range)); Accuracy2 = Accuracy; Accuracy3 = Accuracy;
 if(size(DATA,2) == 3)
     for j = 1:length(range)
         figure(j); hold on;
-        plot(ActualClass(j,:),'.');
-        plot(PredictedClass(j,:),'*');
-        plot(PC2(j,:),'.');
+        plot(ActualClass(j,:));
+        plot(PredictedClass(j,:));
+        plot(PC2(j,:));
         plot(PC3(j,:),'.');
         Compare = ActualClass(j,:) == PredictedClass(j,:);% | ActualClass == PredictedClass2;
         Compare2 = ActualClass(j,:) == PC2(j,:);
@@ -74,8 +72,9 @@ else
 end
 for i = 1:length(range)
     figure; %hold on;
-    plot(Ppsd(:,2:end,i),'-*');
+    plot(Ppsd(:,1:end,i),'-*');
 end
+% C = confusionmat(ActualClass,PC2);
 
 %}
 
