@@ -12,3 +12,4 @@ TEST.mat
 *.mexw64
 *.prj
 _rejectData/
+heatmaps/html/

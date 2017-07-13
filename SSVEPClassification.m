@@ -1,19 +1,19 @@
 clear;clc;close all;
 % [DATA, filename] = csvread('Subject1_Trial5.1.csv');
 % [DATA, filename] = csvread('BioRadio_Matt_15s.csv');
-[DATA, filename] = csvread('WheelchairControl_SSVEP_SecondDemo_Data_SubjectMP.csv');
+[DATA, filename] = csvread('Subject1_Trial5.1.csv');
 X1 = DATA(:,1);
 X2 = DATA(:,2);
 Fs = 250; h=1/Fs;
 t = 0:h:(size(DATA,1)/250)-h;
-range = 250:250:1000;
-% range = 1000;
+% range = 250:250:1000;
+range = 500;
 maxlen = max(range);
-winHop = 60;
+winHop = 250;
 wStart = 1:winHop:(length(X1)-max(range));
-PLOTDATA = 1==11
+PLOTDATA = 1==1
 THRESHOLD_FRACTION = 2 ; i = 1;
-% test signals:
+% Test Signals:
 sti_f = [ 9.5, 15.15, 16.67, 18.52, 20.0 ];
 t_length=4;                              % data length (4 s)
 TW=1:1:t_length;
@@ -28,6 +28,7 @@ PredictedClass = zeros(length(range),length(wStart));
 PC2 = PredictedClass; PC3 = PC2; ActualClass = PC3; 
 % %{
 for i = 1:length(wStart)
+    i
     for j = 1:length(range)
         fprintf('From [%d] to [%d] \r\n',wStart(i),wStart(i)+(range(j)-1));
         [PredictedClass(j,i),PC2(j,i), Ppsd(i,:,j)] = classifySSVEP(X1(wStart(i):wStart(i)+(range(j)-1)), X2(wStart(i):wStart(i)+(range(j)-1)), PLOTDATA, THRESHOLD_FRACTION);
@@ -74,7 +75,20 @@ for i = 1:length(range)
     figure; %hold on;
     plot(Ppsd(:,1:end,i),'-*');
 end
-% C = confusionmat(ActualClass,PC2);
+C = confusionmat(ActualClass,PredictedClass);
+C3(1,:,:) = C;
+ATN = sum(squeeze(sum(C3,1)),2);%sum(sum(C));
+SumDim1 = squeeze(sum(C3,1));
+figure;
+for i=1:5
+    PercentC(i,:) = (SumDim1(i,:)./(ATN(i)))*100;
+end
+labels = {'Alpha','15','16','18','20'};
+heatmap(PercentC, labels, labels, '%0.2f%%','Colormap','jet','ShowAllTicks',0,'UseLogColorMap',true,'Colorbar',true,'ColorLevels',30,'MaxColorValue',100,'MinColorValue',0);
+figure; 
+heatmap(PercentC, labels, labels, [],'Colormap','jet','ShowAllTicks',0,'UseLogColorMap',true,'Colorbar',true,'ColorLevels',30,'MaxColorValue',100,'MinColorValue',0);
+OverallAccuracy = sum(diag(PercentC))/5
+xlabel('Predicted'),ylabel('Actual'),title(['Confusion Matrix for conv-PSDA method, Accuracy = ', num2str(OverallAccuracy), '%'])
 
 %}
 

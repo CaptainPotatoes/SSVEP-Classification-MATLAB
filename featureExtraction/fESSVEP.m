@@ -1,4 +1,4 @@
-function [ Ppsd ] = fESSVEP( X0, Fs, plotData )
+function [ Ppsd ] = fESSVEP( X0, Fs, plotData, figureNumber )
 %FESSVEP Feature Extraction for single (m x 1) SSVEP EEG Data Vector
 %   X (m x 1) vectorize input:
 % Fix X size:
@@ -27,8 +27,8 @@ nCh = 1;
 winLim = [6,24];
 % - Variables - %
 if plotData
-    fH = figure(12); %-% Figure Handle
-    set(fH, 'Position', [0, 0, 1440, 960]);
+    fH = figure(figureNumber); %-% Figure Handle
+    set(fH, 'Position', [0, 0, 300, 1080]);
     clf(fH)
 end
 wL = length(X);
@@ -52,15 +52,17 @@ if wL >= 250
     [f, FFT] = get_nfft_data(X, Fs, wL);
     [PSD, fPSD] = welch_psd(X, Fs, hW);
     if plotData
-        subplot(3,2,1);hold on;plot(f,FFT),xlim(winLim);
-        subplot(3,2,2);hold on;plot(fPSD,PSD),xlim(winLim);
+        subplot(4,1,2);hold on;plot(f,FFT),xlim(winLim);
+        subplot(4,1,3);hold on;plot(fPSD,PSD),xlim(winLim);
     end
     for i=1:NUMBER_CLASSES
         [fselect, fftselect, Lfft(i), Pfft(i)] = get_fft_features(f,FFT,threshFFT(i,:));
         [fselect2, psdselect, Lpsd(i), Ppsd(i)] = get_psd_features(fPSD,PSD,threshPSD(i,:));
         if plotData
-            subplot(3,2,1);hold on;plot(fselect,fftselect,selc(i,:)); plot(Lfft(i),Pfft(i),'or'); title('FFT Analysis');
-            subplot(3,2,2);hold on;plot(fselect2,psdselect, selc(i,:)); plot(Lpsd(i),Ppsd(i),'or'); title('Power Spectral Density Est.');
+            subplot(4,1,2);hold on;plot(fselect,fftselect,selc(i,:)); plot(Lfft(i),Pfft(i),'or'); title('FFT Analysis');
+            xlabel('f (Hz)'); ylabel('FFT Spectrum |P1(f)|');
+            subplot(4,1,3);hold on;plot(fselect2,psdselect, selc(i,:)); plot(Lpsd(i),Ppsd(i),'or'); title('Power Spectral Density Est.');
+            xlabel('f (Hz)'); ylabel('Power Spectrum (W/Hz)')
         end
     end
 end
@@ -88,25 +90,22 @@ if wL>498
     for i=1:NUMBER_CLASSES
         [fselect, stftselect, M(i), I(i)] = get_stft_features(F1,SS,threshFFT(i,:));
         if plotData
-            subplot(3,2,4);hold on;plot(fselect,stftselect,selc(i,:));
-%             if Lstft(i)~=0
-%                 plot(Lstft(i), Pst`ft(i), 'or');
-%             end
+%             subplot(4,1,4);hold on;plot(fselect,stftselect,selc(i,:));
+            if Lstft(i)~=0
+%                 plot(Lstft(i), Pstft(i), 'or');
+            end
             if(I(i)~=0)
-                plot(fselect(I(i)),M(i),'or');
+%                 plot(fselect(I(i)),M(i),'or');
             end
         end
     end
     if plotData
-        subplot(3,2,3);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');colorbar;colormap(jet); title('Spectrogram');
-        subplot(3,2,4);hold on;plot(F1,SS(:)); title('Spectrogram Average Power');
-        figure(13); hold on; plot(Lpsd, Ppsd, '*');
+        subplot(4,1,4);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');c = colorbar;colormap(jet); title('Spectrogram'); ylabel(c,'Power (dB)')
+        ylabel('Frequncy (Hz)'); xlabel('Time (s)');
+        tX = 0:1/Fs:(length(X)/250-1/Fs);
+        subplot(4,1,1);plot(tX,X); title('Filtered Signal'); xlabel('Time (s)'); ylabel('EEG Signal Amplitude, X(t)');%hold on;plot(F1,SS(:)); title('Spectrogram Average Power'); 
     end
 end
-
-%%Convolution Amplification:
-% P = zeros(1,70);
-% SSVEP_FEATURES = [Pfft,Ppsd,Pstft];
 
 end
 
