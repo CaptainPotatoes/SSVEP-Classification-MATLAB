@@ -1,16 +1,32 @@
 %% Filter Data:
 clear;clc;close all;
-[DATA,filename] = csvread('Subject3_Trial5.3.csv');
-Fs = 250;
+[DATA,filename] = csvread('Subject1_Trial1.1.csv');
+% Fs = 250;
+freqs = [250,500,1000,2000,4000];
+windowSize = 4*freqs;
 datach = DATA(:,1:2);
-classLabels = DATA(:,3);
+% classLabels = DATA(:,3);
 F = [4 35];winLim = [8 35];
-for i = 1:2
-   filtch(:,i) = customFilt(datach(:,i),Fs,F,3);
+filtch = cell(length(freqs),1);
+for i = 1:length(freqs)
+    for wins = 1:length(windowSize)
+        filtch{i} = ecg_var_filter(datach(1:windowSize(i),1), freqs(i), windowSize(i));
+    end
+%    filtch(:,i) = customFilt(datach(:,i),Fs,F,3);
+%     filtch(:,i) = ssvep_filter_f32(datach(1:windowSize,i));
 end
-% fH = figure(4);
-% set(fH, 'Position', [0, 0, 1200, 1400]);%Spect
-% plot(filtch)
+%% Variable Window Sizes:
+fH = figure(4);
+set(fH, 'Position', [0, 0, 1200, 1400]);%Spect
+plot(filtch{1})
+for i = 1:length(freqs)
+    windowSize = [1:8]*freqs(i);
+    for wins = 1:length(windowSize)
+        filtch_varsize{i,wins} = ecg_var_filter(datach(1:windowSize(wins),1), freqs(i), windowSize(wins));
+    end
+%    filtch(:,i) = customFilt(datach(:,i),Fs,F,3);
+%     filtch(:,i) = ssvep_filter_f32(datach(1:windowSize,i));
+end
 %{
 wlen = 1024; h=64; nfft = 4096;
 K = sum(hamming(wlen, 'periodic'))/wlen;
@@ -23,5 +39,5 @@ for i = 1:2
     title(['Ch' num2str(i)]);
 end
 %}
-DATAWRITE = [filtch, classLabels];
-csvwrite([filename(1:end-4) '_filt.csv'],DATAWRITE);
+% DATAWRITE = [filtch, classLabels];
+% csvwrite([filename(1:end-4) '_filt.csv'],DATAWRITE);

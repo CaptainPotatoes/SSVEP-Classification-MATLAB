@@ -25,7 +25,7 @@ if plotData
     clf(fH)
 end
 wL = length(X);
-if mod(wL,2) == 1;
+if mod(wL,2) == 1
     PSD = zeros(1,(wL-1)/2);
 else
     PSD = zeros(1,wL/2);

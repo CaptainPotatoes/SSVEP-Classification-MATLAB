@@ -1,4 +1,4 @@
-function [ Y ] = customFilt( X,Fs,f,N )
+function [ Y, b, a ] = customFilt( X,Fs,f,N )
 %FILT_CUSTOM Allows for quick customization of bandpass filter parameters
 if ~isvector(X)
   error('must be a row or column vector');

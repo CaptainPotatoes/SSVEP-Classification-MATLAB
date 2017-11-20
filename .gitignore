@@ -13,3 +13,18 @@ TEST.mat
 *.prj
 _rejectData/
 heatmaps/html/
+data/
+Dry_Electrodes_Rob_5ch/
+functions/
+plugins/
+sample_data/
+sample_locs/
+ShinjaeData/
+ECG Data/
+1ST_README.txt
+BioRadioData/
+external/
+Contents.m
+eeglablicense.txt
+eeglab.m
+msetCCA/
