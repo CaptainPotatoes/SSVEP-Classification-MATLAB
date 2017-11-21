@@ -1,4 +1,4 @@
-function [ Ppsd ] = fESSVEP( X0, Fs, plotData, figureNumber )
+function [ Ppsd, Lpsd, PSD ] = fESSVEP( X0, Fs, plotData )
 %FESSVEP Feature Extraction for single (m x 1) SSVEP EEG Data Vector
 %   X (m x 1) vectorize input:
 % Fix X size:
@@ -27,12 +27,12 @@ nCh = 1;
 winLim = [6,24];
 % - Variables - %
 if plotData
-    fH = figure(figureNumber); %-% Figure Handle
-    set(fH, 'Position', [0, 0, 300, 1080]);
+    fH = figure(12); %-% Figure Handle
+    set(fH, 'Position', [0, 0, 300, 900]);
     clf(fH)
 end
 wL = length(X);
-if mod(wL,2) == 1;
+if mod(wL,2) == 1
     PSD = zeros(1,(wL-1)/2);
 else
     PSD = zeros(1,wL/2);
@@ -71,6 +71,7 @@ wlen = 128;
 if wL >= 500
     wlen = 256;  
 end
+%{
 F = (0:(ceil((1+nfft)/2))-1)*Fs/nfft;
 select = F<winLim(2) & F>winLim(1);
 F1 = zeros(1,sum(select));
@@ -100,12 +101,13 @@ if wL>498
         end
     end
     if plotData
-        subplot(4,1,4);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');c = colorbar;colormap(jet); title('Spectrogram'); ylabel(c,'Power (dB)')
+%         subplot(4,1,4);hold on;imagesc(T,F1,S1),ylim(winLim),xlim([min(T),max(T)]);set(gca,'YDir','normal');c = colorbar;colormap(jet); title('Spectrogram'); ylabel(c,'Power (dB)')
         ylabel('Frequncy (Hz)'); xlabel('Time (s)');
         tX = 0:1/Fs:(length(X)/250-1/Fs);
         subplot(4,1,1);plot(tX,X); title('Filtered Signal'); xlabel('Time (s)'); ylabel('EEG Signal Amplitude, X(t)');%hold on;plot(F1,SS(:)); title('Spectrogram Average Power'); 
+        figure(13); hold on; plot(Lpsd, Ppsd, '*');
     end
 end
-
+%}
 end
 

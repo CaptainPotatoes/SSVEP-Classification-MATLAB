@@ -1,5 +1,40 @@
 %% SSVEP CLASSIFICATION:
 clear;clc;close all;
+% drc = 'C:\Users\mmahmood31\OneDrive - Georgia Institute of Technology\Publishing\_SSVEP\_SSVEPDataShared\S3\';
+drc = 'BioRadioData\';
+listing = dir(drc);
+cnt = 1;
+% names = cell(1);
+for i=1:size(listing,1) 
+   if(size(listing(i).name,2)>2)
+        names{cnt} = listing(i).name;
+        cnt = cnt+1;
+   end
+end
+% range = 500; start = 251;
+range = 750; start = 1;
+sizec = range - start;
+for i = 1:size(names,2)
+    nm = [drc,names{i}];
+    Acc(i,:) = runFileClassification(nm,[],range,start);
+end
+
+
+% m_A(1) = mean(Acc(:,1));
+% m_A(2) = mean(Acc(:,2));
+% m_A(3) = mean(Acc(:,3));
+% 
+% A1 = Acc(:,1);
+% A2 = Acc(:,2);
+% A3 = Acc(:,3);
+% 
+% A1 = reshape(A1,[length(A1)/5,5]);
+% A2 = reshape(A2,[length(A2)/5,5]);
+% A3 = reshape(A3,[length(A3)/5,5]);
+
+%% 
+%{
+clear;clc;close all;
 % [DATA,filename] = csvread('Subject1_SingleChannel_10Hz_to_16Hz.csv');
 % [DATA,filename] = csvread('EEG_SSVEPData_2017.05.31_14.55.24.csv');
 [DATA, filename] = csvread('data\Subject1_SingleChannel_10Hz_to_16Hz.csv');
